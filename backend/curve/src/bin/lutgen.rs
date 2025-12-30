@@ -106,14 +106,14 @@ fn main() {
     // Baseline so cumulative cost starts at zero at -X_MAX.
     let s_baseline = softplus(-X_MAX);
 
-    println!("pub(crate) struct CostLutPoint {{ pub(crate) x: i32, pub(crate) s: u64 }}");
+    println!("pub(crate) struct CostPoint {{ pub(crate) x: i32, pub(crate) s: u64 }}");
     println!();
-    println!("pub(crate) static COST_LUT: [CostLutPoint; {SAMPLE_COUNT}] = [",);
+    println!("pub(crate) static COST_LUT: [CostPoint; {SAMPLE_COUNT}] = [",);
 
     for x_q in full_x_grid {
         let x = (x_q as f64) / ((1u64 << X_FRAC_BITS) as f64);
         let s_q16_48 = to_q16_48(softplus(x) - s_baseline);
-        println!("    CostLutPoint {{ x: {x_q}, s: {s_q16_48} }},");
+        println!("    CostPoint {{ x: {x_q}, s: {s_q16_48} }},");
     }
 
     println!("];\n");
