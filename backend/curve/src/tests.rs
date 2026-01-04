@@ -40,7 +40,11 @@ fn gen_dx_in_domain(rng: &mut Rng, x0: i32) -> i32 {
 fn step_bounds_in_domain(x: i32, max_step: i32) -> Option<(i32, i32)> {
     let min = (LUT_X_MIN - x).max(-max_step);
     let max = (LUT_X_MAX - x).min(max_step);
-    if min > max { None } else { Some((min, max)) }
+    if min > max {
+        None
+    } else {
+        Some((min, max))
+    }
 }
 
 /// Verifies the zero step is a fixed point for delta mapping.
@@ -144,19 +148,19 @@ fn antisymmetry_in_domain() {
 fn invert_delta_at_lut_points() {
     let indices = [
         0usize,
-        COST_LUT.len() / 4,
-        COST_LUT.len() / 2,
-        (3 * COST_LUT.len()) / 4,
-        COST_LUT.len() - 1,
+        X_LUT.len() / 4,
+        X_LUT.len() / 2,
+        (3 * X_LUT.len()) / 4,
+        X_LUT.len() - 1,
     ];
 
     for &i in &indices {
-        let x0 = COST_LUT[i].x;
-        let s0 = COST_LUT[i].s;
+        let x0 = X_LUT[i];
+        let s0 = S_LUT[i];
 
         for &j in &indices {
-            let x1 = COST_LUT[j].x;
-            let ds = COST_LUT[j].s as i64 - s0 as i64;
+            let x1 = X_LUT[j];
+            let ds = S_LUT[j] as i64 - s0 as i64;
             let dx = dx_for_ds(x0, s0, ds);
             assert_eq!(x0 + dx, x1);
         }
@@ -187,15 +191,17 @@ fn invert_delta_round_trip_near_exact() {
 /// This checks the interpolation logic used by the inverse mapping.
 #[test]
 fn invert_delta_midpoint_between_samples() {
-    let step = COST_LUT.len() / 64;
-    for i in (0..COST_LUT.len() - 1).step_by(step) {
-        let a = COST_LUT[i];
-        let b = COST_LUT[i + 1];
-        let s_mid = (a.s + b.s) / 2;
-        let x_mid_expected = (a.x + b.x) / 2;
+    let step = X_LUT.len() / 64;
+    for i in (0..X_LUT.len() - 1).step_by(step) {
+        let x0 = X_LUT[i];
+        let x1 = X_LUT[i + 1];
+        let s0 = S_LUT[i];
+        let s1 = S_LUT[i + 1];
+        let s_mid = (s0 + s1) / 2;
+        let x_mid_expected = (x0 + x1) / 2;
 
-        let dx = dx_for_ds(a.x, a.s, s_mid as i64 - a.s as i64);
-        let x_mid = a.x + dx;
+        let dx = dx_for_ds(x0, s0, s_mid as i64 - s0 as i64);
+        let x_mid = x0 + dx;
 
         let diff = (x_mid - x_mid_expected).abs();
         assert!(diff <= 1, "x_mid={}, expected={}", x_mid, x_mid_expected);

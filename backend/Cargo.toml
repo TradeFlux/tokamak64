@@ -1,6 +1,14 @@
 [workspace]
 resolver = "3"
-members = ["curve", "program"]
+members = ["curve", "nucleus", "program"]
 
 [workspace.package]
-edition = "2024"
+edition = "2021"
+
+[workspace.dependencies]
+bytemuck = { version = "1.24" }
+
+
+curve = { path = "curve" }
+engine = { path = "engine" }
+nucleus = { path = "nucleus" }

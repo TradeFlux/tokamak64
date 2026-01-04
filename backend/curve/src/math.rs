@@ -5,7 +5,7 @@
 //! `ds = dc * Smax / Cmax`. This keeps the curve shape constant while allowing
 //! different total capacities.
 
-use crate::lut::{COST_LUT, CostPoint, LUT_S_MAX};
+use crate::lut::{LUT_S_MAX, S_LUT, X_LUT};
 
 /// Calculates `dx` from a capacity delta `dc` by scaling through `ds`,
 /// given that the current curve state is `(x0, s0)` and total capacity is `cmax`.
@@ -81,14 +81,16 @@ pub(crate) fn dx_for_ds(x0: i32, s0: u64, ds: i64) -> i32 {
 /// given that `x` is within the LUT domain.
 #[inline]
 pub(crate) fn evaluate_cost(x: i32) -> u64 {
-    match COST_LUT.binary_search_by(|p| p.x.cmp(&x)) {
-        Ok(i) => COST_LUT[i].s,
+    match X_LUT.binary_search_by(|value| value.cmp(&x)) {
+        Ok(i) => S_LUT[i],
         Err(i) => {
-            // x is between COST_LUT[i-1] and COST_LUT[i]
+            // x is between X_LUT[i-1] and X_LUT[i]
             // (since x is in-domain, i is in 1..len)
-            let a = COST_LUT[i - 1];
-            let b = COST_LUT[i];
-            interp_s_for_x(x, a, b)
+            let x0 = X_LUT[i - 1];
+            let x1 = X_LUT[i];
+            let s0 = S_LUT[i - 1];
+            let s1 = S_LUT[i];
+            interp_s_for_x(x, x0, s0, x1, s1)
         }
     }
 }
@@ -120,12 +122,12 @@ fn dc_for_ds(ds: i64, cmax: u64) -> i64 {
 
 /// Calculates an interpolated `s` between two LUT samples at `x`.
 #[inline]
-fn interp_s_for_x(x: i32, cp0: CostPoint, cp1: CostPoint) -> u64 {
-    let dx = (cp1.x as i64 - cp0.x as i64) as i128;
-    let t = (x as i64 - cp0.x as i64) as i128;
+fn interp_s_for_x(x: i32, x0: i32, s0: u64, x1: i32, s1: u64) -> u64 {
+    let dx = (x1 as i64 - x0 as i64) as i128;
+    let t = (x as i64 - x0 as i64) as i128;
 
-    let s0i = cp0.s as i128;
-    let s1i = cp1.s as i128;
+    let s0i = s0 as i128;
+    let s1i = s1 as i128;
 
     let out = s0i + ((s1i - s0i) * t) / dx;
     out as u64
@@ -133,24 +135,26 @@ fn interp_s_for_x(x: i32, cp0: CostPoint, cp1: CostPoint) -> u64 {
 
 #[inline]
 fn x_for_s(s_target: u64) -> i32 {
-    match COST_LUT.binary_search_by(|p| p.s.cmp(&s_target)) {
-        Ok(i) => COST_LUT[i].x,
+    match S_LUT.binary_search_by(|value| value.cmp(&s_target)) {
+        Ok(i) => X_LUT[i],
         Err(i) => {
-            let a = COST_LUT[i - 1];
-            let b = COST_LUT[i];
-            interp_x_for_s(s_target, a, b)
+            let x0 = X_LUT[i - 1];
+            let x1 = X_LUT[i];
+            let s0 = S_LUT[i - 1];
+            let s1 = S_LUT[i];
+            interp_x_for_s(s_target, x0, s0, x1, s1)
         }
     }
 }
 
 /// Calculates an interpolated `x` between two LUT samples at `s`.
 #[inline]
-fn interp_x_for_s(s: u64, cp0: CostPoint, cp1: CostPoint) -> i32 {
-    let ds = (cp1.s - cp0.s) as i128;
-    let t = (s - cp0.s) as i128;
+fn interp_x_for_s(s: u64, x0: i32, s0: u64, x1: i32, s1: u64) -> i32 {
+    let ds = (s1 - s0) as i128;
+    let t = (s - s0) as i128;
 
-    let x0i = cp0.x as i128;
-    let x1i = cp1.x as i128;
+    let x0i = x0 as i128;
+    let x1i = x1 as i128;
 
     let x = x0i + (t * (x1i - x0i) + ds / 2) / ds;
     x as i32
