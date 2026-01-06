@@ -6,7 +6,7 @@ use crate::types::{AddressBytes, ElementIndex, Gluon, Q1616};
 /// an entrypoint for deposits and withdrawals
 #[repr(C)]
 #[derive(AnyBitPattern, Clone, Copy)]
-struct Wallet {
+pub struct Wallet {
     pub balance: Gluon,
     pub authority: AddressBytes,
     pub mint: AddressBytes,
@@ -16,7 +16,7 @@ struct Wallet {
 /// contains information for redeeming the claims to the pot in case of element overload
 #[repr(C)]
 #[derive(AnyBitPattern, Clone, Copy)]
-struct Charge {
+pub struct Charge {
     pub index: ElementIndex,
     /// Total volume of GLUON, the player has in charge
     pub balance: Gluon,

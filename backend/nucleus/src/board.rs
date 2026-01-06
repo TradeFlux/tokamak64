@@ -1,9 +1,8 @@
-use bytemuck::AnyBitPattern;
-
 use crate::types::{Coordinates, ElementIndex, Gluon, Q1616, Q1648};
 
 #[repr(C)]
-#[derive(AnyBitPattern, Clone, Copy)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "zerocopy", derive(bytemuck::AnyBitPattern))]
 pub struct Curve {
     pub capacity: Gluon,
     pub s: Q1648,
@@ -11,7 +10,20 @@ pub struct Curve {
 }
 
 #[repr(C)]
-#[derive(AnyBitPattern, Clone, Copy)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "zerocopy", derive(bytemuck::AnyBitPattern))]
+pub struct Element {
+    pub index: ElementIndex,
+    /// Ordinary (movable/compressable) rewards pot volume (in GLUON)
+    pub pot: Gluon,
+    /// Bitmasked indices of tiles (out of 64) which are part of this element
+    pub coordinates: Coordinates,
+    pub curve: Curve,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "zerocopy", derive(bytemuck::AnyBitPattern))]
 pub struct Board {
     /// Total value locked on board (in GLUON), this doesn't include (q)pots
     pub tvl: u64,
@@ -23,20 +35,10 @@ pub struct Board {
     pub quantum_index: u8,
 }
 
-#[repr(C)]
-#[derive(AnyBitPattern, Clone, Copy)]
-pub struct Element {
-    pub index: ElementIndex,
-    /// Ordinary (movable/compressable) rewards pot volume (in GLUON)
-    pub pot: Gluon,
-    /// Bitmasked indices of tiles (out of 64) which are part of this element
-    pub coordinates: Coordinates,
-    pub curve: Curve,
-}
-
 /// An element has been overloaded and is ready to be claimed by shareholders
 #[repr(C)]
-#[derive(AnyBitPattern, Clone, Copy)]
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "zerocopy", derive(bytemuck::AnyBitPattern))]
 pub struct Tombstone {
     pub index: ElementIndex,
     pub pot: Gluon,

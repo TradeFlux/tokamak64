@@ -4,4 +4,9 @@ version = "0.1.0"
 edition.workspace = true
 
 [dependencies]
-bytemuck = { workspace = true, features = ["derive"] }
+bytemuck = { workspace = true, features = ["derive"], optional = true }
+curve = { workspace = true }
+
+[features]
+zerocopy = ["bytemuck"]
+default = ["zerocopy"]

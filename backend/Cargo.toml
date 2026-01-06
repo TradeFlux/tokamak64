@@ -8,7 +8,5 @@ edition = "2021"
 [workspace.dependencies]
 bytemuck = { version = "1.24" }
 
-
 curve = { path = "curve" }
-engine = { path = "engine" }
 nucleus = { path = "nucleus" }
