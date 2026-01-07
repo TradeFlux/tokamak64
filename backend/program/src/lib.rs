@@ -1,5 +1,8 @@
 use instruction::TokamakInstruction;
-use pinocchio::{account::AccountView, entrypoint, error::ProgramError, ProgramResult};
+use pinocchio::{
+    account::AccountView, error::ProgramError, no_allocator, nostd_panic_handler,
+    program_entrypoint, ProgramResult,
+};
 
 mod accounts;
 mod instruction;
@@ -45,4 +48,5 @@ fn process_instruction(
     }
 }
 
-entrypoint!(process_instruction);
+program_entrypoint!(process_instruction);
+no_allocator!();
