@@ -1,4 +1,4 @@
-use nucleus::{fees::fission_fee, movement};
+use nucleus::{action, fees::fission_fee};
 use pinocchio::{program_error::ProgramError, ProgramResult};
 
 use crate::accounts::FissionAccounts;
@@ -11,7 +11,7 @@ fn fission(accounts: FissionAccounts) -> ProgramResult {
 
     let remainder = charge.balance.checked_sub(fee);
     charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;
-    movement::fission(charge, src);
+    action::fission(charge, src);
     src.pot += fee;
 
     Ok(())

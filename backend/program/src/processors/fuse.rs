@@ -1,4 +1,4 @@
-use nucleus::{fees::fusion_fee, movement};
+use nucleus::{fees::fusion_fee, action};
 use pinocchio::{program_error::ProgramError, ProgramResult};
 
 use crate::accounts::FusionAccounts;
@@ -11,7 +11,7 @@ fn fuse(accounts: FusionAccounts) -> ProgramResult {
 
     let remainder = charge.balance.checked_sub(fee);
     charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;
-    movement::fuse(charge, dst);
+    action::fuse(charge, dst);
     dst.pot += fee;
 
     Ok(())

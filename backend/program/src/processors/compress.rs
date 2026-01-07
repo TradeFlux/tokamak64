@@ -1,6 +1,6 @@
 use nucleus::{
+    action,
     fees::{compression_fee, shift_fee},
-    movement,
 };
 use pinocchio::{program_error::ProgramError, ProgramResult};
 
@@ -17,7 +17,7 @@ fn compress(accounts: CompressionAccounts) -> ProgramResult {
 
     let remainder = charge.balance.checked_sub(shift_fee + compression_fee);
     charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;
-    movement::compress(charge, src, dst);
+    action::compress(charge, src, dst);
     dst.pot += shift_fee + compression_fee;
 
     Ok(())

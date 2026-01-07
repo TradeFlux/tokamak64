@@ -1,15 +1,15 @@
-use nucleus::{fees::shift_fee, movement};
+use nucleus::{action, fees::shift_fee};
 use pinocchio::{program_error::ProgramError, ProgramResult};
 
-use crate::accounts::ShiftAccounts;
+use crate::accounts::DriftAccounts;
 
-fn shift(accounts: ShiftAccounts) -> ProgramResult {
-    let ShiftAccounts { charge, src, dst } = accounts;
+fn drift(accounts: DriftAccounts) -> ProgramResult {
+    let DriftAccounts { charge, src, dst } = accounts;
     let fee = shift_fee(charge, src, dst);
 
     let remainder = charge.balance.checked_sub(fee);
     charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;
-    movement::shift(charge, src, dst);
+    action::drift(charge, src, dst);
     if src.index > dst.index {
         src.pot += fee;
     } else {

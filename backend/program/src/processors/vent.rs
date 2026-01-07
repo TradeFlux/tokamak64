@@ -1,10 +1,10 @@
 use nucleus::types::Gluon;
 use pinocchio::{program_error::ProgramError, ProgramResult};
 
-use crate::accounts::LeakAccounts;
+use crate::accounts::VentAccounts;
 
-fn leak(accounts: LeakAccounts, amount: Gluon) -> ProgramResult {
-    let LeakAccounts { charge, target } = accounts;
+fn vent(accounts: VentAccounts, amount: Gluon) -> ProgramResult {
+    let VentAccounts { charge, target } = accounts;
     if charge.index != target.index {
         // TODO proper error on leaking to a wrong target
         return Err(ProgramError::Custom(32));
