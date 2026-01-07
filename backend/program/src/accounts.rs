@@ -1,3 +1,4 @@
+use core::slice;
 use nucleus::{
     board::{Board, Element, Tombstone},
     player::Charge,
@@ -5,10 +6,6 @@ use nucleus::{
 use pinocchio::account_info::AccountInfo;
 use pinocchio::program_error::ProgramError;
 use std::mem::size_of;
-
-pub trait FromAccounts<'a>: Sized {
-    fn parse(accounts: &'a [&AccountInfo]) -> Result<Self, ProgramError>;
-}
 
 pub struct FusionAccounts<'a> {
     pub(crate) charge: &'a mut Charge,
@@ -51,209 +48,95 @@ pub struct ClaimAccounts<'a> {
     pub(crate) artefact: &'a mut Tombstone,
 }
 
+pub trait FromAccounts<'a>: Sized {
+    fn parse(accounts: &'a [&AccountInfo]) -> Result<Self, ProgramError>;
+}
+
 impl<'a> FromAccounts<'a> for FusionAccounts<'a> {
     fn parse(accounts: &'a [&AccountInfo]) -> Result<Self, ProgramError> {
-        let charge = unsafe {
-            let info = *accounts.get(0).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Charge>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        let dst = unsafe {
-            let info = *accounts.get(1).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Element>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        let board = unsafe {
-            let info = *accounts.get(2).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Board>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        Ok(Self { charge, dst, board })
+        let mut it = accounts.iter();
+        Ok(Self {
+            charge: parse(&mut it)?,
+            dst: parse(&mut it)?,
+            board: parse(&mut it)?,
+        })
     }
 }
 
 impl<'a> FromAccounts<'a> for FissionAccounts<'a> {
     fn parse(accounts: &'a [&AccountInfo]) -> Result<Self, ProgramError> {
-        let charge = unsafe {
-            let info = *accounts.get(0).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Charge>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        let src = unsafe {
-            let info = *accounts.get(1).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Element>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        let board = unsafe {
-            let info = *accounts.get(2).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Board>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        Ok(Self { charge, src, board })
+        let mut it = accounts.iter();
+        Ok(Self {
+            charge: parse(&mut it)?,
+            src: parse(&mut it)?,
+            board: parse(&mut it)?,
+        })
     }
 }
 
 impl<'a> FromAccounts<'a> for CompressionAccounts<'a> {
     fn parse(accounts: &'a [&AccountInfo]) -> Result<Self, ProgramError> {
-        let charge = unsafe {
-            let info = *accounts.get(0).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Charge>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        let src = unsafe {
-            let info = *accounts.get(1).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Element>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        let dst = unsafe {
-            let info = *accounts.get(2).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Element>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        Ok(Self { charge, src, dst })
+        let mut it = accounts.iter();
+        Ok(Self {
+            charge: parse(&mut it)?,
+            src: parse(&mut it)?,
+            dst: parse(&mut it)?,
+        })
     }
 }
 
 impl<'a> FromAccounts<'a> for OverloadAccounts<'a> {
     fn parse(accounts: &'a [&AccountInfo]) -> Result<Self, ProgramError> {
-        let charge = unsafe {
-            let info = *accounts.get(0).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Charge>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        let src = unsafe {
-            let info = *accounts.get(1).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Element>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        let dst = unsafe {
-            let info = *accounts.get(2).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Element>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        let board = unsafe {
-            let info = *accounts.get(3).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Board>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
+        let mut it = accounts.iter();
         Ok(Self {
-            charge,
-            src,
-            dst,
-            board,
+            charge: parse(&mut it)?,
+            src: parse(&mut it)?,
+            dst: parse(&mut it)?,
+            board: parse(&mut it)?,
         })
     }
 }
 
 impl<'a> FromAccounts<'a> for DriftAccounts<'a> {
     fn parse(accounts: &'a [&AccountInfo]) -> Result<Self, ProgramError> {
-        let charge = unsafe {
-            let info = *accounts.get(0).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Charge>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        let src = unsafe {
-            let info = *accounts.get(1).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Element>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        let dst = unsafe {
-            let info = *accounts.get(2).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Element>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        Ok(Self { charge, src, dst })
+        let mut it = accounts.iter();
+        Ok(Self {
+            charge: parse(&mut it)?,
+            src: parse(&mut it)?,
+            dst: parse(&mut it)?,
+        })
     }
 }
 
 impl<'a> FromAccounts<'a> for VentAccounts<'a> {
     fn parse(accounts: &'a [&AccountInfo]) -> Result<Self, ProgramError> {
-        let charge = unsafe {
-            let info = *accounts.get(0).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Charge>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        let target = unsafe {
-            let info = *accounts.get(1).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Element>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        Ok(Self { charge, target })
+        let mut it = accounts.iter();
+        Ok(Self {
+            charge: parse(&mut it)?,
+            target: parse(&mut it)?,
+        })
     }
 }
 
 impl<'a> FromAccounts<'a> for ClaimAccounts<'a> {
     fn parse(accounts: &'a [&AccountInfo]) -> Result<Self, ProgramError> {
-        let charge = unsafe {
-            let info = *accounts.get(0).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Charge>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        let artefact = unsafe {
-            let info = *accounts.get(1).ok_or(ProgramError::NotEnoughAccountKeys)?;
-            info.is_writable()
-                .then_some(())
-                .ok_or(ProgramError::InvalidArgument)?;
-            let s = core::slice::from_raw_parts_mut(info.data_ptr(), size_of::<Tombstone>());
-            bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)?
-        };
-        Ok(Self { charge, artefact })
+        let mut it = accounts.iter();
+        Ok(Self {
+            charge: parse(&mut it)?,
+            artefact: parse(&mut it)?,
+        })
+    }
+}
+
+fn parse<'a, T: bytemuck::Pod>(
+    it: &mut std::slice::Iter<'a, &'a AccountInfo>,
+) -> Result<&'a mut T, ProgramError> {
+    let info = *it.next().ok_or(ProgramError::NotEnoughAccountKeys)?;
+    info.is_writable()
+        .then_some(())
+        .ok_or(ProgramError::InvalidArgument)?;
+    unsafe {
+        let s = slice::from_raw_parts_mut(info.data_ptr(), size_of::<T>());
+        bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)
     }
 }
