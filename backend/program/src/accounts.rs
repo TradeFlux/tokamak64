@@ -61,6 +61,22 @@ pub struct DischargeAccounts<'a> {
     pub(crate) wallet: &'a mut Wallet,
 }
 
+pub struct TopUpAccounts<'a> {
+    pub(crate) wallet: &'a mut Wallet,
+    pub(crate) src: &'a AccountView,
+    pub(crate) mint: &'a AccountView,
+    pub(crate) vault: &'a AccountView,
+    pub(crate) authority: &'a AccountView,
+}
+
+pub struct DrainAccounts<'a> {
+    pub(crate) wallet: &'a mut Wallet,
+    pub(crate) vault: &'a AccountView,
+    pub(crate) mint: &'a AccountView,
+    pub(crate) dst: &'a AccountView,
+    pub(crate) authority: &'a AccountView,
+}
+
 pub trait FromAccounts<'a>: Sized {
     fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError>;
 }
@@ -152,6 +168,30 @@ impl<'a> FromAccounts<'a> for DischargeAccounts<'a> {
     }
 }
 
+impl<'a> FromAccounts<'a> for TopUpAccounts<'a> {
+    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+        Ok(Self {
+            wallet: parse(it)?,
+            src: next(it)?,
+            mint: next(it)?,
+            vault: next(it)?,
+            authority: next(it)?,
+        })
+    }
+}
+
+impl<'a> FromAccounts<'a> for DrainAccounts<'a> {
+    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+        Ok(Self {
+            wallet: parse(it)?,
+            vault: next(it)?,
+            mint: next(it)?,
+            dst: next(it)?,
+            authority: next(it)?,
+        })
+    }
+}
+
 fn parse<'a, T, I>(it: &mut I) -> Result<&'a mut T, ProgramError>
 where
     T: bytemuck::Pod,
@@ -166,4 +206,11 @@ where
         let s = slice::from_raw_parts_mut(info.data_ptr() as *mut u8, size_of::<T>());
         bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)
     }
+}
+
+fn next<'a, I>(it: &mut I) -> Result<&'a AccountView, ProgramError>
+where
+    I: Iterator<Item = &'a AccountView>,
+{
+    it.next().ok_or(ProgramError::NotEnoughAccountKeys)
 }
