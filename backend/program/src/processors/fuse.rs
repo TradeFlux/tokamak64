@@ -1,10 +1,10 @@
-use nucleus::{fees::fusion_fee, action};
-use pinocchio::{program_error::ProgramError, ProgramResult};
+use nucleus::{action, fees::fusion_fee};
+use pinocchio::{account_info::AccountInfo, program_error::ProgramError, ProgramResult};
 
-use crate::accounts::FusionAccounts;
+use crate::accounts::{FromAccounts, FusionAccounts};
 
-fn fuse(accounts: FusionAccounts) -> ProgramResult {
-    let FusionAccounts { charge, dst, board } = accounts;
+pub(crate) fn process_fuse<'a, I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> ProgramResult {
+    let FusionAccounts { charge, dst, board } = FusionAccounts::parse(it)?;
     let fee = fusion_fee(charge, dst);
     board.tvl += charge.balance;
     board.charges += 1;

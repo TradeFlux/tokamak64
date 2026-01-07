@@ -2,12 +2,14 @@ use nucleus::{
     action,
     fees::{compression_fee, shift_fee},
 };
-use pinocchio::{program_error::ProgramError, ProgramResult};
+use pinocchio::{account_info::AccountInfo, program_error::ProgramError, ProgramResult};
 
-use crate::accounts::CompressionAccounts;
+use crate::accounts::{CompressionAccounts, FromAccounts};
 
-fn compress(accounts: CompressionAccounts) -> ProgramResult {
-    let CompressionAccounts { charge, src, dst } = accounts;
+pub(crate) fn process_compress<'a, I: Iterator<Item = &'a AccountInfo>>(
+    it: &mut I,
+) -> ProgramResult {
+    let CompressionAccounts { charge, src, dst } = CompressionAccounts::parse(it)?;
     if src.index > dst.index {
         // TODO proper handling of compression error (only towards increasing Z)
         return Err(ProgramError::Custom(42));

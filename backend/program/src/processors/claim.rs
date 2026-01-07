@@ -1,10 +1,10 @@
 use nucleus::action;
-use pinocchio::{program_error::ProgramError, ProgramResult};
+use pinocchio::{account_info::AccountInfo, program_error::ProgramError, ProgramResult};
 
-use crate::accounts::ClaimAccounts;
+use crate::accounts::{ClaimAccounts, FromAccounts};
 
-fn claim(accounts: ClaimAccounts) -> ProgramResult {
-    let ClaimAccounts { charge, artefact } = accounts;
+pub(crate) fn process_claim<'a, I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> ProgramResult {
+    let ClaimAccounts { charge, artefact } = ClaimAccounts::parse(it)?;
     if charge.share == 0 {
         // TODO proper handling of nothing to claim
         return Err(ProgramError::Custom(42));

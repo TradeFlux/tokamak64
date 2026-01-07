@@ -49,89 +49,84 @@ pub struct ClaimAccounts<'a> {
 }
 
 pub trait FromAccounts<'a>: Sized {
-    fn parse(accounts: &'a [&AccountInfo]) -> Result<Self, ProgramError>;
+    fn parse<I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> Result<Self, ProgramError>;
 }
 
 impl<'a> FromAccounts<'a> for FusionAccounts<'a> {
-    fn parse(accounts: &'a [&AccountInfo]) -> Result<Self, ProgramError> {
-        let mut it = accounts.iter();
+    fn parse<I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
-            charge: parse(&mut it)?,
-            dst: parse(&mut it)?,
-            board: parse(&mut it)?,
+            charge: parse(it)?,
+            dst: parse(it)?,
+            board: parse(it)?,
         })
     }
 }
 
 impl<'a> FromAccounts<'a> for FissionAccounts<'a> {
-    fn parse(accounts: &'a [&AccountInfo]) -> Result<Self, ProgramError> {
-        let mut it = accounts.iter();
+    fn parse<I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
-            charge: parse(&mut it)?,
-            src: parse(&mut it)?,
-            board: parse(&mut it)?,
+            charge: parse(it)?,
+            src: parse(it)?,
+            board: parse(it)?,
         })
     }
 }
 
 impl<'a> FromAccounts<'a> for CompressionAccounts<'a> {
-    fn parse(accounts: &'a [&AccountInfo]) -> Result<Self, ProgramError> {
-        let mut it = accounts.iter();
+    fn parse<I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
-            charge: parse(&mut it)?,
-            src: parse(&mut it)?,
-            dst: parse(&mut it)?,
+            charge: parse(it)?,
+            src: parse(it)?,
+            dst: parse(it)?,
         })
     }
 }
 
 impl<'a> FromAccounts<'a> for OverloadAccounts<'a> {
-    fn parse(accounts: &'a [&AccountInfo]) -> Result<Self, ProgramError> {
-        let mut it = accounts.iter();
+    fn parse<I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
-            charge: parse(&mut it)?,
-            src: parse(&mut it)?,
-            dst: parse(&mut it)?,
-            board: parse(&mut it)?,
+            charge: parse(it)?,
+            src: parse(it)?,
+            dst: parse(it)?,
+            board: parse(it)?,
         })
     }
 }
 
 impl<'a> FromAccounts<'a> for DriftAccounts<'a> {
-    fn parse(accounts: &'a [&AccountInfo]) -> Result<Self, ProgramError> {
-        let mut it = accounts.iter();
+    fn parse<I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
-            charge: parse(&mut it)?,
-            src: parse(&mut it)?,
-            dst: parse(&mut it)?,
+            charge: parse(it)?,
+            src: parse(it)?,
+            dst: parse(it)?,
         })
     }
 }
 
 impl<'a> FromAccounts<'a> for VentAccounts<'a> {
-    fn parse(accounts: &'a [&AccountInfo]) -> Result<Self, ProgramError> {
-        let mut it = accounts.iter();
+    fn parse<I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
-            charge: parse(&mut it)?,
-            target: parse(&mut it)?,
+            charge: parse(it)?,
+            target: parse(it)?,
         })
     }
 }
 
 impl<'a> FromAccounts<'a> for ClaimAccounts<'a> {
-    fn parse(accounts: &'a [&AccountInfo]) -> Result<Self, ProgramError> {
-        let mut it = accounts.iter();
+    fn parse<I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
-            charge: parse(&mut it)?,
-            artefact: parse(&mut it)?,
+            charge: parse(it)?,
+            artefact: parse(it)?,
         })
     }
 }
 
-fn parse<'a, T: bytemuck::Pod>(
-    it: &mut std::slice::Iter<'a, &'a AccountInfo>,
-) -> Result<&'a mut T, ProgramError> {
-    let info = *it.next().ok_or(ProgramError::NotEnoughAccountKeys)?;
+fn parse<'a, T, I>(it: &mut I) -> Result<&'a mut T, ProgramError>
+where
+    T: bytemuck::Pod,
+    I: Iterator<Item = &'a AccountInfo>,
+{
+    let info = it.next().ok_or(ProgramError::NotEnoughAccountKeys)?;
     info.is_writable()
         .then_some(())
         .ok_or(ProgramError::InvalidArgument)?;
