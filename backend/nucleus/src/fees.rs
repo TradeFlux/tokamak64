@@ -6,10 +6,10 @@ use crate::{
     types::Gluon,
 };
 
-pub fn shift_fee(charge: &Charge, src: &Element, dst: &Element) -> Gluon {
+pub fn translation_fee(charge: &Charge, src: &Element, dst: &Element) -> Gluon {
     let src_z = src.index.atomic_number();
     let dst_z = dst.index.atomic_number();
-    let delta_z = src_z.abs_diff(dst_z);
+    let delta_z = dst_z - src_z;
     if src.index > dst.index {
         fee(charge, &src.curve, delta_z)
     } else {
@@ -25,23 +25,23 @@ pub fn fission_fee(charge: &Charge, src: &Element) -> Gluon {
     fee(charge, &src.curve, src.index.atomic_number())
 }
 
-fn fee(charge: &Charge, curve: &Curve, delta_z: u64) -> Gluon {
-    const DIV: u64 = MAX_Z * MAX_X;
+fn fee(charge: &Charge, curve: &Curve, delta_z: i64) -> Gluon {
+    const DIV: i64 = MAX_Z * MAX_X;
 
-    let mul = delta_z * curve.position as u64;
+    let mul = delta_z * curve.position as i64;
     mul_div_round_nearest(charge.balance, mul, DIV).max(MIN_FEE)
 }
 
 pub fn compression_fee(src: &Element) -> Gluon {
-    const DIV: u64 = MAX_X * 100;
-    let mul = src.curve.position as u64 * 5;
+    const DIV: i64 = MAX_X * 100;
+    let mul = src.curve.position as i64 * 5;
     mul_div_round_nearest(src.pot, mul, DIV).max(MIN_FEE)
 }
 
-pub fn speed_multiplier(charge: &Charge, timestamp: u64) -> u64 {
-    const DIV: u64 = MAX_DELTA_TS.pow(2);
+pub fn speed_multiplier(charge: &Charge, timestamp: u64) -> i64 {
+    const DIV: i64 = MAX_DELTA_TS.pow(2);
 
-    let elapsed = timestamp.saturating_sub(charge.timestamp);
+    let elapsed = timestamp.saturating_sub(charge.timestamp) as i64;
     let mul = elapsed.min(MAX_DELTA_TS).pow(2);
     1 + mul_div_round_nearest(MAX_SPEED_MULTIPLIER, mul, DIV)
 }

@@ -5,55 +5,47 @@ use crate::{
     consts::MAX_X,
     mul_div_round_nearest,
     player::Charge,
+    types::Q824,
 };
 
 /// Move a charge from one element to another (unbind then bind).
-pub fn drift(charge: &mut Charge, src: &mut Element, dst: &mut Element) {
-    fission(charge, src);
-    fuse(charge, dst);
-}
-
-/// Bind a charge to an element (enter the board).
-pub fn fuse(charge: &mut Charge, dst: &mut Element) {
-    let Curve {
-        capacity,
-        position,
-        state,
-        ..
-    } = dst.curve;
-    let (share, state_delta) = dx_for_dc(position, state, charge.balance as i64, capacity);
-    charge.share = share;
-    dst.curve.position += share;
-    dst.curve.state += state_delta;
+pub fn translate(charge: &mut Charge, src: &mut Element, dst: &mut Element) {
+    let balance = charge.balance as i64;
+    transition(-balance, src);
+    charge.share = transition(balance, dst);
     charge.index = dst.index;
 }
 
-/// Unbind a charge from an element (leave the board).
-pub fn fission(charge: &mut Charge, src: &mut Element) {
+/// Bind a charge to an element (enter the board).
+fn transition(balance: i64, elem: &mut Element) -> Q824 {
+    if elem.index.zero() {
+        return 0;
+    }
     let Curve {
         capacity,
         position,
         state,
         ..
-    } = src.curve;
-    let (share, state_delta) = dx_for_dc(position, state, -(charge.balance as i64), capacity);
-    src.curve.position += share;
-    src.curve.state += state_delta;
-    charge.index.clear();
+    } = elem.curve;
+    let (share, state) = dx_for_dc(position, state, balance, capacity);
+    elem.curve.position += share;
+    elem.curve.state += state;
+    elem.curve.volume += balance;
+    share
 }
 
 /// Claim a share of a reset element's pot.
-pub fn claim(charge: &mut Charge, tomb: &mut Tombstone) {
-    let reward = mul_div_round_nearest(tomb.pot, charge.share as u64, MAX_X);
+pub fn claim(charge: &mut Charge, artefact: &mut Tombstone) {
+    let reward = mul_div_round_nearest(artefact.pot, charge.share as i64, MAX_X);
     charge.balance += reward;
-    tomb.pot -= reward;
+    artefact.pot -= reward;
     charge.share = 0;
     charge.index.clear();
 }
 
 /// Move a pot inward (to a deeper element) while rebinding the charge.
 pub fn compress(charge: &mut Charge, src: &mut Element, dst: &mut Element) {
-    drift(charge, src, dst);
+    translate(charge, src, dst);
     dst.pot += src.pot;
     src.pot = 0;
 }

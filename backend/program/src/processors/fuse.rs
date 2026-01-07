@@ -1,4 +1,5 @@
-use nucleus::{action, fees::fusion_fee};
+use bytemuck::Zeroable;
+use nucleus::{action, board::Element, fees::fusion_fee};
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
 
@@ -12,7 +13,8 @@ pub(crate) fn process_fuse<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult 
 
     let remainder = charge.balance.checked_sub(fee);
     charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;
-    action::fuse(charge, dst);
+    let mut src = Element::zeroed();
+    action::translate(charge, &mut src, dst);
     dst.pot += fee;
 
     Ok(())

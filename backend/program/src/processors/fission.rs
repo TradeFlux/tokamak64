@@ -1,4 +1,5 @@
-use nucleus::{action, fees::fission_fee};
+use bytemuck::Zeroable;
+use nucleus::{action, board::Element, fees::fission_fee};
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
 
@@ -12,7 +13,8 @@ pub(crate) fn process_fission<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResu
 
     let remainder = charge.balance.checked_sub(fee);
     charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;
-    action::fission(charge, src);
+    let mut dst = Element::zeroed();
+    action::translate(charge, src, &mut dst);
     src.pot += fee;
 
     Ok(())

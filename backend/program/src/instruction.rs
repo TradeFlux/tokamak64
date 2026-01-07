@@ -10,9 +10,9 @@ pub enum TokamakInstruction {
     /// Withdraw the funds from wallet, by converting GLUON to original stable token
     Discharge,
     /// Move the charge from one element to another
-    Drift,
+    Translate,
     /// Exit the board
-    Fission,
+    Fiss,
     /// Enter the board
     Fuse,
     /// Push the element beyond curve capacity, triggering a reset

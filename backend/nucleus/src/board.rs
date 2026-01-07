@@ -23,9 +23,10 @@ pub struct Curve {
     pub capacity: Gluon,
     /// Accumulated state change (Q1648). Tracks integral of pressure over time.
     pub state: Q1648,
+    pub volume: Gluon,
     /// Current position on curve (Q824). Higher position means higher entry cost next.
     pub position: Q824,
-    _padding: i32,
+    _padding: u32,
 }
 
 /// Element represents a single group on the board.
@@ -67,7 +68,7 @@ pub struct Element {
 #[derive(Clone, Copy, Pod, Zeroable, Debug)]
 pub struct Board {
     /// Total Gluon currently bound to charges (TVL). For reference.
-    pub tvl: u64,
+    pub tvl: Gluon,
     /// Accumulated Gluon in the quantum pocket (unlocked at special depths).
     pub quantum_pocket: Gluon,
     /// Total count of active charges. Used to calculate global pressure.
@@ -96,7 +97,4 @@ pub struct Tombstone {
     pub pot: Gluon,
     /// Which element this was (for reference).
     pub index: ElementIndex,
-    /// Number of shareholders entitled to claim from this pot.
-    pub shares: u32,
-    _padding: u32,
 }

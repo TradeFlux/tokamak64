@@ -21,7 +21,7 @@ use crate::lut::{LUT_S_MAX, S_LUT, X_LUT};
 /// - `s0` equals the LUT evaluation at `x0`.
 /// - `cmax > 0`.
 /// - `dc * Smax` fits in `i128`.
-pub fn dx_for_dc(x0: i32, s0: i64, dc: i64, cmax: u64) -> (i32, i64) {
+pub fn dx_for_dc(x0: i32, s0: i64, dc: i64, cmax: i64) -> (i32, i64) {
     let ds = ds_for_dc(dc, cmax);
     let dx = dx_for_ds(x0, s0, ds);
     (dx, ds)
@@ -106,7 +106,7 @@ pub(crate) fn evaluate_cost(x: i32) -> i64 {
 /// Constraints:
 /// - `cmax > 0`.
 /// - `dc * Smax` fits in `i128`.
-pub(crate) fn ds_for_dc(dc: i64, cmax: u64) -> i64 {
+pub(crate) fn ds_for_dc(dc: i64, cmax: i64) -> i64 {
     let s_max = LUT_S_MAX;
     let cmax_i128 = cmax as i128;
     let num = (dc as i128) * (s_max as i128);

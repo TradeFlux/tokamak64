@@ -1,7 +1,7 @@
 use core::slice;
 use nucleus::{
     board::{Board, Element, Tombstone},
-    player::Charge,
+    player::{Charge, Wallet},
 };
 use pinocchio::{account::AccountView, error::ProgramError};
 use std::mem::size_of;
@@ -30,12 +30,12 @@ pub struct CompressionAccounts<'a> {
 
 pub struct OverloadAccounts<'a> {
     pub(crate) charge: &'a mut Charge,
-    pub(crate) src: &'a mut Element,
-    pub(crate) dst: &'a mut Element,
+    pub(crate) target: &'a mut Element,
+    pub(crate) artefact: &'a mut Tombstone,
     pub(crate) board: &'a mut Board,
 }
 
-pub struct DriftAccounts<'a> {
+pub struct TranslationAccounts<'a> {
     pub(crate) charge: &'a mut Charge,
     pub(crate) src: &'a mut Element,
     pub(crate) dst: &'a mut Element,
@@ -53,14 +53,12 @@ pub struct ClaimAccounts<'a> {
 
 pub struct ChargeAccounts<'a> {
     pub(crate) charge: &'a mut Charge,
-    pub(crate) wallet: &'a mut nucleus::player::Wallet,
-    pub(crate) board: &'a mut Board,
+    pub(crate) wallet: &'a mut Wallet,
 }
 
 pub struct DischargeAccounts<'a> {
     pub(crate) charge: &'a mut Charge,
-    pub(crate) wallet: &'a mut nucleus::player::Wallet,
-    pub(crate) board: &'a mut Board,
+    pub(crate) wallet: &'a mut Wallet,
 }
 
 pub trait FromAccounts<'a>: Sized {
@@ -101,14 +99,14 @@ impl<'a> FromAccounts<'a> for OverloadAccounts<'a> {
     fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
             charge: parse(it)?,
-            src: parse(it)?,
-            dst: parse(it)?,
+            target: parse(it)?,
+            artefact: parse(it)?,
             board: parse(it)?,
         })
     }
 }
 
-impl<'a> FromAccounts<'a> for DriftAccounts<'a> {
+impl<'a> FromAccounts<'a> for TranslationAccounts<'a> {
     fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
             charge: parse(it)?,
@@ -141,7 +139,6 @@ impl<'a> FromAccounts<'a> for ChargeAccounts<'a> {
         Ok(Self {
             charge: parse(it)?,
             wallet: parse(it)?,
-            board: parse(it)?,
         })
     }
 }
@@ -151,7 +148,6 @@ impl<'a> FromAccounts<'a> for DischargeAccounts<'a> {
         Ok(Self {
             charge: parse(it)?,
             wallet: parse(it)?,
-            board: parse(it)?,
         })
     }
 }

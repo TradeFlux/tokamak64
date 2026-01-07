@@ -2,7 +2,7 @@ use bytemuck::{Pod, Zeroable};
 
 /// Gluon is the unit of value that circulates through the game.
 /// Every quantity tracked in TOKAMAK64 is measured in Gluon.
-pub type Gluon = u64;
+pub type Gluon = i64;
 
 /// Q824 is a fixed-point number with 24 fractional bits.
 /// Used for precise share calculations in pressure mechanics.
@@ -27,27 +27,27 @@ pub type AddressBytes = [u8; 32];
 /// Ref: TOKAMAK64 Part 6 (Element Overload & Reset)
 #[repr(transparent)]
 #[derive(Pod, Zeroable, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
-pub struct ElementIndex(u64);
+pub struct ElementIndex(i64);
 
 impl ElementIndex {
     const GEN_BITS: u32 = u64::BITS - u8::BITS;
-    const GEN_MASK: u64 = u64::MAX >> u8::BITS;
+    const GEN_MASK: i64 = i64::MAX >> (u8::BITS - 1);
 
     /// Returns the atomic number of this element (0..255).
     #[inline]
-    pub fn atomic_number(self) -> u64 {
+    pub fn atomic_number(self) -> i64 {
         self.0 >> Self::GEN_BITS
     }
 
     /// Returns the generation counter of this element.
     #[inline]
-    pub fn generation(self) -> u64 {
+    pub fn generation(self) -> i64 {
         self.0 & Self::GEN_MASK
     }
 
     /// Increments the generation counter (wraps within 56 bits).
     #[inline]
-    pub fn increment_generation(&mut self) {
+    pub fn nextgen(&mut self) {
         let generation = (self.0 + 1) & Self::GEN_MASK;
         self.0 = (self.0 & !Self::GEN_MASK) | generation;
     }
@@ -56,6 +56,11 @@ impl ElementIndex {
     #[inline]
     pub fn clear(&mut self) {
         self.0 = 0;
+    }
+
+    #[inline]
+    pub fn zero(&self) -> bool {
+        self.0 == 0
     }
 }
 

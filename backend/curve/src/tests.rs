@@ -212,7 +212,7 @@ fn invert_delta_midpoint_between_samples() {
 #[test]
 fn capacity_scale_maps_full_range() {
     let cmax = 1_000_000u64;
-    let ds = ds_for_dc(cmax as i64, cmax);
+    let ds = ds_for_dc(cmax as i64, cmax as i64);
     assert_eq!(ds, LUT_S_MAX);
 }
 
@@ -224,9 +224,9 @@ fn dx_for_dc_matches_delta_mapping() {
     let cmax = 1_000_000u64;
     let dc = 12_345i64;
 
-    let ds = ds_for_dc(dc, cmax);
+    let ds = ds_for_dc(dc, cmax as i64);
     let dx_expected = dx_for_ds(x0, s0, ds);
-    let (dx, _) = dx_for_dc(x0, s0, dc, cmax);
+    let (dx, _) = dx_for_dc(x0, s0, dc, cmax as i64);
 
     assert_eq!(dx, dx_expected);
 }
