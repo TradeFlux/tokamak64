@@ -42,7 +42,7 @@ pub struct Curve {
 #[repr(C)]
 #[derive(AnyBitPattern, Clone, Copy)]
 struct Board {
-    /// Total value locked on board (in GLUON), this doesn't include (q)pots
+    /// Total value locked on board (in GLUON), including pots
     tvl: u64,
     /// Total volume of GLUON accumulated in quantum pocket
     quantum_pocket: Gluon,

@@ -5,7 +5,7 @@ use crate::{
     types::Gluon,
 };
 
-pub fn movement_fee(charge: &Charge, src: &Element, dst: &Element) -> Gluon {
+pub fn shift_fee(charge: &Charge, src: &Element, dst: &Element) -> Gluon {
     let src_z = src.index.atomic_number();
     let dst_z = dst.index.atomic_number();
     let delta_z = src_z.abs_diff(dst_z);
@@ -14,6 +14,14 @@ pub fn movement_fee(charge: &Charge, src: &Element, dst: &Element) -> Gluon {
     } else {
         fee(charge, &dst.curve, delta_z)
     }
+}
+
+pub fn fusion_fee(charge: &Charge, dst: &Element) -> Gluon {
+    fee(charge, &dst.curve, dst.index.atomic_number())
+}
+
+pub fn fission_fee(charge: &Charge, src: &Element) -> Gluon {
+    fee(charge, &src.curve, src.index.atomic_number())
 }
 
 fn fee(charge: &Charge, curve: &Curve, delta_z: u64) -> Gluon {

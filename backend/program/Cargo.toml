@@ -9,6 +9,8 @@ crate-type = ["cdylib", "lib"]
 [dependencies]
 bytemuck = { workspace = true }
 curve = { workspace = true }
+nucleus = { workspace = true }
+
 pinocchio = "0.9.2"
 
 

@@ -21,9 +21,10 @@ use crate::lut::{LUT_S_MAX, S_LUT, X_LUT};
 /// - `s0` equals the LUT evaluation at `x0`.
 /// - `cmax > 0`.
 /// - `dc * Smax` fits in `i128`.
-pub fn dx_for_dc(x0: i32, s0: u64, dc: i64, cmax: u64) -> i32 {
+pub fn dx_for_dc(x0: i32, s0: i64, dc: i64, cmax: u64) -> (i32, i64) {
     let ds = ds_for_dc(dc, cmax);
-    dx_for_ds(x0, s0, ds)
+    let dx = dx_for_ds(x0, s0, ds);
+    (dx, ds)
 }
 
 /// Calculates `dc` (delta capacity) for moving from `x0` to `x0 + dx`,
@@ -71,7 +72,7 @@ pub(crate) fn ds_for_dx(x0: i32, dx: i32) -> i64 {
 /// - `x0` is within `[LUT_X_MIN, LUT_X_MAX]`.
 /// - `s0` equals the LUT evaluation at `x0`.
 /// - `s0 + ds` is within `[0, LUT_S_MAX]`.
-pub(crate) fn dx_for_ds(x0: i32, s0: u64, ds: i64) -> i32 {
+pub(crate) fn dx_for_ds(x0: i32, s0: i64, ds: i64) -> i32 {
     let s_target = s0 as i128 + ds as i128;
     let x1 = x_for_s(s_target as u64);
     x1 - x0

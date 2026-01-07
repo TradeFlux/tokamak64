@@ -1,8 +1,8 @@
 use bytemuck::AnyBitPattern;
 
 pub type Gluon = u64;
-pub type Q1616 = u32;
-pub type Q1648 = u64;
+pub type Q1616 = i32;
+pub type Q1648 = i64;
 
 #[repr(transparent)]
 #[derive(AnyBitPattern, Clone, Copy)]
