@@ -1,16 +1,13 @@
+use instruction::TokamakInstruction;
+use pinocchio::{account::AccountView, entrypoint, error::ProgramError, ProgramResult};
+
 mod accounts;
 mod instruction;
 mod processors;
-mod state;
-
-use instruction::TokamakInstruction;
-use pinocchio::{
-    account_info::AccountInfo, entrypoint, program_error::ProgramError, ProgramResult,
-};
 
 fn process_instruction(
-    _program_id: &[u8; 32],
-    accounts: &[AccountInfo],
+    _program_id: &pinocchio::Address,
+    accounts: &[AccountView],
     instruction_data: &[u8],
 ) -> ProgramResult {
     if instruction_data.is_empty() {
@@ -32,15 +29,15 @@ fn process_instruction(
 
     let mut it = accounts.iter();
     match ix {
-        TokamakInstruction::Fuse => processors::fuse::process_fuse(&mut it),
-        TokamakInstruction::Fission => processors::fission::process_fission(&mut it),
-        TokamakInstruction::Drift => processors::drift::process_drift(&mut it),
-        TokamakInstruction::Compress => processors::compress::process_compress(&mut it),
+        TokamakInstruction::Charge => processors::charge::process_charge(&mut it),
         TokamakInstruction::Claim => processors::claim::process_claim(&mut it),
+        TokamakInstruction::Compress => processors::compress::process_compress(&mut it),
+        TokamakInstruction::Discharge => processors::discharge::process_discharge(&mut it),
+        TokamakInstruction::Drift => processors::drift::process_drift(&mut it),
+        TokamakInstruction::Fission => processors::fission::process_fission(&mut it),
+        TokamakInstruction::Fuse => processors::fuse::process_fuse(&mut it),
+        TokamakInstruction::Overload => processors::overload::process_overload(&mut it),
         TokamakInstruction::Vent => processors::vent::process_vent(&mut it),
-        TokamakInstruction::Charge => Err(ProgramError::InvalidInstructionData),
-        TokamakInstruction::Discharge => Err(ProgramError::InvalidInstructionData),
-        TokamakInstruction::Overload => Err(ProgramError::InvalidInstructionData),
     }
 }
 

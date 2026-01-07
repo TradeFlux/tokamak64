@@ -3,9 +3,12 @@ use nucleus::{
     board::{Board, Element, Tombstone},
     player::Charge,
 };
-use pinocchio::account_info::AccountInfo;
-use pinocchio::program_error::ProgramError;
+use pinocchio::{account::AccountView, error::ProgramError};
 use std::mem::size_of;
+
+/// Trait alias for account iterators used in processor signatures.
+pub trait AccountIter<'a>: Iterator<Item = &'a AccountView> {}
+impl<'a, I: Iterator<Item = &'a AccountView>> AccountIter<'a> for I {}
 
 pub struct FusionAccounts<'a> {
     pub(crate) charge: &'a mut Charge,
@@ -48,12 +51,24 @@ pub struct ClaimAccounts<'a> {
     pub(crate) artefact: &'a mut Tombstone,
 }
 
+pub struct ChargeAccounts<'a> {
+    pub(crate) charge: &'a mut Charge,
+    pub(crate) wallet: &'a mut nucleus::player::Wallet,
+    pub(crate) board: &'a mut Board,
+}
+
+pub struct DischargeAccounts<'a> {
+    pub(crate) charge: &'a mut Charge,
+    pub(crate) wallet: &'a mut nucleus::player::Wallet,
+    pub(crate) board: &'a mut Board,
+}
+
 pub trait FromAccounts<'a>: Sized {
-    fn parse<I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> Result<Self, ProgramError>;
+    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError>;
 }
 
 impl<'a> FromAccounts<'a> for FusionAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> Result<Self, ProgramError> {
+    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
             charge: parse(it)?,
             dst: parse(it)?,
@@ -63,7 +78,7 @@ impl<'a> FromAccounts<'a> for FusionAccounts<'a> {
 }
 
 impl<'a> FromAccounts<'a> for FissionAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> Result<Self, ProgramError> {
+    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
             charge: parse(it)?,
             src: parse(it)?,
@@ -73,7 +88,7 @@ impl<'a> FromAccounts<'a> for FissionAccounts<'a> {
 }
 
 impl<'a> FromAccounts<'a> for CompressionAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> Result<Self, ProgramError> {
+    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
             charge: parse(it)?,
             src: parse(it)?,
@@ -83,7 +98,7 @@ impl<'a> FromAccounts<'a> for CompressionAccounts<'a> {
 }
 
 impl<'a> FromAccounts<'a> for OverloadAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> Result<Self, ProgramError> {
+    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
             charge: parse(it)?,
             src: parse(it)?,
@@ -94,7 +109,7 @@ impl<'a> FromAccounts<'a> for OverloadAccounts<'a> {
 }
 
 impl<'a> FromAccounts<'a> for DriftAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> Result<Self, ProgramError> {
+    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
             charge: parse(it)?,
             src: parse(it)?,
@@ -104,7 +119,7 @@ impl<'a> FromAccounts<'a> for DriftAccounts<'a> {
 }
 
 impl<'a> FromAccounts<'a> for VentAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> Result<Self, ProgramError> {
+    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
             charge: parse(it)?,
             target: parse(it)?,
@@ -113,7 +128,7 @@ impl<'a> FromAccounts<'a> for VentAccounts<'a> {
 }
 
 impl<'a> FromAccounts<'a> for ClaimAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> Result<Self, ProgramError> {
+    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
             charge: parse(it)?,
             artefact: parse(it)?,
@@ -121,17 +136,38 @@ impl<'a> FromAccounts<'a> for ClaimAccounts<'a> {
     }
 }
 
+impl<'a> FromAccounts<'a> for ChargeAccounts<'a> {
+    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+        Ok(Self {
+            charge: parse(it)?,
+            wallet: parse(it)?,
+            board: parse(it)?,
+        })
+    }
+}
+
+impl<'a> FromAccounts<'a> for DischargeAccounts<'a> {
+    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+        Ok(Self {
+            charge: parse(it)?,
+            wallet: parse(it)?,
+            board: parse(it)?,
+        })
+    }
+}
+
 fn parse<'a, T, I>(it: &mut I) -> Result<&'a mut T, ProgramError>
 where
     T: bytemuck::Pod,
-    I: Iterator<Item = &'a AccountInfo>,
+    I: Iterator<Item = &'a AccountView>,
 {
     let info = it.next().ok_or(ProgramError::NotEnoughAccountKeys)?;
-    info.is_writable()
-        .then_some(())
-        .ok_or(ProgramError::InvalidArgument)?;
+    // Check if account has enough data
+    if info.data_len() < size_of::<T>() {
+        return Err(ProgramError::InvalidAccountData);
+    }
     unsafe {
-        let s = slice::from_raw_parts_mut(info.data_ptr(), size_of::<T>());
+        let s = slice::from_raw_parts_mut(info.data_ptr() as *mut u8, size_of::<T>());
         bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)
     }
 }

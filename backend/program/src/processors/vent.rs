@@ -1,8 +1,9 @@
-use pinocchio::{account_info::AccountInfo, program_error::ProgramError, ProgramResult};
+use pinocchio::error::ProgramError;
+use pinocchio::ProgramResult;
 
-use crate::accounts::{FromAccounts, VentAccounts};
+use crate::accounts::{AccountIter, FromAccounts, VentAccounts};
 
-pub(crate) fn process_vent<'a, I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> ProgramResult {
+pub(crate) fn process_vent<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let VentAccounts { charge, target } = VentAccounts::parse(it)?;
 
     if charge.index != target.index {

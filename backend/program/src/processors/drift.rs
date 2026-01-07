@@ -1,9 +1,10 @@
 use nucleus::{action, fees::shift_fee};
-use pinocchio::{account_info::AccountInfo, program_error::ProgramError, ProgramResult};
+use pinocchio::error::ProgramError;
+use pinocchio::ProgramResult;
 
-use crate::accounts::{DriftAccounts, FromAccounts};
+use crate::accounts::{AccountIter, DriftAccounts, FromAccounts};
 
-pub(crate) fn process_drift<'a, I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> ProgramResult {
+pub(crate) fn process_drift<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let DriftAccounts { charge, src, dst } = DriftAccounts::parse(it)?;
     let fee = shift_fee(charge, src, dst);
 

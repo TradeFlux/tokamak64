@@ -1,9 +1,10 @@
 use nucleus::action;
-use pinocchio::{account_info::AccountInfo, program_error::ProgramError, ProgramResult};
+use pinocchio::error::ProgramError;
+use pinocchio::ProgramResult;
 
-use crate::accounts::{ClaimAccounts, FromAccounts};
+use crate::accounts::{AccountIter, ClaimAccounts, FromAccounts};
 
-pub(crate) fn process_claim<'a, I: Iterator<Item = &'a AccountInfo>>(it: &mut I) -> ProgramResult {
+pub(crate) fn process_claim<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let ClaimAccounts { charge, artefact } = ClaimAccounts::parse(it)?;
     if charge.share == 0 {
         // TODO proper handling of nothing to claim

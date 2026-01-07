@@ -1,11 +1,10 @@
 use nucleus::{action, fees::fission_fee};
-use pinocchio::{account_info::AccountInfo, program_error::ProgramError, ProgramResult};
+use pinocchio::error::ProgramError;
+use pinocchio::ProgramResult;
 
-use crate::accounts::{FissionAccounts, FromAccounts};
+use crate::accounts::{AccountIter, FissionAccounts, FromAccounts};
 
-pub(crate) fn process_fission<'a, I: Iterator<Item = &'a AccountInfo>>(
-    it: &mut I,
-) -> ProgramResult {
+pub(crate) fn process_fission<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let FissionAccounts { charge, src, board } = FissionAccounts::parse(it)?;
     let fee = fission_fee(charge, src);
     board.tvl += charge.balance;
