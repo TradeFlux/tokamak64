@@ -9,7 +9,7 @@ pub fn shift_fee(charge: &Charge, src: &Element, dst: &Element) -> Gluon {
     let src_z = src.index.atomic_number();
     let dst_z = dst.index.atomic_number();
     let delta_z = src_z.abs_diff(dst_z);
-    if src.index.atomic_number() > dst.index.atomic_number() {
+    if src.index > dst.index {
         fee(charge, &src.curve, delta_z)
     } else {
         fee(charge, &dst.curve, delta_z)
@@ -34,7 +34,7 @@ fn fee(charge: &Charge, curve: &Curve, delta_z: u64) -> Gluon {
 pub fn compression_fee(src: &Element) -> Gluon {
     const DIV: u64 = MAX_X * 100;
     let mul = src.curve.x as u64 * 5;
-    mul_div_round_nearest(src.pot, mul, DIV)
+    mul_div_round_nearest(src.pot, mul, DIV).max(MIN_FEE)
 }
 
 pub fn speed_multiplier(charge: &Charge, timestamp: u64) -> u64 {

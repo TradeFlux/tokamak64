@@ -1,6 +1,6 @@
 use bytemuck::AnyBitPattern;
 
-use crate::types::{AddressBytes, ElementIndex, Gluon, Q1616};
+use crate::types::{AddressBytes, ElementIndex, Gluon, Q824};
 
 /// Total player deposit which is not allocated to charges yet,
 /// an entrypoint for deposits and withdrawals
@@ -23,7 +23,7 @@ pub struct Charge {
     /// Timestamp (in some discrete blockchain measure) when the player performed the last action
     pub timestamps: u64,
     /// Total share of the rewards the player is currently entitled to (determined by the curve)
-    pub share: Q1616,
+    pub share: Q824,
     /// Pubkey of the ownning wallet
     pub authority: AddressBytes,
 }

@@ -6,8 +6,8 @@ use crate::{
 };
 
 pub fn shift(charge: &mut Charge, src: &mut Element, dst: &mut Element) {
-    fuse(charge, dst);
     fission(charge, src);
+    fuse(charge, dst);
 }
 
 pub fn fuse(charge: &mut Charge, dst: &mut Element) {
@@ -16,6 +16,7 @@ pub fn fuse(charge: &mut Charge, dst: &mut Element) {
     charge.share = share;
     dst.curve.x += share;
     dst.curve.s += ds;
+    charge.index = dst.index;
 }
 
 pub fn fission(charge: &mut Charge, src: &mut Element) {
@@ -23,4 +24,11 @@ pub fn fission(charge: &mut Charge, src: &mut Element) {
     let (share, ds) = dx_for_dc(x, s, -(charge.balance as i64), capacity);
     src.curve.x += share;
     src.curve.s += ds;
+    charge.index.clear();
+}
+
+pub fn compress(charge: &mut Charge, src: &mut Element, dst: &mut Element) {
+    shift(charge, src, dst);
+    dst.pot += src.pot;
+    src.pot = 0;
 }

@@ -1,4 +1,4 @@
-use crate::types::{Coordinates, ElementIndex, Gluon, Q1616, Q1648};
+use crate::types::{Coordinates, ElementIndex, Gluon, Q1648, Q824};
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -6,7 +6,7 @@ use crate::types::{Coordinates, ElementIndex, Gluon, Q1616, Q1648};
 pub struct Curve {
     pub capacity: Gluon,
     pub s: Q1648,
-    pub x: Q1616,
+    pub x: Q824,
 }
 
 #[repr(C)]

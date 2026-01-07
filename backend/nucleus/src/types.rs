@@ -1,11 +1,12 @@
 use bytemuck::AnyBitPattern;
 
 pub type Gluon = u64;
-pub type Q1616 = i32;
+pub type Q824 = i32;
 pub type Q1648 = i64;
+pub type Z = u64;
 
 #[repr(transparent)]
-#[derive(AnyBitPattern, Clone, Copy)]
+#[derive(AnyBitPattern, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ElementIndex(u64);
 #[repr(transparent)]
 #[derive(AnyBitPattern, Clone, Copy)]
@@ -37,16 +38,24 @@ impl ElementIndex {
     const GEN_BITS: u32 = u64::BITS - u8::BITS;
     const GEN_MASK: u64 = u64::MAX >> u8::BITS;
 
+    #[inline]
     pub fn atomic_number(self) -> u64 {
         self.0 >> Self::GEN_BITS
     }
 
+    #[inline]
     pub fn generation(self) -> u64 {
         self.0 & Self::GEN_MASK
     }
 
+    #[inline]
     pub fn increment_generation(&mut self) {
         let generation = (self.0 + 1) & Self::GEN_MASK;
         self.0 = (self.0 & !Self::GEN_MASK) | generation;
+    }
+
+    #[inline]
+    pub fn clear(&mut self) {
+        self.0 = 0;
     }
 }

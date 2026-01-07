@@ -2,8 +2,8 @@
 //!
 //! Generates a symmetric lookup table for cumulative sigmoid mass over
 //! `x ∈ [-X_MAX, X_MAX]` in fixed-point:
-//! - x: Q16.16
-//! - s: Q16.48
+//! - x: Q8.24
+//! - s: Q16.48 (stored as i64)
 //!
 //! Sampling is geometric away from zero to concentrate points where curvature
 //! is highest while keeping the tails sparse. Output is Rust source that can be
@@ -16,7 +16,7 @@ const X_MAX: f64 = 6.0;
 const SAMPLE_COUNT: usize = 1025; // odd -> symmetric with a single 0
 const GEOM_RATIO: f64 = 1.005;
 
-const X_FRAC_BITS: u32 = 16; // Q16.16
+const X_FRAC_BITS: u32 = 24; // Q8.24
 const S_FRAC_BITS: u32 = 48; // Q16.48
 
 /// Numerically stable softplus used for the cumulative sigmoid integral.
@@ -28,15 +28,15 @@ fn softplus(x: f64) -> f64 {
     }
 }
 
-/// Convert a floating-point value to unsigned Q16.48.
-fn to_q16_48(v: f64) -> u64 {
+/// Convert a floating-point value to signed Q16.48.
+fn to_q16_48(v: f64) -> i64 {
     let scaled = (v * ((1u128 << S_FRAC_BITS) as f64)).round();
-    if scaled <= 0.0 {
-        0
-    } else if scaled >= u64::MAX as f64 {
-        u64::MAX
+    if scaled <= i64::MIN as f64 {
+        i64::MIN
+    } else if scaled >= i64::MAX as f64 {
+        i64::MAX
     } else {
-        scaled as u64
+        scaled as i64
     }
 }
 
@@ -110,7 +110,7 @@ fn main() {
         "//! Lookup table for the cumulative cost curve used by the curve crate.\n\
 //!\n\
 //! Values are stored as fixed-point numbers:\n\
-//! - `x` uses Q16.16\n\
+//! - `x` uses Q8.24\n\
 //! - `s` uses Q16.48\n\
 //!\n\
 //! The table is strictly increasing in `x` and `s`, and it covers a symmetric\n\
@@ -123,10 +123,10 @@ fn main() {
         "/// Number of curve point samples in the LUT.\n\
 pub(crate) const LUT_SIZE: usize = {SAMPLE_COUNT};\n\
 /// Maximum cumulative cost in the LUT (Q16.48).\n\
-pub const LUT_S_MAX: u64 = S_LUT[LUT_SIZE - 1];\n\
-/// Minimum x value in the LUT (Q16.16).\n\
+pub const LUT_S_MAX: i64 = S_LUT[LUT_SIZE - 1];\n\
+/// Minimum x value in the LUT (Q8.24).\n\
 pub const LUT_X_MIN: i32 = x_at_const(0);\n\
-/// Maximum x value in the LUT (Q16.16).\n\
+/// Maximum x value in the LUT (Q8.24).\n\
 pub const LUT_X_MAX: i32 = x_at_const(LUT_SIZE - 1);\n\n\
 #[inline]\n\
 pub const fn x_at_const(i: usize) -> i32 {{\n\
@@ -136,7 +136,7 @@ pub const fn x_at_const(i: usize) -> i32 {{\n\
     println!(
         "/// Monotonic LUT samples across the supported x-domain.\n\
 ///\n\
-/// X values are stored as Q16.16 `i32`s.\n\
+/// X values are stored as Q8.24 `i32`s.\n\
 pub(crate) static X_LUT: [i32; LUT_SIZE] = ["
     );
     for &x_q in &full_x_grid {
@@ -146,7 +146,7 @@ pub(crate) static X_LUT: [i32; LUT_SIZE] = ["
 
     println!(
         "/// Monotonic LUT samples across the supported x-domain.\n\
-pub(crate) static S_LUT: [u64; LUT_SIZE] = ["
+pub(crate) static S_LUT: [i64; LUT_SIZE] = ["
     );
     for x_q in full_x_grid {
         let x = (x_q as f64) / ((1u64 << X_FRAC_BITS) as f64);

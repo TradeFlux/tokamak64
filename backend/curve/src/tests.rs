@@ -3,8 +3,8 @@
 use super::lut::*;
 use super::math::*;
 
-// 0.25 in Q16.16
-const MARGIN: i32 = (1i32 << 16) / 4;
+// 0.25 in Q8.24
+const MARGIN: i32 = (1i32 << 24) / 4;
 
 /// Deterministic PRNG (no external crates).
 struct Rng(u64);
@@ -160,7 +160,7 @@ fn invert_delta_at_lut_points() {
 
         for &j in &indices {
             let x1 = X_LUT[j];
-            let ds = S_LUT[j] as i64 - s0 as i64;
+            let ds = S_LUT[j] - s0;
             let dx = dx_for_ds(x0, s0, ds);
             assert_eq!(x0 + dx, x1);
         }
@@ -177,7 +177,7 @@ fn invert_delta_round_trip_near_exact() {
         let dx = gen_dx_in_domain(&mut rng, x0);
         let x1 = x0 + dx;
         let s0 = evaluate_cost(x0);
-        let ds = evaluate_cost(x1) as i64 - s0 as i64;
+        let ds = evaluate_cost(x1) - s0;
 
         let dx_inv = dx_for_ds(x0, s0, ds);
         let x1_inv = x0 + dx_inv;
@@ -200,7 +200,7 @@ fn invert_delta_midpoint_between_samples() {
         let s_mid = (s0 + s1) / 2;
         let x_mid_expected = (x0 + x1) / 2;
 
-        let dx = dx_for_ds(x0, s0, s_mid as i64 - s0 as i64);
+        let dx = dx_for_ds(x0, s0, s_mid - s0);
         let x_mid = x0 + dx;
 
         let diff = (x_mid - x_mid_expected).abs();
@@ -213,7 +213,7 @@ fn invert_delta_midpoint_between_samples() {
 fn capacity_scale_maps_full_range() {
     let cmax = 1_000_000u64;
     let ds = ds_for_dc(cmax as i64, cmax);
-    assert_eq!(ds, LUT_S_MAX as i64);
+    assert_eq!(ds, LUT_S_MAX);
 }
 
 /// Ensures the composed mapping (dc -> ds -> dx) matches direct delta usage.
@@ -226,7 +226,7 @@ fn dx_for_dc_matches_delta_mapping() {
 
     let ds = ds_for_dc(dc, cmax);
     let dx_expected = dx_for_ds(x0, s0, ds);
-    let dx = dx_for_dc(x0, s0, dc, cmax);
+    let (dx, _) = dx_for_dc(x0, s0, dc, cmax);
 
     assert_eq!(dx, dx_expected);
 }
