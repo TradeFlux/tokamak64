@@ -1,5 +1,6 @@
 //! Fundamental types: fixed-point arithmetic, element identifiers, and board coordinates.
 
+#[cfg(feature = "bytemuck")]
 use bytemuck::{Pod, Zeroable};
 
 /// Sole in-game currency. Accumulates in wallets (liquid), charges (allocated), and element pots (shared).
@@ -20,7 +21,8 @@ pub type AddressBytes = [u8; 32];
 /// Detects stale charge references when element resets increment generation.
 /// Layout: `[generation_56bits | atomic_8bits]`
 #[repr(transparent)]
-#[derive(Pod, Zeroable, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
+#[cfg_attr(feature = "bytemuck", derive(Pod, Zeroable))]
 pub struct ElementIndex(pub u64);
 
 impl ElementIndex {
@@ -62,7 +64,8 @@ impl ElementIndex {
 /// Bitboard of element's squares on 8×8 board (row-major: rank 8 at top, file A at left).
 /// Each bit represents one square. Used for adjacency checks and perimeter detection.
 #[repr(transparent)]
-#[derive(Pod, Zeroable, Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "bytemuck", derive(Pod, Zeroable))]
 pub struct Coordinates(pub u64);
 
 impl Coordinates {

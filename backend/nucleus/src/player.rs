@@ -1,12 +1,14 @@
 //! Player accounts: wallets for liquid funds and charges for allocated funds bound to elements.
 
+#[cfg(feature = "bytemuck")]
 use bytemuck::{Pod, Zeroable};
 
 use crate::types::{AddressBytes, ElementIndex, Gluon, Q824};
 
 /// Liquid Gluon (outside board pressure). Entry/exit point for on-chain value via Infuse/Extract.
 #[repr(C)]
-#[derive(Pod, Zeroable, Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "bytemuck", derive(Pod, Zeroable))]
 pub struct Wallet {
     /// Unallocated Gluon, ready to fund charges.
     pub balance: Gluon,
@@ -22,7 +24,8 @@ pub struct Wallet {
 /// Allocated Gluon bound to one element. Bound (index != 0) or unbound (index == 0).
 /// Reward share calculated at entry, claimed after element breaks.
 #[repr(C)]
-#[derive(Pod, Zeroable, Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "bytemuck", derive(Pod, Zeroable))]
 pub struct Charge {
     /// Allocated Gluon (on board or awaiting move/exit).
     pub balance: Gluon,

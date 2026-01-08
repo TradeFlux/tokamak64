@@ -8,5 +8,4 @@ bytemuck = { workspace = true, features = ["derive"], optional = true }
 curve = { workspace = true }
 
 [features]
-zerocopy = ["bytemuck"]
-default = ["zerocopy"]
+default = ["bytemuck"]
