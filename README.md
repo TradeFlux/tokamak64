@@ -32,8 +32,8 @@ Movement is group-to-group, not square-to-square:
 
 **Critical constraints on board access:**
 
-- Charges can only **enter the board (Fuse) from edge Elements**—those on the perimeter that touch the board boundary
-- Charges can only **exit the board (Fiss) from edge Elements**—returning to unbound status outside play
+- Charges can only **enter the board (Inject) from edge Elements**—those on the perimeter that touch the board boundary
+- Charges can only **exit the board (Eject) from edge Elements**—returning to unbound status outside play
 - This creates natural "gateways" to the board and means deep Elements are harder to escape from (you must traverse back toward edges)
 
 ## How Value Flows
@@ -56,16 +56,16 @@ When an Element overloads (saturation exceeds oversaturation point):
 - Reward distribution is proportional to each charge's value relative to total value in the Element
 - **All bound charges are automatically ejected for free**—no exit cost, instant departure
 - Overload is not punishment—it's the core value redistribution mechanism
-- **Unbound charges** (those that have already exited via Fiss) receive nothing from overload
+- **Unbound charges** (those that have already exited via Eject) receive nothing from overload
 
-This creates a fundamental tension: you can voluntarily exit early (via Fiss, paying costs from an edge Element), or stay and hope the Element overloads (getting rewards + free ejection).
+This creates a fundamental tension: you can voluntarily exit early (via Eject, paying costs from an edge Element), or stay and hope the Element overloads (getting rewards + free ejection).
 
 ### Costs as Investment
 
 Voluntary actions incur costs:
 
 - **Movement** (Rebind): Costs scale with destination depth and time elapsed since last move (speed tax)
-- **Exiting voluntarily** (Fiss): Costs apply when unbinding a charge from an Element
+- **Exiting voluntarily** (Eject): Costs apply when unbinding a charge from an Element
 - **Compressing value** (Compress): Costs scale with pot size and destination depth; fees are added to the pot being moved
 - **Donating to pot** (Vent): Transfers charge value to the Element's shared pot
 
@@ -76,12 +76,12 @@ Importantly: **costs are never destroyed**. All costs are redirected into the bo
 The board tracks total active Gluon in **charge accounts** on-board. TVL represents the sum of all charge balances currently participating in board state (either bound or unbound-but-active). Fees paid to element pots are NOT subtracted from TVL—they remain part of the system as shared value.
 
 TVL increases when:
-- **Fuse**: Charge enters board (`board.tvl += charge.balance` AFTER fee deduction). Fee is moved to pot, so total value is preserved.
+- **Inject**: Charge enters board (`board.tvl += charge.balance` AFTER fee deduction). Fee is moved to pot, so total value is preserved.
 - **Rebind/Compress**: Charge moves between elements (no TVL change; balance unchanged)
 - **Overload**: One charge re-bound; other charges' TVL removed (net: old TVL - ejected charges' balances = new TVL)
 
 TVL decreases when:
-- **Fiss**: Charge exits board (`board.tvl -= charge.balance` AFTER fee deduction). Fee stays in pot.
+- **Eject**: Charge exits board (`board.tvl -= charge.balance` AFTER fee deduction). Fee stays in pot.
 - **Claim**: Reward distributed from artefact to charge (`board.tvl` unchanged; internal redistribution)
 - **Overload**: All charges ejected except bonus charge (`board.tvl -= ejected_charges_balance`)
 
@@ -90,8 +90,8 @@ TVL decreases when:
 The game provides 13 actions (instructions) that shape gameplay, organized into 5 functional groups:
 
 ### Entry & Exit Operations
-- **Fuse**: Bind a charge onto the board into a **target edge Element only** (must be on the board's perimeter); charge becomes bound and participates in pressure mechanics
-- **Fiss**: Voluntarily unbind a charge from a **current edge Element only**, moving it outside the board; applies exit cost; unbound charges can no longer claim future rewards
+- **Inject**: Bind a charge onto the board into a **target edge Element only** (must be on the board's perimeter); charge becomes bound and participates in pressure mechanics
+- **Eject**: Voluntarily unbind a charge from a **current edge Element only**, moving it outside the board; applies exit cost; unbound charges can no longer claim future rewards
 - **Overload (automatic)**: When an Element's pressure exceeds its oversaturation point, all bound charges are automatically ejected for free, receive proportional reward share, and become unbound
 
 ### Account Initialization
@@ -142,9 +142,9 @@ When a charge moves between Elements via **Rebind**, the fee goes to one of two 
    - Rationale: Funds deeper Elements, accelerating value accumulation in high-risk zones
 
 2. **Moving Outward** (decreasing atomic number, toward edge)
-   - Direction: `src.index > dst.index`
-   - Fee recipient: **source Element**
-   - Rationale: Taxes departing charges, incentivizing staying or exiting via deliberate Fiss
+    - Direction: `src.index > dst.index`
+    - Fee recipient: **source Element**
+    - Rationale: Taxes departing charges, incentivizing staying or exiting via deliberate Eject
 
 **Compress** always moves inward: both migration and merge fees go to destination.
 
@@ -187,7 +187,7 @@ Claiming happens in two phases:
 
 TOKAMAK64 is designed around a principle: **depth creates gradient**. The board has natural layers defined by distance from edges:
 
-- **Edge Elements**: Only entry/exit points; all charges must Fuse here and must Fiss here. Easier to access but shallower pots.
+- **Edge Elements**: Only entry/exit points; all charges must Inject here and must Eject here. Easier to access but shallower pots.
 - **Shallow Elements** (one step inward): Reachable from edges, but deeper than perimeter. Medium-risk, medium-reward.
 - **Deep Elements** (toward center): Require multiple moves to reach, require multiple moves to escape. Harder to access but accumulate larger, more valuable pots.
 - Costs scale with depth, creating natural incentives for different player strategies
@@ -258,7 +258,7 @@ The game has a clear progression through different states:
 ### Creating & Positioning Charges
 4. **Charge**: Create a new charge account by allocating Gluon from your wallet to it
 5. A single player wallet can create unlimited charges (limited only by available Gluon)
-6. **Fuse**: Send a charge onto the board into an Element of your choice
+6. **Inject**: Send a charge onto the board into an Element of your choice
 7. Multiple charges can occupy the same Element; they accumulate pressure together
 
 ### Active Play
@@ -270,7 +270,7 @@ The game has a clear progression through different states:
 13. **Claim**: Collect your share of rewards after overload
 
 ### Exiting & Consolidation
-14. **Fiss**: Unbind a charge from its Element, moving it outside the board
+14. **Eject**: Unbind a charge from its Element, moving it outside the board
 15. Once outside, a charge cannot participate in Element mechanics or claims
 16. **Discharge**: Merge a charge's Gluon back into your wallet
 17. Charges can be combined outside the board (one is discharged into your wallet, then used to top up another)
@@ -282,7 +282,7 @@ The game has a clear progression through different states:
 ### Key Distinctions
 
 - **Wallet**: Holds Gluon in liquid form (unallocated); serves as your in-game resource pool. Created implicitly on first TopUp.
-- **Charge**: A distinct account holding Gluon; the actual entity that occupies Elements and claims rewards. Charges are **bound** while on the board (index set, can claim if Element breaks) and **unbound** after Fiss (index cleared, can never claim).
+- **Charge**: A distinct account holding Gluon; the actual entity that occupies Elements and claims rewards. Charges are **bound** while on the board (index set, can claim if Element breaks) and **unbound** after Eject (index cleared, can never claim).
 - **Gluon**: In-game currency representing economic value within TOKAMAK64. Used for all actions. Cannot be transferred directly between players.
 - **Stable tokens** (USDT/USDC): Held in your Solana ATA. The entry and exit point for real-world value; convertible to/from Gluon via TopUp/Drain (1:1).
 - **Element pot**: Shared value accumulated by charges present during Element's accumulation; distributed to bound charges when Element breaks.
@@ -295,7 +295,7 @@ A typical gameplay session:
 2. Create an ATA (Associated Token Account) if needed
 3. Use **TopUp** to convert stable tokens → Gluon in your in-game wallet (1:1)
 4. Use **Charge** to create new charges, allocating Gluon from your wallet to each
-5. Use **Fuse** to position charges onto the board into edge Elements (perimeter only)
+5. Use **Inject** to position charges onto the board into edge Elements (perimeter only)
 6. Navigate strategically using **Rebind** to move between Elements, building exposure to high-value pots
 7. Use **Vent** to donate value to your current Element's shared pot if you believe it will break soon
 8. Use **Compress** to move pots deeper if you're positioned to benefit from richer payouts
@@ -303,7 +303,7 @@ A typical gameplay session:
 10. Use **Overload** to trigger early overloads if you believe timing favors you
 11. **Decide**: Do you stay hoping for overload (free exit + rewards) or exit voluntarily?
 12. If exiting voluntarily: Use **Rebind** to navigate back toward the board's edge
-13. Use **Fiss** to unbind charges only from edge Elements, paying exit costs (note: unbound charges cannot claim future rewards)
+13. Use **Eject** to unbind charges only from edge Elements, paying exit costs (note: unbound charges cannot claim future rewards)
 14. If overload happens: You're automatically ejected for free with your reward share already distributed
 15. Use **Discharge** to merge unbound charges back into your wallet
 16. Use **Drain** to convert remaining Gluon back to stable tokens and withdraw

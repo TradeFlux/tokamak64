@@ -16,15 +16,15 @@ impl<'a, I: Iterator<Item = &'a AccountView>> AccountIter<'a> for I {}
 // ENTRY & EXIT OPERATIONS
 // ============================================================================
 
-/// Fuse: Bind charge to edge element. Validates: peripheral destination.
-pub struct FusionAccounts<'a> {
+/// Inject: Bind charge to edge element. Validates: peripheral destination.
+pub struct InjectionAccounts<'a> {
     pub(crate) charge: &'a mut Charge,
     pub(crate) dst: &'a mut Element,
     pub(crate) board: &'a mut Board,
 }
 
-/// Fiss: Unbind charge from edge element. Validates: peripheral source, bound charge.
-pub struct FissionAccounts<'a> {
+/// Eject: Unbind charge from edge element. Validates: peripheral source, bound charge.
+pub struct EjectionAccounts<'a> {
     pub(crate) charge: &'a mut Charge,
     pub(crate) src: &'a mut Element,
     pub(crate) board: &'a mut Board,
@@ -90,11 +90,11 @@ pub struct DischargeAccounts<'a> {
 
 /// TopUp: Convert stable tokens to Gluon (1:1). Validates: token transfer.
 pub struct TopUpAccounts<'a> {
-    pub(crate) wallet: &'a mut Wallet,
     pub(crate) src: &'a AccountView,
     pub(crate) mint: &'a AccountView,
     pub(crate) vault: &'a AccountView,
     pub(crate) authority: &'a AccountView,
+    pub(crate) wallet: &'a mut Wallet,
 }
 
 /// Drain: Convert Gluon to stable tokens (1:1). Validates: sufficient balance.
@@ -124,11 +124,15 @@ pub struct InitWalletAccounts<'a> {
     pub(crate) mint: &'a AccountView,
 }
 
+// ============================================================================
+// HELPERS & IMPLS
+// ============================================================================
+
 pub trait FromAccounts<'a>: Sized {
     fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError>;
 }
 
-impl<'a> FromAccounts<'a> for FusionAccounts<'a> {
+impl<'a> FromAccounts<'a> for InjectionAccounts<'a> {
     fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         let signer = next(it)?;
         let charge: &'a mut Charge = parse(it)?;
@@ -141,7 +145,7 @@ impl<'a> FromAccounts<'a> for FusionAccounts<'a> {
     }
 }
 
-impl<'a> FromAccounts<'a> for FissionAccounts<'a> {
+impl<'a> FromAccounts<'a> for EjectionAccounts<'a> {
     fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         let signer = next(it)?;
         let charge: &'a mut Charge = parse(it)?;
@@ -241,11 +245,11 @@ impl<'a> FromAccounts<'a> for DischargeAccounts<'a> {
 impl<'a> FromAccounts<'a> for TopUpAccounts<'a> {
     fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
-            wallet: parse(it)?,
             src: next(it)?,
             mint: next(it)?,
             vault: next(it)?,
             authority: next(it)?,
+            wallet: parse(it)?,
         })
     }
 }
@@ -298,15 +302,9 @@ where
     T: bytemuck::Pod,
     I: Iterator<Item = &'a AccountView>,
 {
-    let info = it.next().ok_or(ProgramError::NotEnoughAccountKeys)?;
-    // Check if account has enough data
-    if info.data_len() < size_of::<T>() {
-        return Err(ProgramError::InvalidAccountData);
-    }
-    unsafe {
-        let s = slice::from_raw_parts_mut(info.data_ptr() as *mut u8, size_of::<T>());
-        bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)
-    }
+    let info = next(it)?;
+    let s = unsafe { slice::from_raw_parts_mut(info.data_ptr(), size_of::<T>()) };
+    bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)
 }
 
 fn next<'a, I>(it: &mut I) -> Result<&'a AccountView, ProgramError>

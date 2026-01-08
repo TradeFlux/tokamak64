@@ -11,17 +11,17 @@ use crate::{
 };
 
 /// Convert stable tokens (USDT/USDC) to Gluon and deposit into wallet (1:1 conversion).
-/// Transfers stable tokens to program vault; wallet balance increases for Charge/Fuse actions.
+/// Transfers stable tokens to program vault; wallet balance increases for Charge/Inject actions.
 pub(crate) fn topup<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
 where
     I: AccountIter<'a>,
 {
     let TopUpAccounts {
-        wallet,
         src,
         mint,
         vault,
         authority,
+        wallet,
     } = TopUpAccounts::extract(it)?;
 
     let amount = data.read()?;
