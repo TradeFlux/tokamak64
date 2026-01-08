@@ -39,8 +39,6 @@ mod tests {
             index,
             share,
             authority: dummy_address(),
-            _pad: 0,
-        }
     }
 
     // === ElementIndex Tests ===

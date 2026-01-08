@@ -122,6 +122,26 @@ pub struct DrainAccounts<'a> {
     pub(crate) authority: &'a AccountView,
 }
 
+/// Accounts for InitCharge: initialize a new charge account.
+pub struct InitChargeAccounts<'a> {
+    /// Signer (becomes charge authority).
+    pub(crate) signer: &'a AccountView,
+    /// Wallet account (signer's wallet)
+    pub(crate) wallet: &'a mut Wallet,
+    /// Charge account to initialize (PDA from signer + counter 0).
+    pub(crate) charge: &'a AccountView,
+}
+
+/// Accounts for InitWallet: initialize a new wallet account.
+pub struct InitWalletAccounts<'a> {
+    /// Signer (becomes wallet authority).
+    pub(crate) signer: &'a AccountView,
+    /// Wallet account to initialize (PDA from signer + mint).
+    pub(crate) wallet: &'a AccountView,
+    /// Mint account (stable token mint: USDT/USDC).
+    pub(crate) mint: &'a AccountView,
+}
+
 pub trait FromAccounts<'a>: Sized {
     fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError>;
 }
@@ -251,7 +271,7 @@ impl<'a> FromAccounts<'a> for TopUpAccounts<'a> {
 impl<'a> FromAccounts<'a> for DrainAccounts<'a> {
     fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         let signer = next(it)?;
-        let wallet: &'a mut Wallet = parse(it)?;
+        let wallet = parse::<Wallet, _>(it)?;
         authorize(signer, &wallet.authority)?;
         Ok(Self {
             wallet,
@@ -259,6 +279,34 @@ impl<'a> FromAccounts<'a> for DrainAccounts<'a> {
             mint: next(it)?,
             dst: next(it)?,
             authority: next(it)?,
+        })
+    }
+}
+
+impl<'a> FromAccounts<'a> for InitChargeAccounts<'a> {
+    fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+        let signer = next(it)?;
+        let wallet = parse::<Wallet, _>(it)?;
+        authorize(signer, &wallet.authority)?;
+        Ok(Self {
+            signer,
+            wallet,
+            charge: next(it)?,
+        })
+    }
+}
+
+impl<'a> FromAccounts<'a> for InitWalletAccounts<'a> {
+    fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+        let signer = next(it)?;
+        if !signer.is_signer() {
+            return Err(ProgramError::MissingRequiredSignature)?;
+        }
+
+        Ok(Self {
+            signer,
+            wallet: next(it)?,
+            mint: next(it)?,
         })
     }
 }

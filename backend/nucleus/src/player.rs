@@ -14,6 +14,9 @@ pub struct Wallet {
     pub authority: AddressBytes,
     /// Mint account for token transfers.
     pub mint: AddressBytes,
+    /// Counter for deriving multiple charge PDAs per player (bump seed component).
+    pub charges: u32,
+    _pad: u32,
 }
 
 /// Charge: atomic allocation of a player's funds bound to one element.
@@ -30,8 +33,8 @@ pub struct Charge {
     pub index: ElementIndex,
     /// Share of Element's pot as Q8.24 fixed-point (proportional reward at breaking).
     pub share: Q824,
-    /// Padding for 64-byte alignment (Pod requirement).
-    pub _pad: u32,
     /// Public key of the charge's owner.
     pub authority: AddressBytes,
+    pub wallet: AddressBytes,
+    _pad: u32,
 }

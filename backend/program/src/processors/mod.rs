@@ -5,6 +5,8 @@ pub(crate) mod discharge;
 pub(crate) mod drain;
 pub(crate) mod fission;
 pub(crate) mod fuse;
+pub(crate) mod init_charge;
+pub(crate) mod init_wallet;
 pub(crate) mod overload;
 pub(crate) mod rebind;
 pub(crate) mod topup;

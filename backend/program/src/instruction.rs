@@ -15,7 +15,11 @@ pub(crate) struct IxData<'a> {
 #[repr(u64)]
 #[derive(Clone, Copy)]
 pub enum TokamakInstruction {
+    /// Initialize a new charge account (PDA) for a player.
+    /// Derives from signer + counter=0, sets signer as authority, starts with zero balance.
     InitCharge,
+    /// Initialize a new wallet account (PDA) for a player.
+    /// Derives from signer + mint, sets signer as authority, starts with zero balance.
     InitWallet,
     /// Create a new charge by allocating Gluon from wallet to a charge account.
     /// Reads: amount (u64).
