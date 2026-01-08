@@ -2,6 +2,7 @@ use core::slice;
 use nucleus::{
     board::{Artefact, Board, Element},
     player::{Charge, Wallet},
+    types::AddressBytes,
 };
 use pinocchio::{account::AccountView, error::ProgramError};
 
@@ -122,13 +123,16 @@ pub struct DrainAccounts<'a> {
 }
 
 pub trait FromAccounts<'a>: Sized {
-    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError>;
+    fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError>;
 }
 
 impl<'a> FromAccounts<'a> for FusionAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+    fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+        let signer = next(it)?;
+        let charge: &'a mut Charge = parse(it)?;
+        authorize(signer, &charge.authority)?;
         Ok(Self {
-            charge: parse(it)?,
+            charge,
             dst: parse(it)?,
             board: parse(it)?,
         })
@@ -136,9 +140,12 @@ impl<'a> FromAccounts<'a> for FusionAccounts<'a> {
 }
 
 impl<'a> FromAccounts<'a> for FissionAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+    fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+        let signer = next(it)?;
+        let charge: &'a mut Charge = parse(it)?;
+        authorize(signer, &charge.authority)?;
         Ok(Self {
-            charge: parse(it)?,
+            charge,
             src: parse(it)?,
             board: parse(it)?,
         })
@@ -146,9 +153,12 @@ impl<'a> FromAccounts<'a> for FissionAccounts<'a> {
 }
 
 impl<'a> FromAccounts<'a> for CompressionAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+    fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+        let signer = next(it)?;
+        let charge: &'a mut Charge = parse(it)?;
+        authorize(signer, &charge.authority)?;
         Ok(Self {
-            charge: parse(it)?,
+            charge,
             src: parse(it)?,
             dst: parse(it)?,
         })
@@ -156,9 +166,12 @@ impl<'a> FromAccounts<'a> for CompressionAccounts<'a> {
 }
 
 impl<'a> FromAccounts<'a> for OverloadAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+    fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+        let signer = next(it)?;
+        let charge: &'a mut Charge = parse(it)?;
+        authorize(signer, &charge.authority)?;
         Ok(Self {
-            charge: parse(it)?,
+            charge,
             target: parse(it)?,
             artefact: parse(it)?,
             board: parse(it)?,
@@ -167,9 +180,12 @@ impl<'a> FromAccounts<'a> for OverloadAccounts<'a> {
 }
 
 impl<'a> FromAccounts<'a> for RebindAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+    fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+        let signer = next(it)?;
+        let charge: &'a mut Charge = parse(it)?;
+        authorize(signer, &charge.authority)?;
         Ok(Self {
-            charge: parse(it)?,
+            charge,
             src: parse(it)?,
             dst: parse(it)?,
         })
@@ -177,43 +193,51 @@ impl<'a> FromAccounts<'a> for RebindAccounts<'a> {
 }
 
 impl<'a> FromAccounts<'a> for VentAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+    fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+        let signer = next(it)?;
+        let charge: &'a mut Charge = parse(it)?;
+        authorize(signer, &charge.authority)?;
         Ok(Self {
-            charge: parse(it)?,
+            charge,
             target: parse(it)?,
         })
     }
 }
 
 impl<'a> FromAccounts<'a> for ClaimAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+    fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+        let signer = next(it)?;
+        let charge: &'a mut Charge = parse(it)?;
+        authorize(signer, &charge.authority)?;
         Ok(Self {
-            charge: parse(it)?,
+            charge,
             artefact: parse(it)?,
         })
     }
 }
 
 impl<'a> FromAccounts<'a> for ChargeAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
-        Ok(Self {
-            charge: parse(it)?,
-            wallet: parse(it)?,
-        })
+    fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+        let signer = next(it)?;
+        let charge: &'a mut Charge = parse(it)?;
+        let wallet: &'a mut Wallet = parse(it)?;
+        authorize(signer, &wallet.authority)?;
+        Ok(Self { charge, wallet })
     }
 }
 
 impl<'a> FromAccounts<'a> for DischargeAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
-        Ok(Self {
-            charge: parse(it)?,
-            wallet: parse(it)?,
-        })
+    fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+        let signer = next(it)?;
+        let charge: &'a mut Charge = parse(it)?;
+        let wallet: &'a mut Wallet = parse(it)?;
+        authorize(signer, &wallet.authority)?;
+        Ok(Self { charge, wallet })
     }
 }
 
 impl<'a> FromAccounts<'a> for TopUpAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+    fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
             wallet: parse(it)?,
             src: next(it)?,
@@ -225,9 +249,12 @@ impl<'a> FromAccounts<'a> for TopUpAccounts<'a> {
 }
 
 impl<'a> FromAccounts<'a> for DrainAccounts<'a> {
-    fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+    fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
+        let signer = next(it)?;
+        let wallet: &'a mut Wallet = parse(it)?;
+        authorize(signer, &wallet.authority)?;
         Ok(Self {
-            wallet: parse(it)?,
+            wallet,
             vault: next(it)?,
             mint: next(it)?,
             dst: next(it)?,
@@ -257,4 +284,18 @@ where
     I: Iterator<Item = &'a AccountView>,
 {
     it.next().ok_or(ProgramError::NotEnoughAccountKeys)
+}
+
+pub(crate) fn authorize(
+    signer: &AccountView,
+    authority: &AddressBytes,
+) -> Result<(), ProgramError> {
+    if !signer.is_signer() {
+        return Err(ProgramError::MissingRequiredSignature);
+    }
+    if signer.address().as_ref() == authority {
+        Ok(())
+    } else {
+        Err(ProgramError::IncorrectAuthority)
+    }
 }

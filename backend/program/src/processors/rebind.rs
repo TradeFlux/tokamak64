@@ -6,7 +6,12 @@ use crate::accounts::{AccountIter, FromAccounts, RebindAccounts};
 
 /// Move a bound charge from source Element to an adjacent Element; incurs movement cost.
 pub(crate) fn rebind<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
-    let RebindAccounts { charge, src, dst } = RebindAccounts::parse(it)?;
+    let RebindAccounts {
+        charge,
+        src,
+        dst,
+    } = RebindAccounts::extract(it)?;
+
     let fee = migration_fee(charge, src, dst);
     src.coordinates
         .adjacent(dst.coordinates)

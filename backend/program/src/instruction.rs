@@ -3,7 +3,7 @@ use core::mem;
 use bytemuck::Pod;
 use pinocchio::error::ProgramError;
 
-const IX_COUNT: u64 = 11;
+const IX_COUNT: u64 = 13;
 
 pub(crate) struct IxData<'a> {
     inner: &'a [u8],
@@ -15,6 +15,8 @@ pub(crate) struct IxData<'a> {
 #[repr(u64)]
 #[derive(Clone, Copy)]
 pub enum TokamakInstruction {
+    InitCharge,
+    InitWallet,
     /// Create a new charge by allocating Gluon from wallet to a charge account.
     /// Reads: amount (u64).
     Charge,

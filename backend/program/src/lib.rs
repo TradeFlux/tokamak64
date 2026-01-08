@@ -21,6 +21,7 @@ fn process_instruction(
     let mut data = IxData::new(data);
     let ix = TokamakInstruction::parse(&mut data)?;
     match ix {
+        InitCharge | InitWallet => todo!(),
         Charge => charge::charge(it, data),
         Claim => claim::claim(it),
         Compress => compress::compress(it),

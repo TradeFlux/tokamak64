@@ -17,7 +17,7 @@ pub(crate) fn overload<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
         target,
         artefact,
         board,
-    } = OverloadAccounts::parse(it)?;
+    } = OverloadAccounts::extract(it)?;
 
     // 1. Validate that the move causes capacity overflow
     if target.curve.saturation < MAX_SATURATION {

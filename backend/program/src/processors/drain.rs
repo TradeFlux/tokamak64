@@ -19,8 +19,8 @@ where
         vault,
         mint,
         dst,
-        authority: auth,
-    } = DrainAccounts::parse(it)?;
+        authority,
+    } = DrainAccounts::extract(it)?;
 
     let amount = data.read()?;
 
@@ -39,7 +39,7 @@ where
         from: vault,
         mint,
         to: dst,
-        authority: auth,
+        authority,
         amount,
         decimals: DECIMALS,
     };

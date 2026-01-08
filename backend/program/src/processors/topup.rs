@@ -19,8 +19,8 @@ where
         src,
         mint,
         vault,
-        authority: auth,
-    } = TopUpAccounts::parse(it)?;
+        authority,
+    } = TopUpAccounts::extract(it)?;
 
     let amount = data.read()?;
 
@@ -33,7 +33,7 @@ where
         from: src,
         mint,
         to: vault,
-        authority: auth,
+        authority,
         amount,
         decimals: DECIMALS,
     };
