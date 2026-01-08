@@ -5,6 +5,7 @@ use nucleus::{action, board::Element, fees::injection_fee};
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
 
+use super::common::charge_fee;
 use crate::accounts::{AccountIter, FromAccounts, InjectionAccounts};
 
 /// Bind a charge onto the board into an edge Element;
@@ -20,12 +21,12 @@ pub(crate) fn inject<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
         // charge needs to be out of the board and no outstanding claims
         return Err(ProgramError::Custom(43));
     }
-    let fee = injection_fee(charge, dst);
+
     board.tvl += charge.balance;
     board.charge_count += 1;
 
-    let remainder = charge.balance.checked_sub(fee);
-    charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;
+    let fee = charge_fee(charge, injection_fee(charge, dst))?;
+
     let mut src = Element::zeroed();
     action::rebind(charge, &mut src, dst);
     dst.pot += fee;

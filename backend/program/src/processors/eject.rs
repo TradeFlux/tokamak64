@@ -5,6 +5,7 @@ use nucleus::{action, board::Element, fees::ejection_fee};
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
 
+use super::common::charge_fee;
 use crate::accounts::{AccountIter, EjectionAccounts, FromAccounts};
 
 /// Unbind a charge from its current Element and move it outside the board; only from edge Elements.
@@ -15,9 +16,8 @@ pub(crate) fn eject<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
         .on_edge()
         .then_some(())
         .ok_or(ProgramError::InvalidArgument)?;
-    let fee = ejection_fee(charge, src);
-    let remainder = charge.balance.checked_sub(fee);
-    charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;
+
+    let fee = charge_fee(charge, ejection_fee(charge, src))?;
 
     board.tvl -= charge.balance;
     board.charge_count -= 1;

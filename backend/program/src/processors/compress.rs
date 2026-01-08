@@ -7,6 +7,7 @@ use nucleus::{
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
 
+use super::common::charge_fee;
 use crate::accounts::{AccountIter, CompressionAccounts, FromAccounts};
 
 /// Move Element's pot inward to deeper destination and rebind charge; adds fees to moving pot.
@@ -23,12 +24,11 @@ pub(crate) fn compress<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
         // TODO proper handling of compression error (only towards increasing Z)
         return Err(ProgramError::Custom(42));
     }
-    // Rebind fee: cost to move inward, scales with destination depth and saturation
-    // Compression fee: cost to consolidate source pot, scales with source saturation and pot size
-    let fee = rebind_fee(charge, src, dst) + compression_fee(src);
 
-    let remainder = charge.balance.checked_sub(fee);
-    charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;
+    // Rebind fee + compression fee, with speed tax applied to combined total
+    let base_fee = rebind_fee(charge, src, dst) + compression_fee(src);
+    let fee = charge_fee(charge, base_fee)?;
+
     action::compress(charge, src, dst);
     // Both fees accumulate in destination pot (investment in deeper element)
     dst.pot += fee;

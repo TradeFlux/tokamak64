@@ -4,13 +4,13 @@ use nucleus::{action, fees::rebind_fee};
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
 
+use super::common::charge_fee;
 use crate::accounts::{AccountIter, FromAccounts, RebindAccounts};
 
 /// Move a bound charge from source Element to an adjacent Element; incurs movement cost.
 pub(crate) fn rebind<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let RebindAccounts { charge, src, dst } = RebindAccounts::extract(it)?;
 
-    let fee = rebind_fee(charge, src, dst);
     src.coordinates
         .adjacent(dst.coordinates)
         .then_some(())
@@ -21,8 +21,8 @@ pub(crate) fn rebind<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
         return Err(ProgramError::Custom(1)); // Charge not in source element
     }
 
-    let remainder = charge.balance.checked_sub(fee);
-    charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;
+    let fee = charge_fee(charge, rebind_fee(charge, src, dst))?;
+
     action::rebind(charge, src, dst);
     // Fee routing: moving outward (src.index > dst.index) pays to src;
     // moving inward (src.index < dst.index) pays to dst.
