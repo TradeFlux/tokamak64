@@ -9,7 +9,7 @@ pub const MAX_SATURATION: u32 = curve::lut::LUT_X_MAX;
 /// Minimum fee (in Gluon) to prevent dust.
 pub const MIN_FEE: u64 = 100_000;
 
-/// Token decimals (Gluon precision).
+/// Token decimals (Gluon precision, same as popular stable coins).
 pub const DECIMALS: u8 = 6;
 
 /// Maximum speed multiplier (applied based on action timing).

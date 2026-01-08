@@ -1,12 +1,14 @@
 //! Convert Gluon from wallet back to stable tokens and withdraw.
 
 use nucleus::consts::DECIMALS;
-use pinocchio::error::ProgramError;
+use pinocchio::cpi::Seed;
 use pinocchio::ProgramResult;
+use pinocchio::{cpi::Signer, error::ProgramError};
 use pinocchio_token::instructions::TransferChecked;
 
 use crate::{
     accounts::{AccountIter, DrainAccounts, FromAccounts},
+    addresses,
     instruction::IxData,
 };
 
@@ -35,26 +37,31 @@ where
         return Err(ProgramError::InsufficientFunds);
     }
 
+    let Some((auth, seeds)) = addresses::resolve_vault(vault.address().as_array()) else {
+        return Err(ProgramError::InvalidArgument);
+    };
+    if auth == *authority.address().as_array() {
+        return Err(ProgramError::IncorrectAuthority);
+    }
+    // Convert 1:1 from GLUON to stable token
+    wallet.balance = wallet
+        .balance
+        .checked_sub(amount)
+        .ok_or(ProgramError::ArithmeticOverflow)?;
+
+    let seeds = &[Seed::from(seeds[0]), Seed::from(seeds[1])];
+    let signer = Signer::from(seeds);
+
     // Execute token transfer: vault -> dst via CPI
-    // vault is program-owned PDA, so auth (vault authority) needs invoke_signed with seeds
-    let transfer = TransferChecked {
+    TransferChecked {
         from: vault,
         mint,
         to: dst,
         authority,
         amount,
         decimals: DECIMALS,
-    };
-    // TODO: Pass vault PDA seeds to invoke_signed
-    // let seeds = &[b"vault", <mint_bytes>, &[bump_seed]];
-    // transfer.invoke_signed(&[seeds])?;
-    transfer.invoke()?;
-
-    // Convert 1:1 from GLUON to stable token
-    wallet.balance = wallet
-        .balance
-        .checked_sub(amount)
-        .ok_or(ProgramError::ArithmeticOverflow)?;
+    }
+    .invoke_signed(&[signer])?;
 
     Ok(())
 }

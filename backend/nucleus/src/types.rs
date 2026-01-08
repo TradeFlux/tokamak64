@@ -87,7 +87,7 @@ impl Coordinates {
 
     /// True if touches board perimeter (entry/exit gateways).
     #[inline(always)]
-    pub fn is_peripheral(self) -> bool {
+    pub fn on_edge(self) -> bool {
         (self.0 & Self::PERIMETER) != 0
     }
 }

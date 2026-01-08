@@ -12,7 +12,7 @@ pub(crate) fn eject<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let EjectionAccounts { charge, src, board } = EjectionAccounts::extract(it)?;
 
     src.coordinates
-        .is_peripheral()
+        .on_edge()
         .then_some(())
         .ok_or(ProgramError::InvalidArgument)?;
     let fee = exit_fee(charge, src);

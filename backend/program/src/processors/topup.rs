@@ -23,7 +23,6 @@ where
         authority,
         wallet,
     } = TopUpAccounts::extract(it)?;
-
     let amount = data.read()?;
 
     if amount == 0 {
@@ -41,7 +40,6 @@ where
     };
     transfer.invoke()?;
 
-    // TODO wallet might not exist, create if necessary
     // Convert 1:1 from stable token to GLUON and deposit into wallet
     wallet.balance = wallet
         .balance

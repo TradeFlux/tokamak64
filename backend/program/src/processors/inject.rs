@@ -12,7 +12,7 @@ pub(crate) fn inject<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let InjectionAccounts { charge, dst, board } = InjectionAccounts::extract(it)?;
 
     dst.coordinates
-        .is_peripheral()
+        .on_edge()
         .then_some(())
         .ok_or(ProgramError::InvalidArgument)?;
     let fee = entry_fee(charge, dst);

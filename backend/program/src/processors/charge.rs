@@ -13,10 +13,7 @@ pub(crate) fn charge<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
 where
     I: AccountIter<'a>,
 {
-    let ChargeAccounts {
-        charge,
-        wallet,
-    } = ChargeAccounts::extract(it)?;
+    let ChargeAccounts { charge, wallet } = ChargeAccounts::extract(it)?;
 
     let amount = data.read()?;
 

@@ -13,10 +13,7 @@ pub(crate) fn discharge<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
 where
     I: AccountIter<'a>,
 {
-    let DischargeAccounts {
-        charge,
-        wallet,
-    } = DischargeAccounts::extract(it)?;
+    let DischargeAccounts { charge, wallet } = DischargeAccounts::extract(it)?;
 
     let amount = data.read()?;
 

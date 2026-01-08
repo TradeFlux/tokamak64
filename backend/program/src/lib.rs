@@ -8,6 +8,7 @@ use pinocchio::{account::AccountView, address::declare_id, program_entrypoint, P
 use crate::instruction::IxData;
 
 mod accounts;
+mod addresses;
 mod instruction;
 mod processors;
 

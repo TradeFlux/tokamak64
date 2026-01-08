@@ -3,12 +3,12 @@
 //! Nucleus defines the fundamental data structures, types, constants, and action logic that drive TOKAMAK64.
 //! It is a pure data layer with no blockchain dependencies; core game rules are expressed as deterministic functions.
 
-pub mod types;
-pub mod player;
-pub mod board;
 pub mod action;
-pub mod fees;
+pub mod board;
 pub mod consts;
+pub mod fees;
+pub mod player;
+pub mod types;
 
 #[cfg(test)]
 mod tests;

@@ -104,13 +104,13 @@ mod tests {
     #[test]
     fn coordinates_peripheral_edge() {
         let c = Coordinates(1u64 << 0); // square 0 (file A, rank 1)
-        assert!(c.is_peripheral());
+        assert!(c.on_edge());
     }
 
     #[test]
     fn coordinates_peripheral_center() {
         let c = Coordinates(1u64 << 27); // square 27 (center-ish)
-        assert!(!c.is_peripheral());
+        assert!(!c.on_edge());
     }
 
     // === Utility Tests ===
