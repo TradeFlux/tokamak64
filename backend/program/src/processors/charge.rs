@@ -1,15 +1,20 @@
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
 
-use crate::accounts::{AccountIter, ChargeAccounts, FromAccounts};
+use crate::{
+    accounts::{AccountIter, ChargeAccounts, FromAccounts},
+    instruction::IxData,
+};
 
 /// Process a Charge instruction: deposit stable tokens into the system.
 /// This increases the player's liquid balance and the board's TVL.
-pub(crate) fn process_charge<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
+pub(crate) fn process_charge<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
+where
+    I: AccountIter<'a>,
+{
     let ChargeAccounts { charge, wallet } = ChargeAccounts::parse(it)?;
 
-    // TODO: Parse amount from instruction_data
-    let amount = 0i64;
+    let amount = data.read()?;
 
     if amount == 0 {
         return Err(ProgramError::InvalidArgument);

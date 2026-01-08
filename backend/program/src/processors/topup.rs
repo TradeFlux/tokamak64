@@ -1,8 +1,12 @@
+use nucleus::consts::DECIMALS;
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
 use pinocchio_token::instructions::TransferChecked;
 
-use crate::accounts::{AccountIter, FromAccounts, TopUpAccounts};
+use crate::{
+    accounts::{AccountIter, FromAccounts, TopUpAccounts},
+    instruction::IxData,
+};
 
 /// Process a TopUp instruction: convert stable tokens to GLUON and deposit into wallet.
 /// This increases the player's liquid balance and the system's TVL.
@@ -13,7 +17,10 @@ use crate::accounts::{AccountIter, FromAccounts, TopUpAccounts};
 /// 3. mint - Token mint account (USDT/USDC)
 /// 4. vault - Program's vault token ATA (writable, destination)
 /// 5. auth - Player's authority (signer, owner of src)
-pub(crate) fn process_topup<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
+pub(crate) fn process_topup<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
+where
+    I: AccountIter<'a>,
+{
     let TopUpAccounts {
         wallet,
         src,
@@ -22,9 +29,7 @@ pub(crate) fn process_topup<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult
         authority: auth,
     } = TopUpAccounts::parse(it)?;
 
-    // TODO: Parse amount from instruction_data
-    let amount = 0u64;
-    let decimals = 6u8; // Standard for USDT/USDC; TODO: read from mint account
+    let amount = data.read()?;
 
     if amount == 0 {
         return Err(ProgramError::InvalidArgument);
@@ -37,10 +42,11 @@ pub(crate) fn process_topup<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult
         to: vault,
         authority: auth,
         amount,
-        decimals,
+        decimals: DECIMALS,
     };
     transfer.invoke()?;
 
+    // TODO wallet might not exist, create if necessary
     // Convert 1:1 from stable token to GLUON and deposit into wallet
     wallet.balance = wallet
         .balance

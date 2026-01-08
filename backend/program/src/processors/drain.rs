@@ -1,8 +1,12 @@
+use nucleus::consts::DECIMALS;
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
 use pinocchio_token::instructions::TransferChecked;
 
-use crate::accounts::{AccountIter, DrainAccounts, FromAccounts};
+use crate::{
+    accounts::{AccountIter, DrainAccounts, FromAccounts},
+    instruction::IxData,
+};
 
 /// Process a Drain instruction: convert GLUON in wallet to stable tokens and withdraw.
 /// This decreases the player's liquid balance and transfers stable tokens to their ATA.
@@ -13,7 +17,10 @@ use crate::accounts::{AccountIter, DrainAccounts, FromAccounts};
 /// 3. mint - Token mint account (USDT/USDC)
 /// 4. dst - Player's token ATA (writable, destination)
 /// 5. auth - Vault authority/PDA (signer for vault token ATA)
-pub(crate) fn process_drain<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
+pub(crate) fn process_drain<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
+where
+    I: AccountIter<'a>,
+{
     let DrainAccounts {
         wallet,
         vault,
@@ -22,9 +29,7 @@ pub(crate) fn process_drain<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult
         authority: auth,
     } = DrainAccounts::parse(it)?;
 
-    // TODO: Parse amount from instruction_data
-    let amount = 0u64;
-    let decimals = 6u8; // Standard for USDT/USDC; TODO: read from mint account
+    let amount = data.read()?;
 
     if amount == 0 {
         return Err(ProgramError::InvalidArgument);
@@ -43,7 +48,7 @@ pub(crate) fn process_drain<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult
         to: dst,
         authority: auth,
         amount,
-        decimals,
+        decimals: DECIMALS,
     };
     // TODO: Pass vault PDA seeds to invoke_signed
     // let seeds = &[b"vault", <mint_bytes>, &[bump_seed]];

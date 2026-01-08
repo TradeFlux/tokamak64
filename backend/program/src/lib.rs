@@ -1,52 +1,36 @@
 use instruction::TokamakInstruction;
-use pinocchio::{
-    account::AccountView, error::ProgramError, no_allocator, nostd_panic_handler,
-    program_entrypoint, ProgramResult,
-};
+use pinocchio::{account::AccountView, program_entrypoint, ProgramResult};
+
+use crate::instruction::IxData;
 
 mod accounts;
 mod instruction;
 mod processors;
 
+program_entrypoint!(process_instruction);
+
 fn process_instruction(
-    _program_id: &pinocchio::Address,
+    id: &pinocchio::Address,
     accounts: &[AccountView],
-    instruction_data: &[u8],
+    data: &[u8],
 ) -> ProgramResult {
-    if instruction_data.is_empty() {
-        return Err(ProgramError::InvalidInstructionData);
-    }
+    use processors::*;
+    use TokamakInstruction::*;
 
-    let ix = match instruction_data[0] {
-        0 => TokamakInstruction::Charge,
-        1 => TokamakInstruction::Claim,
-        2 => TokamakInstruction::Compress,
-        3 => TokamakInstruction::Drain,
-        4 => TokamakInstruction::Discharge,
-        5 => TokamakInstruction::Translate,
-        6 => TokamakInstruction::Fiss,
-        7 => TokamakInstruction::Fuse,
-        8 => TokamakInstruction::Overload,
-        9 => TokamakInstruction::TopUp,
-        10 => TokamakInstruction::Vent,
-        _ => return Err(ProgramError::InvalidInstructionData),
-    };
-
-    let mut it = accounts.iter();
+    let it = &mut accounts.iter();
+    let mut data = IxData::new(data);
+    let ix = TokamakInstruction::parse(&mut data)?;
     match ix {
-        TokamakInstruction::Charge => processors::charge::process_charge(&mut it),
-        TokamakInstruction::Claim => processors::claim::process_claim(&mut it),
-        TokamakInstruction::Compress => processors::compress::process_compress(&mut it),
-        TokamakInstruction::Drain => processors::drain::process_drain(&mut it),
-        TokamakInstruction::Discharge => processors::discharge::process_discharge(&mut it),
-        TokamakInstruction::Translate => processors::translate::process_translation(&mut it),
-        TokamakInstruction::Fiss => processors::fission::process_fission(&mut it),
-        TokamakInstruction::Fuse => processors::fuse::process_fuse(&mut it),
-        TokamakInstruction::Overload => processors::overload::process_overload(&mut it),
-        TokamakInstruction::TopUp => processors::topup::process_topup(&mut it),
-        TokamakInstruction::Vent => processors::vent::process_vent(&mut it),
+        Charge => charge::process_charge(it, data),
+        Claim => claim::process_claim(it),
+        Compress => compress::process_compress(it),
+        Drain => drain::process_drain(it, data),
+        Discharge => discharge::process_discharge(it, data),
+        Translate => translate::process_translation(it),
+        Fiss => fission::process_fission(it),
+        Fuse => fuse::process_fuse(it),
+        Overload => overload::process_overload(it),
+        TopUp => topup::process_topup(it, data),
+        Vent => vent::process_vent(it, data),
     }
 }
-
-program_entrypoint!(process_instruction);
-no_allocator!();

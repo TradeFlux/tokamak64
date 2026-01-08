@@ -1,9 +1,15 @@
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
 
-use crate::accounts::{AccountIter, FromAccounts, VentAccounts};
+use crate::{
+    accounts::{AccountIter, FromAccounts, VentAccounts},
+    instruction::IxData,
+};
 
-pub(crate) fn process_vent<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
+pub(crate) fn process_vent<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
+where
+    I: AccountIter<'a>,
+{
     let VentAccounts { charge, target } = VentAccounts::parse(it)?;
 
     if charge.index != target.index {
@@ -11,9 +17,7 @@ pub(crate) fn process_vent<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult 
         return Err(ProgramError::Custom(32));
     }
 
-    // Amount is passed in instruction_data; parse it in the main entrypoint if needed
-    // For now, using a hardcoded value as placeholder
-    let amount = 0i64;
+    let amount = data.read()?;
 
     let remainder = charge.balance.checked_sub(amount);
     charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;

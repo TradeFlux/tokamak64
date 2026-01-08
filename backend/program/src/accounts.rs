@@ -4,7 +4,6 @@ use nucleus::{
     player::{Charge, Wallet},
 };
 use pinocchio::{account::AccountView, error::ProgramError};
-use std::mem::size_of;
 
 /// Trait alias for account iterators used in processor signatures.
 pub trait AccountIter<'a>: Iterator<Item = &'a AccountView> {}
