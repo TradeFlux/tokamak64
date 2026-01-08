@@ -6,23 +6,23 @@ use pinocchio::ProgramResult;
 use pinocchio_token::instructions::TransferChecked;
 
 use crate::{
-    accounts::{AccountIter, FromAccounts, TopUpAccounts},
+    accounts::{AccountIter, FromAccounts, InfusionAccounts},
     instruction::IxData,
 };
 
 /// Convert stable tokens (USDT/USDC) to Gluon and deposit into wallet (1:1 conversion).
 /// Transfers stable tokens to program vault; wallet balance increases for Charge/Inject actions.
-pub(crate) fn topup<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
+pub(crate) fn infuse<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
 where
     I: AccountIter<'a>,
 {
-    let TopUpAccounts {
+    let InfusionAccounts {
         src,
         mint,
         vault,
         authority,
         wallet,
-    } = TopUpAccounts::extract(it)?;
+    } = InfusionAccounts::extract(it)?;
     let amount = data.read()?;
 
     if amount == 0 {

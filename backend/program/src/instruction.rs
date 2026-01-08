@@ -27,7 +27,7 @@ pub enum TokamakInstruction {
     /// Move Element's pot inward to a deeper adjacent Element while rebinding the charge.
     Compress,
     /// Convert Gluon from wallet back to stable tokens (USDT/USDC).
-    Drain,
+    Extract,
     /// Merge a charge's remaining Gluon back into the wallet account.
     Discharge,
     /// Move a bound charge from one Element to an adjacent Element.
@@ -39,7 +39,7 @@ pub enum TokamakInstruction {
     /// Forcefully trigger an Element to overload and reset, distributing its accumulated pot.
     Overload,
     /// Convert stable tokens to Gluon and add to wallet (1:1 conversion).
-    TopUp,
+    Infuse,
     /// Donate part of a bound charge's value to its current Element's shared pot.
     Vent = IX_COUNT - 1,
 }

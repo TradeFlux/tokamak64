@@ -32,13 +32,13 @@ fn process_instruction(
         Charge => charge::charge(it, data),
         Claim => claim::claim(it),
         Compress => compress::compress(it),
-        Drain => drain::drain(it, data),
+        Extract => extract::extract(it, data),
         Discharge => discharge::discharge(it, data),
         Rebind => rebind::rebind(it),
         Eject => eject::eject(it),
         Inject => inject::inject(it),
         Overload => overload::overload(it),
-        TopUp => topup::topup(it, data),
+        Infuse => infuse::infuse(it, data),
         Vent => vent::vent(it, data),
     }
 }

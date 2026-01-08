@@ -1,7 +1,7 @@
 //! Unbind charge from board and move it outside; edge Elements only.
 
 use bytemuck::Zeroable;
-use nucleus::{action, board::Element, fees::exit_fee};
+use nucleus::{action, board::Element, fees::ejection_fee};
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
 
@@ -15,7 +15,7 @@ pub(crate) fn eject<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
         .on_edge()
         .then_some(())
         .ok_or(ProgramError::InvalidArgument)?;
-    let fee = exit_fee(charge, src);
+    let fee = ejection_fee(charge, src);
     let remainder = charge.balance.checked_sub(fee);
     charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;
 

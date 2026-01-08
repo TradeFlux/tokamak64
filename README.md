@@ -101,8 +101,8 @@ The game provides 13 actions (instructions) that shape gameplay, organized into 
 ### Wallet & Balance Management
 - **Charge**: Create a new charge by allocating Gluon from wallet to a charge account; multiple charges per player allowed
 - **Discharge**: Merge a charge's remaining Gluon back into your wallet account
-- **TopUp**: Convert stable tokens (USDT/USDC) into Gluon in your wallet (1:1 conversion); entry point for on-chain value
-- **Drain**: Convert wallet Gluon back to stable tokens in your ATA; exit point for on-chain value
+- **Infuse**: Convert stable tokens (USDT/USDC) into Gluon in your wallet (1:1 conversion); entry point for on-chain value
+- **Extract**: Convert wallet Gluon back to stable tokens in your ATA; exit point for on-chain value
 
 ### Movement & Value Transfer
 - **Rebind**: Move a bound charge from one Element to an adjacent Element; incurs movement costs. Fee routing: moving **inward** (toward center, higher atomic number) pays fee to **destination** (funds deeper element); moving **outward** (toward edge, lower atomic number) pays fee to **source** (taxes departing charge)
@@ -253,7 +253,7 @@ The game has a clear progression through different states:
 ### Setup
 1. Create a Solana wallet with an ATA (Associated Token Account) for USDT or USDC
 2. Fund your ATA with stable tokens
-3. **TopUp**: Convert stable tokens into Gluon in your in-game wallet (1:1 conversion)
+3. **Infuse**: Convert stable tokens into Gluon in your in-game wallet (1:1 conversion)
 
 ### Creating & Positioning Charges
 4. **Charge**: Create a new charge account by allocating Gluon from your wallet to it
@@ -276,15 +276,15 @@ The game has a clear progression through different states:
 17. Charges can be combined outside the board (one is discharged into your wallet, then used to top up another)
 
 ### Withdrawal
-18. **Drain**: Convert wallet Gluon back to stable tokens in your ATA
+18. **Extract**: Convert wallet Gluon back to stable tokens in your ATA
 19. Withdraw stable tokens from Solana whenever you wish
 
 ### Key Distinctions
 
-- **Wallet**: Holds Gluon in liquid form (unallocated); serves as your in-game resource pool. Created implicitly on first TopUp.
+- **Wallet**: Holds Gluon in liquid form (unallocated); serves as your in-game resource pool. Created implicitly on first Infuse.
 - **Charge**: A distinct account holding Gluon; the actual entity that occupies Elements and claims rewards. Charges are **bound** while on the board (index set, can claim if Element breaks) and **unbound** after Eject (index cleared, can never claim).
 - **Gluon**: In-game currency representing economic value within TOKAMAK64. Used for all actions. Cannot be transferred directly between players.
-- **Stable tokens** (USDT/USDC): Held in your Solana ATA. The entry and exit point for real-world value; convertible to/from Gluon via TopUp/Drain (1:1).
+- **Stable tokens** (USDT/USDC): Held in your Solana ATA. The entry and exit point for real-world value; convertible to/from Gluon via Infuse/Extract (1:1).
 - **Element pot**: Shared value accumulated by charges present during Element's accumulation; distributed to bound charges when Element breaks.
 
 ## Getting Started
@@ -293,7 +293,7 @@ A typical gameplay session:
 
 1. Fund your Solana wallet with USDT or USDC
 2. Create an ATA (Associated Token Account) if needed
-3. Use **TopUp** to convert stable tokens → Gluon in your in-game wallet (1:1)
+3. Use **Infuse** to convert stable tokens → Gluon in your in-game wallet (1:1)
 4. Use **Charge** to create new charges, allocating Gluon from your wallet to each
 5. Use **Inject** to position charges onto the board into edge Elements (perimeter only)
 6. Navigate strategically using **Rebind** to move between Elements, building exposure to high-value pots
@@ -306,5 +306,5 @@ A typical gameplay session:
 13. Use **Eject** to unbind charges only from edge Elements, paying exit costs (note: unbound charges cannot claim future rewards)
 14. If overload happens: You're automatically ejected for free with your reward share already distributed
 15. Use **Discharge** to merge unbound charges back into your wallet
-16. Use **Drain** to convert remaining Gluon back to stable tokens and withdraw
+16. Use **Extract** to convert remaining Gluon back to stable tokens and withdraw
 

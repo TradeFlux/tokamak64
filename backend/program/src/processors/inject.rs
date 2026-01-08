@@ -1,7 +1,7 @@
 //! Bind charge onto board into edge Element; charge becomes bound.
 
 use bytemuck::Zeroable;
-use nucleus::{action, board::Element, fees::entry_fee};
+use nucleus::{action, board::Element, fees::injection_fee};
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
 
@@ -15,7 +15,7 @@ pub(crate) fn inject<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
         .on_edge()
         .then_some(())
         .ok_or(ProgramError::InvalidArgument)?;
-    let fee = entry_fee(charge, dst);
+    let fee = injection_fee(charge, dst);
     board.tvl += charge.balance;
     board.charge_count += 1;
 

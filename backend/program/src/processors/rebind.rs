@@ -1,6 +1,6 @@
 //! Rebind a charge to a different element.
 
-use nucleus::{action, fees::migration_fee};
+use nucleus::{action, fees::rebind_fee};
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
 
@@ -10,7 +10,7 @@ use crate::accounts::{AccountIter, FromAccounts, RebindAccounts};
 pub(crate) fn rebind<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let RebindAccounts { charge, src, dst } = RebindAccounts::extract(it)?;
 
-    let fee = migration_fee(charge, src, dst);
+    let fee = rebind_fee(charge, src, dst);
     src.coordinates
         .adjacent(dst.coordinates)
         .then_some(())

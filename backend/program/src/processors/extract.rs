@@ -7,24 +7,24 @@ use pinocchio::{cpi::Signer, error::ProgramError};
 use pinocchio_token::instructions::TransferChecked;
 
 use crate::{
-    accounts::{AccountIter, DrainAccounts, FromAccounts},
+    accounts::{AccountIter, ExtractionAccounts, FromAccounts},
     addresses,
     instruction::IxData,
 };
 
 /// Convert Gluon from wallet back to stable tokens (USDT/USDC) and withdraw to ATA.
 /// Completes withdrawal cycle, reducing player's in-game balance and system TVL.
-pub(crate) fn drain<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
+pub(crate) fn extract<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
 where
     I: AccountIter<'a>,
 {
-    let DrainAccounts {
+    let ExtractionAccounts {
         wallet,
         vault,
         mint,
         dst,
         authority,
-    } = DrainAccounts::extract(it)?;
+    } = ExtractionAccounts::extract(it)?;
 
     let amount = data.read()?;
 

@@ -88,8 +88,8 @@ pub struct DischargeAccounts<'a> {
     pub(crate) wallet: &'a mut Wallet,
 }
 
-/// TopUp: Convert stable tokens to Gluon (1:1). Validates: token transfer.
-pub struct TopUpAccounts<'a> {
+/// Infusion: Convert stable tokens to Gluon (1:1). Validates: token transfer.
+pub struct InfusionAccounts<'a> {
     pub(crate) authority: &'a AccountView,
     pub(crate) wallet: &'a mut Wallet,
     pub(crate) src: &'a AccountView,
@@ -97,8 +97,8 @@ pub struct TopUpAccounts<'a> {
     pub(crate) vault: &'a AccountView,
 }
 
-/// Drain: Convert Gluon to stable tokens (1:1). Validates: sufficient balance.
-pub struct DrainAccounts<'a> {
+/// Extraction: Convert Gluon to stable tokens (1:1). Validates: sufficient balance.
+pub struct ExtractionAccounts<'a> {
     pub(crate) wallet: &'a mut Wallet,
     pub(crate) vault: &'a AccountView,
     pub(crate) mint: &'a AccountView,
@@ -242,7 +242,7 @@ impl<'a> FromAccounts<'a> for DischargeAccounts<'a> {
     }
 }
 
-impl<'a> FromAccounts<'a> for TopUpAccounts<'a> {
+impl<'a> FromAccounts<'a> for InfusionAccounts<'a> {
     fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         let authority = next(it)?;
         let wallet = parse::<Wallet, _>(it)?;
@@ -257,7 +257,7 @@ impl<'a> FromAccounts<'a> for TopUpAccounts<'a> {
     }
 }
 
-impl<'a> FromAccounts<'a> for DrainAccounts<'a> {
+impl<'a> FromAccounts<'a> for ExtractionAccounts<'a> {
     fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         let signer = next(it)?;
         let wallet = parse::<Wallet, _>(it)?;

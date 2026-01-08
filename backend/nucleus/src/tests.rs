@@ -4,7 +4,7 @@ mod tests {
         action::{claim, compress, rebind},
         board::{Artefact, Board, Curve, Element},
         consts::*,
-        fees::{entry_fee, merge_fee, migration_fee, speed_bonus},
+        fees::{injection_fee, compression_fee, rebind_fee, speed_bonus},
         player::{Charge, Wallet},
         round_divide,
         types::{AddressBytes, Coordinates, ElementIndex, Gluon, Q824},
@@ -206,19 +206,19 @@ mod tests {
     // === Fee Tests ===
 
     #[test]
-    fn entry_fee_respects_min() {
+    fn injection_fee_respects_min() {
         let charge = make_charge(100, ElementIndex(0), 0);
         let element = make_element(1, 0, 1000, 0);
 
-        let fee = entry_fee(&charge, &element);
+        let fee = injection_fee(&charge, &element);
         assert!(fee >= MIN_FEE);
     }
 
     #[test]
-    fn merge_fee_respects_min() {
+    fn compression_fee_respects_min() {
         let element = make_element(1, 0, 1000, 100);
 
-        let fee = merge_fee(&element);
+        let fee = compression_fee(&element);
         assert!(fee >= MIN_FEE);
     }
 
@@ -246,12 +246,12 @@ mod tests {
     }
 
     #[test]
-    fn migration_fee_respects_min() {
+    fn rebind_fee_respects_min() {
         let charge = make_charge(100, ElementIndex(0), 0);
         let src = make_element(5, 0, 1000, 0);
         let dst = make_element(10, 0, 1000, 0);
 
-        let fee = migration_fee(&charge, &src, &dst);
+        let fee = rebind_fee(&charge, &src, &dst);
         assert!(fee >= MIN_FEE);
     }
 

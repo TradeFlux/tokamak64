@@ -2,7 +2,7 @@
 
 use nucleus::{
     action,
-    fees::{merge_fee, migration_fee},
+    fees::{compression_fee, rebind_fee},
 };
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
@@ -23,16 +23,15 @@ pub(crate) fn compress<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
         // TODO proper handling of compression error (only towards increasing Z)
         return Err(ProgramError::Custom(42));
     }
-    // Migration fee: cost to move inward, scales with destination depth and saturation
-    let shift_fee = migration_fee(charge, src, dst);
-    // Merge fee: cost to consolidate source pot, scales with source saturation and pot size
-    let merge = merge_fee(src);
+    // Rebind fee: cost to move inward, scales with destination depth and saturation
+    // Compression fee: cost to consolidate source pot, scales with source saturation and pot size
+    let fee = rebind_fee(charge, src, dst) + compression_fee(src);
 
-    let remainder = charge.balance.checked_sub(shift_fee + merge);
+    let remainder = charge.balance.checked_sub(fee);
     charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;
     action::compress(charge, src, dst);
     // Both fees accumulate in destination pot (investment in deeper element)
-    dst.pot += shift_fee + merge;
+    dst.pot += fee;
 
     Ok(())
 }

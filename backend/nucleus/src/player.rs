@@ -4,7 +4,7 @@ use bytemuck::{Pod, Zeroable};
 
 use crate::types::{AddressBytes, ElementIndex, Gluon, Q824};
 
-/// Liquid Gluon (outside board pressure). Entry/exit point for on-chain value via TopUp/Drain.
+/// Liquid Gluon (outside board pressure). Entry/exit point for on-chain value via Infuse/Extract.
 #[repr(C)]
 #[derive(Pod, Zeroable, Clone, Copy, Debug)]
 pub struct Wallet {

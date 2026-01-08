@@ -1,4 +1,4 @@
-//! Movement and action fees: entry, merge, migration, and speed tax bonuses.
+//! Movement and action fees: injection, ejection, rebind, compression, and speed tax bonuses.
 
 use crate::{
     board::Element,
@@ -10,9 +10,9 @@ use crate::{
     types::Gluon,
 };
 
-/// Migration fee: cost to rebind a charge between two elements (distance-based).
+/// Rebind fee: cost to move a charge between two elements (distance-based).
 /// Higher atomic number distance and higher saturation = higher fee.
-pub fn migration_fee(charge: &Charge, src: &Element, dst: &Element) -> Gluon {
+pub fn rebind_fee(charge: &Charge, src: &Element, dst: &Element) -> Gluon {
     let src_z = src.index.atomic_number();
     let dst_z = dst.index.atomic_number();
     let delta_z = dst_z.wrapping_sub(src_z);
@@ -24,9 +24,9 @@ pub fn migration_fee(charge: &Charge, src: &Element, dst: &Element) -> Gluon {
     calculate_base_fee(charge.balance, delta_z, curve.saturation)
 }
 
-/// Entry fee: cost to bind a charge to an element (first commitment).
+/// Injection fee: cost to bind a charge to an element (first commitment).
 /// Prevents spam and seeds the element pot.
-pub fn entry_fee(charge: &Charge, dst: &Element) -> Gluon {
+pub fn injection_fee(charge: &Charge, dst: &Element) -> Gluon {
     calculate_base_fee(
         charge.balance,
         dst.index.atomic_number(),
@@ -34,9 +34,9 @@ pub fn entry_fee(charge: &Charge, dst: &Element) -> Gluon {
     )
 }
 
-/// Exit fee: cost to unbind a charge from an element (abandoning commitment).
+/// Ejection fee: cost to unbind a charge from an element (abandoning commitment).
 /// Prevents rapid cycling and ensures skin-in-game.
-pub fn exit_fee(charge: &Charge, src: &Element) -> Gluon {
+pub fn ejection_fee(charge: &Charge, src: &Element) -> Gluon {
     calculate_base_fee(
         charge.balance,
         src.index.atomic_number(),
@@ -44,9 +44,9 @@ pub fn exit_fee(charge: &Charge, src: &Element) -> Gluon {
     )
 }
 
-/// Merge fee: cost to compress an element inward (consolidate into deeper element).
+/// Compression fee: cost to compress an element inward (consolidate into deeper element).
 /// Accelerates element convergence toward center.
-pub fn merge_fee(src: &Element) -> Gluon {
+pub fn compression_fee(src: &Element) -> Gluon {
     let numerator = src.curve.saturation as u64 * 5;
     let denominator = (MAX_SATURATION as u64) * 100;
     let result = round_divide(src.pot, numerator, denominator);
