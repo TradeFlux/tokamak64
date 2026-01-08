@@ -1,6 +1,6 @@
 use nucleus::{
     action,
-    fees::{compression_fee, translation_fee},
+    fees::{merge_fee, migration_fee},
 };
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
@@ -13,13 +13,13 @@ pub(crate) fn process_compress<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramRes
         // TODO proper handling of compression error (only towards increasing Z)
         return Err(ProgramError::Custom(42));
     }
-    let shift_fee = translation_fee(charge, src, dst);
-    let compression_fee = compression_fee(src);
+    let shift_fee = migration_fee(charge, src, dst);
+    let merge = merge_fee(src);
 
-    let remainder = charge.balance.checked_sub(shift_fee + compression_fee);
+    let remainder = charge.balance.checked_sub(shift_fee + merge);
     charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;
     action::compress(charge, src, dst);
-    dst.pot += shift_fee + compression_fee;
+    dst.pot += shift_fee + merge;
 
     Ok(())
 }

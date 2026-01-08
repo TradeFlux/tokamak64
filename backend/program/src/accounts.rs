@@ -1,6 +1,6 @@
 use core::slice;
 use nucleus::{
-    board::{Board, Element, Tombstone},
+    board::{Artefact, Board, Element},
     player::{Charge, Wallet},
 };
 use pinocchio::{account::AccountView, error::ProgramError};
@@ -30,7 +30,7 @@ pub struct CompressionAccounts<'a> {
 pub struct OverloadAccounts<'a> {
     pub(crate) charge: &'a mut Charge,
     pub(crate) target: &'a mut Element,
-    pub(crate) artefact: &'a mut Tombstone,
+    pub(crate) artefact: &'a mut Artefact,
     pub(crate) board: &'a mut Board,
 }
 
@@ -47,7 +47,7 @@ pub struct VentAccounts<'a> {
 
 pub struct ClaimAccounts<'a> {
     pub(crate) charge: &'a mut Charge,
-    pub(crate) artefact: &'a mut Tombstone,
+    pub(crate) artefact: &'a mut Artefact,
 }
 
 pub struct ChargeAccounts<'a> {

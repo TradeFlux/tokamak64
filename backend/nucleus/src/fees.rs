@@ -1,47 +1,70 @@
 use crate::{
-    board::{Curve, Element},
-    consts::{MAX_DELTA_TS, MAX_SPEED_MULTIPLIER, MAX_X, MAX_Z, MIN_FEE},
+    board::Element,
+    consts::{
+        MAX_ATOMIC_NUMBER, MAX_DELTA_TIMESTAMP, MAX_SATURATION, MAX_SPEED_MULTIPLIER, MIN_FEE,
+    },
     player::Charge,
-    round_div,
+    round_divide,
     types::Gluon,
 };
 
-pub fn translation_fee(charge: &Charge, src: &Element, dst: &Element) -> Gluon {
+/// Migration fee: cost to rebind a charge between two elements (distance-based).
+/// Higher atomic number distance and higher saturation = higher fee.
+pub fn migration_fee(charge: &Charge, src: &Element, dst: &Element) -> Gluon {
     let src_z = src.index.atomic_number();
     let dst_z = dst.index.atomic_number();
     let delta_z = dst_z.wrapping_sub(src_z);
-    if src.index > dst.index {
-        fee(charge, &src.curve, delta_z)
+    let curve = if src.index > dst.index {
+        &src.curve
     } else {
-        fee(charge, &dst.curve, delta_z)
-    }
+        &dst.curve
+    };
+    calculate_base_fee(charge.balance, delta_z, curve.saturation)
 }
 
-pub fn fusion_fee(charge: &Charge, dst: &Element) -> Gluon {
-    fee(charge, &dst.curve, dst.index.atomic_number())
+/// Entry fee: cost to bind a charge to an element (first commitment).
+/// Prevents spam and seeds the element pot.
+pub fn entry_fee(charge: &Charge, dst: &Element) -> Gluon {
+    calculate_base_fee(
+        charge.balance,
+        dst.index.atomic_number(),
+        dst.curve.saturation,
+    )
 }
 
-pub fn fission_fee(charge: &Charge, src: &Element) -> Gluon {
-    fee(charge, &src.curve, src.index.atomic_number())
+/// Exit fee: cost to unbind a charge from an element (abandoning commitment).
+/// Prevents rapid cycling and ensures skin-in-game.
+pub fn exit_fee(charge: &Charge, src: &Element) -> Gluon {
+    calculate_base_fee(
+        charge.balance,
+        src.index.atomic_number(),
+        src.curve.saturation,
+    )
 }
 
-fn fee(charge: &Charge, curve: &Curve, delta_z: u64) -> Gluon {
-    const DIV: u64 = MAX_Z * MAX_X as u64;
-    let mul = (delta_z as u64) * (curve.position as u64);
-    let result = round_div(charge.balance as u64, mul, DIV);
+/// Merge fee: cost to compress an element inward (consolidate into deeper element).
+/// Accelerates element convergence toward center.
+pub fn merge_fee(src: &Element) -> Gluon {
+    let numerator = src.curve.saturation as u64 * 5;
+    let denominator = (MAX_SATURATION as u64) * 100;
+    let result = round_divide(src.pot, numerator, denominator);
     result.max(MIN_FEE)
 }
 
-pub fn compression_fee(src: &Element) -> Gluon {
-    let div = (MAX_X as u64) * 100u64;
-    let mul = (src.curve.position as u64) * 5u64;
-    let result = round_div(src.pot as u64, mul, div);
-    result.max(MIN_FEE)
+/// Speed bonus: increases with time since last action. Rewards patience.
+/// Elapsed time is quadratic capped at MAX_DELTA_TIMESTAMP. Returns multiplier >= 1.
+pub fn speed_bonus(charge: &Charge, now: u64) -> u64 {
+    let elapsed = now.saturating_sub(charge.timestamp);
+    let time_factor = elapsed.min(MAX_DELTA_TIMESTAMP).pow(2);
+    let max_factor = (MAX_DELTA_TIMESTAMP).pow(2);
+    1 + round_divide(MAX_SPEED_MULTIPLIER, time_factor, max_factor)
 }
 
-pub fn speed_multiplier(charge: &Charge, timestamp: u64) -> u64 {
-    const DIV: u64 = (MAX_DELTA_TS).pow(2);
-    let elapsed = timestamp.saturating_sub(charge.timestamp);
-    let mul = elapsed.min(MAX_DELTA_TS).pow(2);
-    1 + round_div(MAX_SPEED_MULTIPLIER as u64, mul, DIV)
+/// Calculate base fee: balance * (distance * saturation) / (MAX_ATOMIC_NUMBER * MAX_POSITION).
+/// Ensures fees scale with commitment, depth, and element crowding.
+fn calculate_base_fee(balance: Gluon, distance: u64, saturation: u32) -> Gluon {
+    let numerator = distance * (saturation as u64);
+    let denominator = MAX_ATOMIC_NUMBER * (MAX_SATURATION as u64);
+    let result = round_divide(balance, numerator, denominator);
+    result.max(MIN_FEE)
 }

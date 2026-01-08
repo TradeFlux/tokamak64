@@ -8,7 +8,6 @@ crate-type = ["cdylib", "lib"]
 
 [dependencies]
 bytemuck = { workspace = true }
-curve = { workspace = true }
 nucleus = { workspace = true }
 
 pinocchio = { version = "0.10.0", default-features = false, features = ["cpi"] }
