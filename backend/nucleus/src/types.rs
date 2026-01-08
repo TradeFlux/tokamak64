@@ -4,13 +4,15 @@ use bytemuck::{Pod, Zeroable};
 /// Every quantity tracked in TOKAMAK64 is measured in Gluon.
 pub type Gluon = i64;
 
-/// Q824 is a fixed-point number with 24 fractional bits.
-/// Used for precise share calculations in pressure mechanics.
-pub type Q824 = i32;
+/// Q824 is a fixed-point number with 24 fractional bits (unsigned).
+/// Used for curve position and precise share calculations in pressure mechanics.
+/// Range: [0, 12] in actual values, represented as u32 in Q8.24.
+pub type Q824 = u32;
 
-/// Q1648 is a fixed-point number with 48 fractional bits.
+/// Q1648 is a fixed-point number with 48 fractional bits (unsigned).
 /// Used for curve state (s parameter) to accumulate precise changes.
-pub type Q1648 = i64;
+/// Encoded as u64 in Q16.48.
+pub type Q1648 = u64;
 
 /// Z represents unsigned integer quantities (deprecated alias).
 pub type Z = u64;

@@ -27,16 +27,18 @@ fn transition(balance: i64, elem: &mut Element) -> Q824 {
         state,
         ..
     } = elem.curve;
-    let (share, state) = dx_for_dc(position, state, balance, capacity);
-    elem.curve.position += share;
-    elem.curve.state += state;
+    // Convert signed balance to u64 two's complement
+    let dc = balance as u64;
+    let (share, ds) = dx_for_dc(position, state, dc, capacity as u64);
+    elem.curve.position = elem.curve.position.wrapping_add(share);
+    elem.curve.state = elem.curve.state.wrapping_add(ds);
     elem.curve.volume += balance;
     share
 }
 
 /// Claim a share of a reset element's pot.
 pub fn claim(charge: &mut Charge, artefact: &mut Tombstone) {
-    let reward = mul_div_round_nearest(artefact.pot, charge.share as i64, MAX_X);
+    let reward = mul_div_round_nearest(artefact.pot, charge.share as i64, MAX_X as i64);
     charge.balance += reward;
     artefact.pot -= reward;
     charge.share = 0;
