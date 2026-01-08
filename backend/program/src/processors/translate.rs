@@ -7,6 +7,10 @@ use crate::accounts::{AccountIter, FromAccounts, TranslationAccounts};
 pub(crate) fn process_translation<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let TranslationAccounts { charge, src, dst } = TranslationAccounts::parse(it)?;
     let fee = translation_fee(charge, src, dst);
+    src.coordinates
+        .adjacent(dst.coordinates)
+        .then_some(())
+        .ok_or(ProgramError::InvalidArgument)?;
 
     let remainder = charge.balance.checked_sub(fee);
     charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;

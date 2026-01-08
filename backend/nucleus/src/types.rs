@@ -2,7 +2,7 @@ use bytemuck::{Pod, Zeroable};
 
 /// Gluon is the unit of value that circulates through the game.
 /// Every quantity tracked in TOKAMAK64 is measured in Gluon.
-pub type Gluon = i64;
+pub type Gluon = u64;
 
 /// Q824 is a fixed-point number with 24 fractional bits (unsigned).
 /// Used for curve position and precise share calculations in pressure mechanics.
@@ -29,21 +29,21 @@ pub type AddressBytes = [u8; 32];
 /// Ref: TOKAMAK64 Part 6 (Element Overload & Reset)
 #[repr(transparent)]
 #[derive(Pod, Zeroable, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
-pub struct ElementIndex(i64);
+pub struct ElementIndex(u64);
 
 impl ElementIndex {
     const GEN_BITS: u32 = u64::BITS - u8::BITS;
-    const GEN_MASK: i64 = i64::MAX >> (u8::BITS - 1);
+    const GEN_MASK: u64 = u64::MAX >> u8::BITS;
 
     /// Returns the atomic number of this element (0..255).
     #[inline]
-    pub fn atomic_number(self) -> i64 {
+    pub fn atomic_number(self) -> u64 {
         self.0 >> Self::GEN_BITS
     }
 
     /// Returns the generation counter of this element.
     #[inline]
-    pub fn generation(self) -> i64 {
+    pub fn generation(self) -> u64 {
         self.0 & Self::GEN_MASK
     }
 
@@ -80,8 +80,13 @@ impl Coordinates {
     // File masks for edge detection in 8×8 bitboard layout (row-major).
     // File A (left edge): bits 0, 8, 16, 24, 32, 40, 48, 56
     // File H (right edge): bits 7, 15, 23, 31, 39, 47, 55, 63
-    const NFILE_A: u64 = !0x0101_0101_0101_0101;
-    const NFILE_H: u64 = !0x8080_8080_8080_8080;
+    const FILE_A: u64 = 0x0101_0101_0101_0101;
+    const FILE_H: u64 = 0x8080_8080_8080_8080;
+    const RANK_1: u64 = 0x0000_0000_0000_00FF;
+    const RANK_8: u64 = 0xFF00_0000_0000_0000;
+    const NFILE_A: u64 = !Self::FILE_A;
+    const NFILE_H: u64 = !Self::FILE_H;
+    const PERIMETER: u64 = Self::FILE_A | Self::FILE_H | Self::RANK_1 | Self::RANK_8;
 
     /// Returns true if self shares an edge (N/S/E/W) with other.
     ///
@@ -97,5 +102,10 @@ impl Coordinates {
             | (self.0 << 8) // north
             | (self.0 >> 8); // south
         (neighbors & other.0) != 0
+    }
+
+    #[inline(always)]
+    pub fn peripheral(&self) -> bool {
+        (self.0 & Self::PERIMETER) != 0
     }
 }

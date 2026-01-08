@@ -37,10 +37,10 @@ fn gen_dx_in_domain(rng: &mut Rng, x0: u32) -> u32 {
     // Generate a signed delta within bounds, encode as u32 two's complement
     let min_delta_i64 = (LUT_X_MIN as i64).wrapping_sub(x0 as i64);
     let max_delta_i64 = (LUT_X_MAX as i64).wrapping_sub(x0 as i64);
-    
+
     let min_delta = (min_delta_i64.clamp(i32::MIN as i64, i32::MAX as i64)) as i32;
     let max_delta = (max_delta_i64.clamp(i32::MIN as i64, i32::MAX as i64)) as i32;
-    
+
     if min_delta >= max_delta {
         0 // No valid delta range
     } else {
@@ -54,17 +54,25 @@ fn gen_dx_in_domain(rng: &mut Rng, x0: u32) -> u32 {
     }
 }
 
-fn step_bounds_in_domain(x: u32, max_step: u32) -> Option<(u32, u32)> {
+fn gen_i32_in_range(rng: &mut Rng, min_i: i32, max_i: i32) -> i32 {
+    debug_assert!(min_i <= max_i);
+    let span = (max_i as i64).wrapping_sub(min_i as i64).wrapping_add(1) as u64;
+    let v = (rng.next_u32() as u64) % span;
+    min_i.wrapping_add(v as i32)
+}
+
+fn step_bounds_in_domain(x: u32, max_step: u32) -> Option<(i32, i32)> {
+    // Compute signed delta bounds
     let min_delta_i64 = (LUT_X_MIN as i64).wrapping_sub(x as i64);
     let max_delta_i64 = (LUT_X_MAX as i64).wrapping_sub(x as i64);
-    
+
     let min_delta = (min_delta_i64.max(-(max_step as i64))) as i32;
     let max_delta = (max_delta_i64.min(max_step as i64)) as i32;
-    
+
     if min_delta > max_delta {
         None
     } else {
-        Some((min_delta as u32, max_delta as u32))
+        Some((min_delta, max_delta))
     }
 }
 
@@ -87,7 +95,7 @@ fn delta_matches_eval_difference_in_domain() {
         let x1 = x0.wrapping_add(dx);
 
         let lhs = ds_for_dx(x0, dx);
-        let rhs = (evaluate_cost(x1) as i128).wrapping_sub(evaluate_cost(x0) as i128) as u64;
+        let rhs = evaluate_cost(x1).wrapping_sub(evaluate_cost(x0));
         assert_eq!(lhs, rhs);
     }
 }
@@ -99,19 +107,27 @@ fn path_independence_two_steps_in_domain() {
     let mut rng = Rng::new(2);
 
     for _ in 0..200_000 {
-        let x0 = rng.gen_u32(LUT_X_MIN.wrapping_add(MARGIN), LUT_X_MAX.wrapping_sub(MARGIN));
+        let x0 = rng.gen_u32(
+            LUT_X_MIN.wrapping_add(MARGIN),
+            LUT_X_MAX.wrapping_sub(MARGIN),
+        );
         let dx1: i32 = ((rng.next_u32() % (2 * MARGIN as u32)) as i32).wrapping_sub(MARGIN as i32);
         let x_mid = x0.wrapping_add(dx1 as u32);
 
-        let dx2_min = (LUT_X_MIN as i64).wrapping_sub(x_mid as i64).wrapping_add(1);
-        let dx2_max = (LUT_X_MAX as i64).wrapping_sub(x_mid as i64).wrapping_sub(1);
+        let dx2_min = (LUT_X_MIN as i64)
+            .wrapping_sub(x_mid as i64)
+            .wrapping_add(1);
+        let dx2_max = (LUT_X_MAX as i64)
+            .wrapping_sub(x_mid as i64)
+            .wrapping_sub(1);
         if dx2_min > dx2_max {
             continue;
         }
         let dx2 = ((rng.next_u32() as i64) % (dx2_max - dx2_min + 1) + dx2_min) as i32 as u32;
 
         let direct = ds_for_dx(x0, (dx1 as u32).wrapping_add(dx2));
-        let step = (ds_for_dx(x0, dx1 as u32) as i128).wrapping_add(ds_for_dx(x_mid, dx2) as i128) as u64;
+        let step =
+            (ds_for_dx(x0, dx1 as u32) as i128).wrapping_add(ds_for_dx(x_mid, dx2) as i128) as u64;
         assert_eq!(direct, step);
     }
 }
@@ -123,7 +139,10 @@ fn path_independence_many_steps_in_domain() {
     let mut rng = Rng::new(3);
 
     for _ in 0..50_000 {
-        let mut x = rng.gen_u32(LUT_X_MIN.wrapping_add(MARGIN), LUT_X_MAX.wrapping_sub(MARGIN));
+        let mut x = rng.gen_u32(
+            LUT_X_MIN.wrapping_add(MARGIN),
+            LUT_X_MAX.wrapping_sub(MARGIN),
+        );
         let x_start = x;
 
         let mut sum: u64 = 0;
@@ -133,7 +152,7 @@ fn path_independence_many_steps_in_domain() {
                 Some(bounds) => bounds,
                 None => continue,
             };
-            let dx = rng.gen_u32(step_min, step_max);
+            let dx = gen_i32_in_range(&mut rng, step_min, step_max) as u32;
             sum = (sum as i128).wrapping_add(ds_for_dx(x, dx) as i128) as u64;
             x = x.wrapping_add(dx);
         }
@@ -150,8 +169,12 @@ fn antisymmetry_in_domain() {
     let mut rng = Rng::new(4);
 
     for _ in 0..200_000 {
-        let x = rng.gen_u32(LUT_X_MIN.wrapping_add(MARGIN), LUT_X_MAX.wrapping_sub(MARGIN));
-        let dx_i32: i32 = ((rng.next_u32() % (2 * MARGIN as u32)) as i32).wrapping_sub(MARGIN as i32);
+        let x = rng.gen_u32(
+            LUT_X_MIN.wrapping_add(MARGIN),
+            LUT_X_MAX.wrapping_sub(MARGIN),
+        );
+        let dx_i32: i32 =
+            ((rng.next_u32() % (2 * MARGIN as u32)) as i32).wrapping_sub(MARGIN as i32);
         let dx = dx_i32 as u32;
         let x2 = x.wrapping_add(dx);
         if (x2 as i64) <= (LUT_X_MIN as i64) || (x2 as i64) >= (LUT_X_MAX as i64) {

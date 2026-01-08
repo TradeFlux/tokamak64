@@ -50,7 +50,7 @@ where
     // Convert 1:1 from stable token to GLUON and deposit into wallet
     wallet.balance = wallet
         .balance
-        .checked_add(amount as i64)
+        .checked_add(amount)
         .ok_or(ProgramError::ArithmeticOverflow)?;
 
     Ok(())

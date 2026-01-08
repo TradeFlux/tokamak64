@@ -21,9 +21,9 @@ use crate::types::{Coordinates, ElementIndex, Gluon, Q1648, Q824};
 pub struct Curve {
     /// Total Gluon capacity of the curve. Maximum TVL that can bind here.
     pub capacity: Gluon,
+    pub volume: Gluon,
     /// Accumulated state change (Q1648). Tracks integral of pressure over time.
     pub state: Q1648,
-    pub volume: Gluon,
     /// Current position on curve (Q824). Higher position means higher entry cost next.
     pub position: Q824,
     _padding: u32,

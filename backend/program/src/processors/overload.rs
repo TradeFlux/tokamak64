@@ -1,12 +1,8 @@
 use bytemuck::Zeroable;
-use curve::{
-    lut::{LUT_X_MAX, LUT_X_MIN},
-    math::dx_for_dc,
-};
+use curve::lut::{LUT_X_MAX, LUT_X_MIN};
 use nucleus::{
     action::{self, claim},
-    board::Element,
-    consts::MAX_X,
+    board::{Curve, Element},
 };
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
@@ -47,8 +43,7 @@ pub(crate) fn process_overload<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramRes
 
     // 3. Advance src element to next generation
     // Reset curve to genesis state and clear pot (moved to tombstone)
-    target.curve.position = LUT_X_MIN;
-    target.curve.state = 0;
+    target.curve = Curve::zeroed();
     // TODO recompute curve capacity from the board
     target.pot = 0;
 

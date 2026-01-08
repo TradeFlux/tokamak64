@@ -7,6 +7,10 @@ use crate::accounts::{AccountIter, FissionAccounts, FromAccounts};
 
 pub(crate) fn process_fission<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let FissionAccounts { charge, src, board } = FissionAccounts::parse(it)?;
+    src.coordinates
+        .peripheral()
+        .then_some(())
+        .ok_or(ProgramError::InvalidArgument)?;
     let fee = fission_fee(charge, src);
     board.tvl += charge.balance;
     board.charges += 1;

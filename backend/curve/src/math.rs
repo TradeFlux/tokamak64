@@ -68,7 +68,7 @@ pub(crate) fn ds_for_dx(x0: u32, dx: u32) -> u64 {
     let x1 = x0.wrapping_add(dx);
     let s1 = evaluate_cost(x1);
     let s0 = evaluate_cost(x0);
-    (s1 as i128).wrapping_sub(s0 as i128) as u64
+    s1.wrapping_sub(s0)
 }
 
 /// Calculates `dx` given `x0`, its cumulative cost `s0`, and a desired `ds`,
@@ -84,11 +84,11 @@ pub(crate) fn ds_for_dx(x0: u32, dx: u32) -> u64 {
 /// Constraints:
 /// - `x0` is within `[LUT_X_MIN, LUT_X_MAX]`.
 /// - `s0` equals the LUT evaluation at `x0`.
-/// - `s0 + ds` is within valid range.
+/// - `s0 + ds` is within valid range (two's complement).
 pub(crate) fn dx_for_ds(x0: u32, s0: u64, ds: u64) -> u32 {
-    let s_target = (s0 as i128).wrapping_add(ds as i128) as u64;
-    let x1 = x_for_s(s_target);
-    (x1 as i64).wrapping_sub(x0 as i64) as u32
+    let s = s0.wrapping_add(ds);
+    let x1 = x_for_s(s);
+    x1.wrapping_sub(x0)
 }
 
 /// Calculates the cumulative cost at `x` (Q8.24),
@@ -123,29 +123,29 @@ pub(crate) fn evaluate_cost(x: u32) -> u64 {
 /// - `dc * Smax` fits in `u128`.
 pub(crate) fn ds_for_dc(dc: u64, cmax: u64) -> u64 {
     let s_max = LUT_S_MAX as u128;
-    let num = (dc as i128).wrapping_mul(s_max as i128) as u128;
+    let num = dc as u128 * s_max;
     div_round_u128(num, cmax as u128) as u64
 }
 
 /// Calculates `dc` (delta capacity) from a cumulative cost delta `ds`,
 /// given that the total capacity `cmax` maps to `Smax`.
 fn dc_for_ds(ds: u64, cmax: u64) -> u64 {
-    let cmax_u128 = cmax as u128;
-    let num = (ds as i128).wrapping_mul(cmax as i128) as u128;
+    let num = ds as u128 * cmax as u128;
     div_round_u128(num, LUT_S_MAX as u128) as u64
 }
 
-/// Calculates an interpolated `s` between two LUT samples at `x`.
+/// Integer (floor) lerp of s between (x0,s0) and (x1,s1) at x.
+/// Preconditions (must be enforced by caller):
+///   - x1 > x0
+///   - x0 <= x <= x1
+///   - s1 >= s0
 #[inline]
 fn interp_s_for_x(x: u32, x0: u32, s0: u64, x1: u32, s1: u64) -> u64 {
-    let dx = ((x1 as u64).wrapping_sub(x0 as u64)) as u128;
-    let t = ((x as u64).wrapping_sub(x0 as u64)) as u128;
+    let dx = (x1 - x0) as u128;
+    let t = (x - x0) as u128;
+    let ds = (s1 - s0) as u128;
 
-    let s0u = s0 as u128;
-    let s1u = s1 as u128;
-
-    let out = s0u.wrapping_add(((s1u.wrapping_sub(s0u)).wrapping_mul(t)) / dx);
-    out as u64
+    (s0 as u128 + (ds * t + dx / 2) / dx) as u64
 }
 
 #[inline]
@@ -162,20 +162,21 @@ fn x_for_s(s_target: u64) -> u32 {
     }
 }
 
-/// Calculates an interpolated `x` between two LUT samples at `s`.
+/// Integer lerp of x between (s0,x0) and (s1,x1) at s, rounded to nearest.
+/// Preconditions (must be enforced by caller):
+///   - s1 > s0
+///   - s0 <= s <= s1
+///   - x1 >= x0
 #[inline]
 fn interp_x_for_s(s: u64, x0: u32, s0: u64, x1: u32, s1: u64) -> u32 {
-    let ds = (s1.wrapping_sub(s0)) as u128;
-    let t = (s.wrapping_sub(s0)) as u128;
+    let ds = (s1 - s0) as u128;
+    let t = (s - s0) as u128;
+    let dx = (x1 - x0) as u128;
 
-    let x0u = x0 as u128;
-    let x1u = x1 as u128;
-
-    let x = x0u.wrapping_add((t.wrapping_mul(x1u.wrapping_sub(x0u)).wrapping_add(ds / 2)) / ds);
-    x as u32
+    (x0 as u128 + (t * dx + ds / 2) / ds) as u32
 }
 
 /// Round-to-nearest division for unsigned 128-bit integers (ties away from zero).
 fn div_round_u128(num: u128, den: u128) -> u128 {
-    (num.wrapping_add(den / 2)) / den
+    (num + (den / 2)) / den
 }
