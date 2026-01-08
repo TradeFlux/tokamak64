@@ -14,6 +14,11 @@ use crate::accounts::{AccountIter, CompressionAccounts, FromAccounts};
 pub(crate) fn compress<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let CompressionAccounts { charge, src, dst } = CompressionAccounts::extract(it)?;
 
+    // Charge must be bound to source element
+    if charge.index != src.index {
+        return Err(ProgramError::Custom(1)); // Charge not in source element
+    }
+
     if src.index > dst.index {
         // TODO proper handling of compression error (only towards increasing Z)
         return Err(ProgramError::Custom(42));

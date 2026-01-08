@@ -73,15 +73,17 @@ Importantly: **costs are never destroyed**. All costs are redirected into the bo
 
 ### Total Value Locked (TVL) Invariant
 
-The board tracks total active Gluon in **charge accounts** (allocated but off-board or on-board awaiting action). TVL increases when:
-- **Fuse**: Charge enters board (balance added despite fee deduction, since charge is now tracked)
-- **Rebind/Compress**: Charge moves between elements (no TVL change; already tracked)
-- **Overload**: Charge receiving bonus is re-bound (TVL adjusted: all other charge TVL removed except re-bound charge)
+The board tracks total active Gluon in **charge accounts** on-board. TVL represents the sum of all charge balances currently participating in board state (either bound or unbound-but-active). Fees paid to element pots are NOT subtracted from TVL—they remain part of the system as shared value.
+
+TVL increases when:
+- **Fuse**: Charge enters board (`board.tvl += charge.balance` AFTER fee deduction). Fee is moved to pot, so total value is preserved.
+- **Rebind/Compress**: Charge moves between elements (no TVL change; balance unchanged)
+- **Overload**: One charge re-bound; other charges' TVL removed (net: old TVL - ejected charges' balances = new TVL)
 
 TVL decreases when:
-- **Fiss**: Charge exits board (balance removed; charge no longer active)
-- **Claim**: Reward payout reduces charge balance (TVL decreases as rewards distributed to charges)
-- **Overload**: All charges ejected except one receiving bonus (old curve TVL minus re-bound charge = TVL reduction)
+- **Fiss**: Charge exits board (`board.tvl -= charge.balance` AFTER fee deduction). Fee stays in pot.
+- **Claim**: Reward distributed from artefact to charge (`board.tvl` unchanged; internal redistribution)
+- **Overload**: All charges ejected except bonus charge (`board.tvl -= ejected_charges_balance`)
 
 ## Core Mechanics
 
@@ -103,13 +105,81 @@ The game provides 13 actions (instructions) that shape gameplay, organized into 
 - **Drain**: Convert wallet Gluon back to stable tokens in your ATA; exit point for on-chain value
 
 ### Movement & Value Transfer
-- **Rebind**: Move a bound charge from one Element to an adjacent Element; incurs movement costs. Fee routing: moving **inward** (toward center, higher depth) pays fee to **destination**; moving **outward** (toward edge, lower depth) pays fee to **source**
-- **Compress**: Move an Element's accumulated pot inward to a deeper adjacent Element while rebinding the charge; incurs both migration fee (depth cost) and merge fee (consolidation cost); both fees accumulate in destination pot
-- **Vent**: Donate part of a bound charge's value to its current Element's shared pot; charge must be currently bound to that element; reduces individual share but accelerates reaching Element's oversaturation point
+- **Rebind**: Move a bound charge from one Element to an adjacent Element; incurs movement costs. Fee routing: moving **inward** (toward center, higher atomic number) pays fee to **destination** (funds deeper element); moving **outward** (toward edge, lower atomic number) pays fee to **source** (taxes departing charge)
+- **Compress**: Move an Element's accumulated pot inward to a deeper adjacent Element while rebinding the charge; incurs both migration fee (depth cost) and merge fee (consolidation cost); both fees accumulate in destination pot (fuels deeper element)
+- **Vent**: Donate part of a bound charge's value to its current Element's shared pot; **charge must be currently bound to that element** (validated by index match); reduces individual share but accelerates reaching Element's oversaturation point
 
 ### Overload & Rewards
-- **Overload**: Forcefully trigger an Element reset when saturation exceeds threshold; the charge invoking Overload receives a **bonus**: it immediately re-binds to the reset element at genesis (sharing advantage in new pot). All other charges in the element are automatically ejected for free and become unbound. Reward distribution: charges present at reset receive proportional share based on their value during accumulation; unbound charges (already exited) receive nothing
-- **Claim**: Collect your charge's proportional reward share from an Element's pot after it overloads; distributes based on share value at time of reset; charge must currently be unbound to claim
+- **Overload**: Forcefully trigger an Element reset when saturation exceeds threshold; **the charge invoking the Overload receives a bonus**: it immediately re-binds to the reset element at genesis (gaining advantage in the new pot). **All other charges** in the element are automatically ejected for free and become unbound. Reward distribution: charges present at reset receive proportional share based on their value during accumulation; unbound charges (already exited) receive nothing
+- **Claim**: Collect your charge's proportional reward share from an Element's pot after it overloads; distributes based on share value at time of reset; **charge must have the exact element index (atomic number + generation) matching the artefact to claim**
+
+## Technical Clarifications
+
+### Element Identity and Binding State
+
+Each Element has a unique **index** that encodes both identity and versioning:
+- **Atomic Number** (8 MSB): 1–26 (27 distinct Elements: Hydrogen through Iron)
+- **Generation** (56 LSB): Counter incremented when Element resets (overloads)
+- **Index Format**: `[generation_56bits | atomic_number_8bits]`
+
+**Bound vs. Unbound:**
+- A charge is **bound** when `index.atomic_number() != 0` (holds an atomic number 1–26)
+- A charge is **unbound** when `index == 0` (atomic number and generation both zero)
+- Unbound charges are off-board and cannot participate in Element mechanics or claim rewards
+
+**Why This Matters:**
+- Generation increments allow detecting stale charge references after Element reset
+- A charge can only **claim** from an artefact if its index exactly matches (same atomic # AND generation)
+- This prevents claiming from the wrong Element reset or double-claiming
+
+### Fee Routing Logic
+
+When a charge moves between Elements via **Rebind**, the fee goes to one of two places:
+
+1. **Moving Inward** (increasing atomic number, toward center)
+   - Direction: `src.index < dst.index`
+   - Fee recipient: **destination Element**
+   - Rationale: Funds deeper Elements, accelerating value accumulation in high-risk zones
+
+2. **Moving Outward** (decreasing atomic number, toward edge)
+   - Direction: `src.index > dst.index`
+   - Fee recipient: **source Element**
+   - Rationale: Taxes departing charges, incentivizing staying or exiting via deliberate Fiss
+
+**Compress** always moves inward: both migration and merge fees go to destination.
+
+### Overload Mechanics: Bonus System
+
+When **Overload** is triggered:
+
+1. **Snapshot**: Element pot and index are copied to Artefact
+2. **Claim (triggering charge only)**: Triggering charge receives reward based on its share
+3. **Reset**: Element generation increments, curve/pot cleared
+4. **Bonus**: Triggering charge is immediately re-bound to reset Element at genesis (first mover advantage in new accumulation cycle)
+5. **Ejection**: All other bound charges are automatically unbound (become off-board) and may later claim via separate Claim action
+
+**Key Invariant:** Only the triggering charge stays bound; all others are ejected. This is a reward for paying high fees during accumulation (speed tax compounds at high saturation).
+
+### Claim Sequence
+
+Claiming happens in two phases:
+
+1. **During Overload** (internal):
+   - Overload processor calls `claim()` for triggering charge
+   - Reward computed and added to charge balance
+   - Charge share cleared (share = 0)
+   - Charge becomes unbound (index.clear())
+
+2. **Separate Claim Transaction** (external):
+   - Any other charge that was bound during overload can claim later
+   - Requires exact index match (atomic # + generation) to validate presence at reset time
+   - Reward distributed proportionally
+   - Charge becomes unbound
+
+**Why Index Must Match:**
+- Validates charge was actually bound to this Element when it reset
+- Different generation = different Element reset, so charge ineligible
+- Prevents claiming from wrong Elements or re-claiming
 
 ## Emergence & Depth
 

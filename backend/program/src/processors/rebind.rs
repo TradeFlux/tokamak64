@@ -20,6 +20,11 @@ pub(crate) fn rebind<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
         .then_some(())
         .ok_or(ProgramError::InvalidArgument)?;
 
+    // Charge must be bound to source element
+    if charge.index != src.index {
+        return Err(ProgramError::Custom(1)); // Charge not in source element
+    }
+
     let remainder = charge.balance.checked_sub(fee);
     charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;
     action::rebind(charge, src, dst);

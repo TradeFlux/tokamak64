@@ -20,6 +20,10 @@ where
 
     let amount = data.read()?;
 
+    if amount == 0 {
+        return Err(ProgramError::InvalidArgument);
+    }
+
     let remainder = charge.balance.checked_sub(amount);
     charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;
     target.pot += amount;

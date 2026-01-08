@@ -83,6 +83,10 @@ where
     }
     .invoke_signed(&[invoker])?;
 
+    let charge: &mut Charge = parse(&mut iter::once(charge))?;
+    charge.authority = signer.address().to_bytes();
+    charge.mint = wallet.mint;
+
     wallet.charges += 1;
 
     Ok(())
