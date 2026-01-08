@@ -6,9 +6,8 @@ use crate::{
     instruction::IxData,
 };
 
-/// Process a Charge instruction: deposit stable tokens into the system.
-/// This increases the player's liquid balance and the board's TVL.
-pub(crate) fn process_charge<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
+/// Create a new charge by allocating Gluon from wallet to charge account.
+pub(crate) fn charge<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
 where
     I: AccountIter<'a>,
 {

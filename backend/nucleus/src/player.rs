@@ -24,13 +24,14 @@ pub struct Wallet {
 pub struct Charge {
     /// Gluon allocated to this charge.
     pub balance: Gluon,
-    /// Timestamp of last action (for speed tax calculations).
+    /// Timestamp of last action (for speed tax and cost calculations).
     pub timestamp: u64,
-    /// Which element this charge is bound to (cleared on unbind).
+    /// Which element this charge is bound to (0 if unbound/outside board).
     pub index: ElementIndex,
-    /// Share of future pressure payouts (Q8.24, set on bind, cleared on unbind).
+    /// Share of Element's pot as Q8.24 fixed-point (proportional reward at breaking).
     pub share: Q824,
+    /// Padding for 64-byte alignment (Pod requirement).
     pub _pad: u32,
-    /// Authority pubkey (owner of this charge).
+    /// Public key of the charge's owner.
     pub authority: AddressBytes,
 }

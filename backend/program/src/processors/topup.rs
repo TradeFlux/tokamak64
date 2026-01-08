@@ -8,16 +8,9 @@ use crate::{
     instruction::IxData,
 };
 
-/// Process a TopUp instruction: convert stable tokens to GLUON and deposit into wallet.
-/// This increases the player's liquid balance and the system's TVL.
-///
-/// Expected accounts in order:
-/// 1. wallet - Player's wallet account (writable)
-/// 2. src - Player's token ATA (writable, source of stable tokens)
-/// 3. mint - Token mint account (USDT/USDC)
-/// 4. vault - Program's vault token ATA (writable, destination)
-/// 5. auth - Player's authority (signer, owner of src)
-pub(crate) fn process_topup<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
+/// Convert stable tokens (USDT/USDC) to Gluon and deposit into wallet (1:1 conversion).
+/// Transfers stable tokens to program vault; wallet balance increases for Charge/Fuse actions.
+pub(crate) fn topup<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
 where
     I: AccountIter<'a>,
 {

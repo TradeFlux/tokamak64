@@ -6,7 +6,8 @@ use crate::{
     instruction::IxData,
 };
 
-pub(crate) fn process_vent<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
+/// Donate part of a bound charge's value to its Element's shared pot (public bounty).
+pub(crate) fn vent<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
 where
     I: AccountIter<'a>,
 {

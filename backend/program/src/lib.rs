@@ -21,16 +21,16 @@ fn process_instruction(
     let mut data = IxData::new(data);
     let ix = TokamakInstruction::parse(&mut data)?;
     match ix {
-        Charge => charge::process_charge(it, data),
-        Claim => claim::process_claim(it),
-        Compress => compress::process_compress(it),
-        Drain => drain::process_drain(it, data),
-        Discharge => discharge::process_discharge(it, data),
-        Translate => translate::process_translation(it),
-        Fiss => fission::process_fission(it),
-        Fuse => fuse::process_fuse(it),
-        Overload => overload::process_overload(it),
-        TopUp => topup::process_topup(it, data),
-        Vent => vent::process_vent(it, data),
+        Charge => charge::charge(it, data),
+        Claim => claim::claim(it),
+        Compress => compress::compress(it),
+        Drain => drain::drain(it, data),
+        Discharge => discharge::discharge(it, data),
+        Rebind => rebind::rebind(it),
+        Fiss => fission::fission(it),
+        Fuse => fuse::fuse(it),
+        Overload => overload::overload(it),
+        TopUp => topup::topup(it, data),
+        Vent => vent::vent(it, data),
     }
 }

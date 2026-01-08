@@ -2,10 +2,11 @@ use nucleus::{action, fees::migration_fee};
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
 
-use crate::accounts::{AccountIter, FromAccounts, TranslationAccounts};
+use crate::accounts::{AccountIter, FromAccounts, RebindAccounts};
 
-pub(crate) fn process_translation<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
-    let TranslationAccounts { charge, src, dst } = TranslationAccounts::parse(it)?;
+/// Move a bound charge from source Element to an adjacent Element; incurs movement cost.
+pub(crate) fn rebind<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
+    let RebindAccounts { charge, src, dst } = RebindAccounts::parse(it)?;
     let fee = migration_fee(charge, src, dst);
     src.coordinates
         .adjacent(dst.coordinates)

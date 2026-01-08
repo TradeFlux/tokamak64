@@ -6,9 +6,8 @@ use crate::{
     instruction::IxData,
 };
 
-/// Process a Discharge instruction: withdraw GLUON from the system back to stable tokens.
-/// This decreases the player's balance and the board's TVL.
-pub(crate) fn process_discharge<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
+/// Merge a charge's remaining Gluon back into the wallet account; unbound charges only.
+pub(crate) fn discharge<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
 where
     I: AccountIter<'a>,
 {

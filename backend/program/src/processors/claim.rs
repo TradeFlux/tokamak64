@@ -4,7 +4,8 @@ use pinocchio::ProgramResult;
 
 use crate::accounts::{AccountIter, ClaimAccounts, FromAccounts};
 
-pub(crate) fn process_claim<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
+/// Collect accumulated rewards from an Element's breaking event based on accumulated share.
+pub(crate) fn claim<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let ClaimAccounts { charge, artefact } = ClaimAccounts::parse(it)?;
     if charge.share == 0 {
         // TODO proper handling of nothing to claim

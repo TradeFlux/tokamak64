@@ -7,7 +7,8 @@ use pinocchio::ProgramResult;
 
 use crate::accounts::{AccountIter, CompressionAccounts, FromAccounts};
 
-pub(crate) fn process_compress<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
+/// Move Element's pot inward to deeper destination and rebind charge; adds fees to moving pot.
+pub(crate) fn compress<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let CompressionAccounts { charge, src, dst } = CompressionAccounts::parse(it)?;
     if src.index > dst.index {
         // TODO proper handling of compression error (only towards increasing Z)

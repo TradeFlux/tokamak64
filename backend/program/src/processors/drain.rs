@@ -8,16 +8,9 @@ use crate::{
     instruction::IxData,
 };
 
-/// Process a Drain instruction: convert GLUON in wallet to stable tokens and withdraw.
-/// This decreases the player's liquid balance and transfers stable tokens to their ATA.
-///
-/// Expected accounts in order:
-/// 1. wallet - Player's wallet account (writable)
-/// 2. vault - Program's vault token ATA (writable, source of stable tokens)
-/// 3. mint - Token mint account (USDT/USDC)
-/// 4. dst - Player's token ATA (writable, destination)
-/// 5. auth - Vault authority/PDA (signer for vault token ATA)
-pub(crate) fn process_drain<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
+/// Convert Gluon from wallet back to stable tokens (USDT/USDC) and withdraw to ATA.
+/// Completes withdrawal cycle, reducing player's in-game balance and system TVL.
+pub(crate) fn drain<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
 where
     I: AccountIter<'a>,
 {

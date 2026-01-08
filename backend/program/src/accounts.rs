@@ -9,70 +9,115 @@ use pinocchio::{account::AccountView, error::ProgramError};
 pub trait AccountIter<'a>: Iterator<Item = &'a AccountView> {}
 impl<'a, I: Iterator<Item = &'a AccountView>> AccountIter<'a> for I {}
 
+/// Accounts for Fuse: bind a charge to a destination edge Element.
 pub struct FusionAccounts<'a> {
+    /// Charge account to bind to board.
     pub(crate) charge: &'a mut Charge,
+    /// Destination Element (must be on perimeter).
     pub(crate) dst: &'a mut Element,
+    /// Board singleton for TVL tracking.
     pub(crate) board: &'a mut Board,
 }
 
+/// Accounts for Fiss: unbind a charge from its source Element and exit the board.
 pub struct FissionAccounts<'a> {
+    /// Charge account to unbind from board.
     pub(crate) charge: &'a mut Charge,
+    /// Source Element (must be on perimeter).
     pub(crate) src: &'a mut Element,
+    /// Board singleton for TVL tracking.
     pub(crate) board: &'a mut Board,
 }
 
+/// Accounts for Compress: move Element's pot inward and rebind charge to deeper destination.
 pub struct CompressionAccounts<'a> {
+    /// Charge account being rebind.
     pub(crate) charge: &'a mut Charge,
+    /// Source Element (pot source).
     pub(crate) src: &'a mut Element,
+    /// Destination Element (deeper; pot destination).
     pub(crate) dst: &'a mut Element,
 }
 
+/// Accounts for Overload: trigger Element reset and snapshot breaking event.
 pub struct OverloadAccounts<'a> {
+    /// Charge causing/triggering the overload.
     pub(crate) charge: &'a mut Charge,
+    /// Element to reset (saturation must exceed threshold).
     pub(crate) target: &'a mut Element,
+    /// Artefact account to snapshot breaking event and pot.
     pub(crate) artefact: &'a mut Artefact,
+    /// Board singleton for TVL tracking.
     pub(crate) board: &'a mut Board,
 }
 
-pub struct TranslationAccounts<'a> {
+/// Accounts for Rebind: move bound charge from source Element to adjacent destination.
+pub struct RebindAccounts<'a> {
+    /// Charge account being moved.
     pub(crate) charge: &'a mut Charge,
+    /// Source Element (current location).
     pub(crate) src: &'a mut Element,
+    /// Destination Element (must be adjacent).
     pub(crate) dst: &'a mut Element,
 }
 
+/// Accounts for Vent: donate charge value to its current Element's shared pot.
 pub struct VentAccounts<'a> {
+    /// Charge account being vented.
     pub(crate) charge: &'a mut Charge,
+    /// Element receiving the vented value.
     pub(crate) target: &'a mut Element,
 }
 
+/// Accounts for Claim: collect reward share from Element's breaking event.
 pub struct ClaimAccounts<'a> {
+    /// Charge account claiming rewards.
     pub(crate) charge: &'a mut Charge,
+    /// Artefact storing the breaking event snapshot.
     pub(crate) artefact: &'a mut Artefact,
 }
 
+/// Accounts for Charge: create new charge by allocating Gluon from wallet.
 pub struct ChargeAccounts<'a> {
+    /// New charge account to fund.
     pub(crate) charge: &'a mut Charge,
+    /// Wallet account to withdraw from.
     pub(crate) wallet: &'a mut Wallet,
 }
 
+/// Accounts for Discharge: merge charge's Gluon back into wallet.
 pub struct DischargeAccounts<'a> {
+    /// Charge account to merge from.
     pub(crate) charge: &'a mut Charge,
+    /// Wallet account to deposit to.
     pub(crate) wallet: &'a mut Wallet,
 }
 
+/// Accounts for TopUp: convert stable tokens (USDT/USDC) to Gluon in wallet.
 pub struct TopUpAccounts<'a> {
+    /// Wallet account to deposit Gluon into.
     pub(crate) wallet: &'a mut Wallet,
+    /// Source ATA (player's token account).
     pub(crate) src: &'a AccountView,
+    /// Token mint (USDT/USDC).
     pub(crate) mint: &'a AccountView,
+    /// Program's token vault ATA.
     pub(crate) vault: &'a AccountView,
+    /// Player's authority (signer).
     pub(crate) authority: &'a AccountView,
 }
 
+/// Accounts for Drain: convert wallet Gluon back to stable tokens in ATA.
 pub struct DrainAccounts<'a> {
+    /// Wallet account to withdraw Gluon from.
     pub(crate) wallet: &'a mut Wallet,
+    /// Program's token vault ATA (source).
     pub(crate) vault: &'a AccountView,
+    /// Token mint (USDT/USDC).
     pub(crate) mint: &'a AccountView,
+    /// Destination ATA (player's token account).
     pub(crate) dst: &'a AccountView,
+    /// Vault authority/PDA (signer).
     pub(crate) authority: &'a AccountView,
 }
 
@@ -121,7 +166,7 @@ impl<'a> FromAccounts<'a> for OverloadAccounts<'a> {
     }
 }
 
-impl<'a> FromAccounts<'a> for TranslationAccounts<'a> {
+impl<'a> FromAccounts<'a> for RebindAccounts<'a> {
     fn parse<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         Ok(Self {
             charge: parse(it)?,

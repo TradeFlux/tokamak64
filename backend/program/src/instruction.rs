@@ -15,27 +15,38 @@ pub(crate) struct IxData<'a> {
 #[repr(u64)]
 #[derive(Clone, Copy)]
 pub enum TokamakInstruction {
-    /// Deposit stable tokens into system, funding the wallet
+    /// Create a new charge by allocating Gluon from wallet to a charge account.
+    /// Reads: amount (u64).
     Charge,
-    /// Claim the shares worth gluon from the pot of previously reset element
+    /// Collect accumulated rewards from an Element after it breaks.
+    /// Distributes share proportional to the player's value that was present during accumulation.
     Claim,
-    /// Move the pot inward merging with others
+    /// Move Element's pot inward to a deeper adjacent Element while rebinding the charge.
+    /// Consolidates value deeper into the board; fees added to the moving pot.
     Compress,
-    /// Convert gluon in wallet to correponding stable token
+    /// Convert Gluon from wallet back to stable tokens (USDT/USDC).
+    /// Reads: amount (u64). Completes withdrawal cycle.
     Drain,
-    /// Withdraw the funds from wallet, by converting GLUON to original stable token
+    /// Merge a charge's remaining Gluon back into the wallet account.
+    /// Reads: amount (u64). Unbinds funds from board play.
     Discharge,
-    /// Move the charge from one element to another
-    Translate,
-    /// Exit the board
+    /// Move a bound charge from one Element to an adjacent Element.
+    /// Incurs movement costs scaled by destination depth and speed tax.
+    Rebind,
+    /// Unbind a charge from its current Element and move it outside the board.
+    /// Only possible from edge Elements; applies exit cost.
     Fiss,
-    /// Enter the board
+    /// Bind a charge onto the board into an edge Element (perimeter only).
+    /// Charge becomes bound and participates in Element pressure and breaking.
     Fuse,
-    /// Push the element beyond curve capacity, triggering a reset
+    /// Forcefully trigger an Element to break and reset, distributing its accumulated pot.
+    /// Creates an Artefact snapshot recording breaking event.
     Overload,
-    /// Convert some stable tokens to Gluon and put them in wallet
+    /// Convert stable tokens to Gluon and add to wallet (1:1 conversion).
+    /// Reads: amount (u64). Deposits Gluon into account for Charge/Fuse actions.
     TopUp,
-    /// Donate some of the charge's balance to the pot of the current element
+    /// Donate part of a bound charge's value to its current Element's shared pot.
+    /// Reduces player share; accelerates Element's breaking point.
     Vent = IX_COUNT - 1,
 }
 

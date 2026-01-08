@@ -6,6 +6,6 @@ pub(crate) mod drain;
 pub(crate) mod fission;
 pub(crate) mod fuse;
 pub(crate) mod overload;
+pub(crate) mod rebind;
 pub(crate) mod topup;
-pub(crate) mod translate;
 pub(crate) mod vent;

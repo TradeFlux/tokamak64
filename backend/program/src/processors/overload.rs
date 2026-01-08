@@ -9,20 +9,9 @@ use pinocchio::ProgramResult;
 
 use crate::accounts::{AccountIter, FromAccounts, OverloadAccounts};
 
-/// Process an Overload instruction: trigger a reset on an element when saturation exceeds threshold.
-/// This occurs atomically during a charge rebind operation.
-///
-/// Preconditions:
-/// - charge has been moved to target and saturation exceeds LUT_X_MAX
-/// - artefact account is initialized to store the reset snapshot
-///
-/// Steps:
-/// 1. Validate that saturation exceeds overload threshold
-/// 2. Create artefact snapshot of the overloaded element
-/// 3. Advance target element to next generation
-/// 4. Rebind charge to the newly created target element
-/// 5. Update board stats
-pub(crate) fn process_overload<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
+/// Forcefully trigger an Element to break and reset, distributing its accumulated pot.
+/// Validates saturation threshold, snapshots breaking event in Artefact, advances generation.
+pub(crate) fn overload<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let OverloadAccounts {
         charge,
         target,
@@ -47,7 +36,7 @@ pub(crate) fn process_overload<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramRes
     target.pot = 0;
 
     // Increment generation in the element index
-    target.index.next_gen();
+    target.index.advance_generation();
     let mut src = Element::zeroed();
     action::rebind(charge, &mut src, target);
 

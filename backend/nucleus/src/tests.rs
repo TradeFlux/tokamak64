@@ -56,7 +56,7 @@ mod tests {
     #[test]
     fn element_index_next_gen() {
         let mut idx = ElementIndex((5u64 << 56) | 100);
-        idx.next_gen();
+        idx.advance_generation();
         assert_eq!(idx.atomic_number(), 5);
         assert_eq!(idx.generation(), 101);
     }
@@ -65,7 +65,7 @@ mod tests {
     fn element_index_next_gen_wraps() {
         let max_gen = (1u64 << 56) - 1;
         let mut idx = ElementIndex((10u64 << 56) | max_gen);
-        idx.next_gen();
+        idx.advance_generation();
         assert_eq!(idx.atomic_number(), 10);
         assert_eq!(idx.generation(), 0); // wraps around
     }

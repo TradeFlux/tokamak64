@@ -64,7 +64,7 @@ This creates a fundamental tension: you can voluntarily exit early (via Fiss, pa
 
 Voluntary actions incur costs:
 
-- **Movement** (Translate): Costs scale with destination depth and time elapsed since last move (speed tax)
+- **Movement** (Rebind): Costs scale with destination depth and time elapsed since last move (speed tax)
 - **Exiting voluntarily** (Fiss): Costs apply when unbinding a charge from an Element
 - **Compressing value** (Compress): Costs scale with pot size and destination depth; fees are added to the pot being moved
 - **Donating to pot** (Vent): Transfers charge value to the Element's shared pot
@@ -87,7 +87,7 @@ The game provides 11 actions that shape gameplay:
 - **Drain**: Convert wallet Gluon back to stable tokens in your ATA
 
 ### Moving Charges & Value
-- **Translate**: Move a charge from its current Element to an adjacent Element (incurs movement cost)
+- **Rebind**: Move a charge from its current Element to an adjacent Element (incurs movement cost)
 - **Compress**: Move an Element's pot inward to a deeper adjacent Element while also moving the bound player's charge (inward only; fees added to pot)
 - **Vent**: Donate part of a charge's value to its current Element's shared pot
 
@@ -177,7 +177,7 @@ The game has a clear progression through different states:
 
 ### Active Play
 8. While bound to an Element, a charge participates in pressure mechanics, breaking events, and reward claims
-9. **Translate**: Move a charge to an adjacent Element
+9. **Rebind**: Move a charge to an adjacent Element
 10. **Compress**: Move a pot deeper into the board, increasing its value
 11. **Vent**: Donate part of a charge's value to its Element's shared pot
 12. **Overload**: Forcefully trigger an Element to break
@@ -195,11 +195,11 @@ The game has a clear progression through different states:
 
 ### Key Distinctions
 
-- **Wallet**: Holds Gluon; serves as your in-game resource pool. Created implicitly on first TopUp.
-- **Charge**: A distinct account holding Gluon; the actual entity that occupies Elements and claims rewards. Charges are **bound** while on the board (can claim if Element breaks) and **unbound** after Fiss (can never claim).
-- **Gluon**: Ephemeral in-game currency representing economic value within TOKAMAK64. Used for all actions. Cannot be transferred directly between players.
-- **Stable tokens** (USDT/USDC): Held in your Solana ATA. The entry and exit point for real value; convertible to/from Gluon via TopUp/Drain.
-- **Element pot**: Shared value accumulated by presence of multiple charges; distributed when Element breaks.
+- **Wallet**: Holds Gluon in liquid form (unallocated); serves as your in-game resource pool. Created implicitly on first TopUp.
+- **Charge**: A distinct account holding Gluon; the actual entity that occupies Elements and claims rewards. Charges are **bound** while on the board (index set, can claim if Element breaks) and **unbound** after Fiss (index cleared, can never claim).
+- **Gluon**: In-game currency representing economic value within TOKAMAK64. Used for all actions. Cannot be transferred directly between players.
+- **Stable tokens** (USDT/USDC): Held in your Solana ATA. The entry and exit point for real-world value; convertible to/from Gluon via TopUp/Drain (1:1).
+- **Element pot**: Shared value accumulated by charges present during Element's accumulation; distributed to bound charges when Element breaks.
 
 ## Getting Started
 
@@ -210,13 +210,13 @@ A typical gameplay session:
 3. Use **TopUp** to convert stable tokens → Gluon in your in-game wallet (1:1)
 4. Use **Charge** to create new charges, allocating Gluon from your wallet to each
 5. Use **Fuse** to position charges onto the board into edge Elements (perimeter only)
-6. Navigate strategically using **Translate** to move between Elements, building exposure to high-value pots
+6. Navigate strategically using **Rebind** to move between Elements, building exposure to high-value pots
 7. Use **Vent** to donate value to your current Element's shared pot if you believe it will break soon
 8. Use **Compress** to move pots deeper if you're positioned to benefit from richer payouts
 9. Use **Claim** to collect your reward share when Elements break
 10. Use **Overload** to trigger early breaks if you believe timing favors you
 11. **Decide**: Do you stay hoping for a break (free exit + rewards) or exit voluntarily?
-12. If exiting voluntarily: Use **Translate** to navigate back toward the board's edge
+12. If exiting voluntarily: Use **Rebind** to navigate back toward the board's edge
 13. Use **Fiss** to unbind charges only from edge Elements, paying exit costs (note: unbound charges cannot claim future rewards)
 14. If breaking happens: You're automatically ejected for free with your reward share already distributed
 15. Use **Discharge** to merge unbound charges back into your wallet

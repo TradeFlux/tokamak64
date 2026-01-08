@@ -12,10 +12,11 @@ pub struct Curve {
     pub capacity: Gluon,
     /// Total Gluon ever accumulated (TVL, net of deposits/withdrawals).
     pub tvl: Gluon,
-    /// Accumulated pressure integral (Q16.48). Path-independent checksum of pressure history.
+    /// Accumulated pressure integral as Q16.48; path-independent checksum of history.
     pub pressure: Q1648,
-    /// Current saturation on curve (Q8.24). Higher = more crowded, costlier next entry.
+    /// Current saturation as Q8.24 (0 to ~12); higher = crowded, higher costs.
     pub saturation: Q824,
+    /// Padding for 32-byte alignment (Pod requirement).
     pub _pad: u32,
 }
 
@@ -39,14 +40,15 @@ pub struct Element {
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable, Debug)]
 pub struct Board {
-    /// Total value locked (TVL) across all charges.
+    /// Total Gluon locked across all active charges.
     pub tvl: Gluon,
-    /// Accumulated Gluon in quantum pocket (spent on rare unlocks).
+    /// Gluon in quantum pocket reserve (reserved for rare unlocks/events).
     pub quantum_pocket: Gluon,
-    /// Active charge count (used in global pressure calculations).
+    /// Count of active charges on board (used in global pressure calculations).
     pub charge_count: u32,
-    /// Quantum unlock index (elements fully reset).
+    /// Quantum unlock progression index (tracks fully-reset elements).
     pub quantum_index: u8,
+    /// Padding for 24-byte alignment (Pod requirement).
     pub _pad: [u8; 3],
 }
 

@@ -39,7 +39,7 @@ impl ElementIndex {
 
     /// Increment generation (wraps within 56 bits).
     #[inline]
-    pub fn next_gen(&mut self) {
+    pub fn advance_generation(&mut self) {
         let generation = (self.0 + 1) & Self::GEN_MASK;
         self.0 = (self.0 & !Self::GEN_MASK) | generation;
     }
