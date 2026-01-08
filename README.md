@@ -71,6 +71,18 @@ Voluntary actions incur costs:
 
 Importantly: **costs are never destroyed**. All costs are redirected into the board as shared value in Elements, becoming part of future oversaturation points and rewards. This creates a closed economic loop.
 
+### Total Value Locked (TVL) Invariant
+
+The board tracks total active Gluon in **charge accounts** (allocated but off-board or on-board awaiting action). TVL increases when:
+- **Fuse**: Charge enters board (balance added despite fee deduction, since charge is now tracked)
+- **Rebind/Compress**: Charge moves between elements (no TVL change; already tracked)
+- **Overload**: Charge receiving bonus is re-bound (TVL adjusted: all other charge TVL removed except re-bound charge)
+
+TVL decreases when:
+- **Fiss**: Charge exits board (balance removed; charge no longer active)
+- **Claim**: Reward payout reduces charge balance (TVL decreases as rewards distributed to charges)
+- **Overload**: All charges ejected except one receiving bonus (old curve TVL minus re-bound charge = TVL reduction)
+
 ## Core Mechanics
 
 The game provides 13 actions (instructions) that shape gameplay, organized into 5 functional groups:
@@ -91,13 +103,13 @@ The game provides 13 actions (instructions) that shape gameplay, organized into 
 - **Drain**: Convert wallet Gluon back to stable tokens in your ATA; exit point for on-chain value
 
 ### Movement & Value Transfer
-- **Rebind**: Move a bound charge from one Element to an adjacent Element; incurs movement costs scaled by destination depth and speed tax
-- **Compress**: Move an Element's accumulated pot inward to a deeper adjacent Element while rebinding the charge; fees are added to the moving pot
-- **Vent**: Donate part of a bound charge's value to its current Element's shared pot; reduces individual share but accelerates reaching Element's oversaturation point
+- **Rebind**: Move a bound charge from one Element to an adjacent Element; incurs movement costs. Fee routing: moving **inward** (toward center, higher depth) pays fee to **destination**; moving **outward** (toward edge, lower depth) pays fee to **source**
+- **Compress**: Move an Element's accumulated pot inward to a deeper adjacent Element while rebinding the charge; incurs both migration fee (depth cost) and merge fee (consolidation cost); both fees accumulate in destination pot
+- **Vent**: Donate part of a bound charge's value to its current Element's shared pot; charge must be currently bound to that element; reduces individual share but accelerates reaching Element's oversaturation point
 
 ### Overload & Rewards
-- **Overload**: Forcefully push an Element beyond its oversaturation point to trigger an immediate reset; creates an Artefact snapshot recording the overload event
-- **Claim**: Collect your charge's proportional reward share from an Element's pot after it overloads; distributes based on share value at time of reset
+- **Overload**: Forcefully trigger an Element reset when saturation exceeds threshold; the charge invoking Overload receives a **bonus**: it immediately re-binds to the reset element at genesis (sharing advantage in new pot). All other charges in the element are automatically ejected for free and become unbound. Reward distribution: charges present at reset receive proportional share based on their value during accumulation; unbound charges (already exited) receive nothing
+- **Claim**: Collect your charge's proportional reward share from an Element's pot after it overloads; distributes based on share value at time of reset; charge must currently be unbound to claim
 
 ## Emergence & Depth
 

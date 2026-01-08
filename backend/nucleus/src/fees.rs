@@ -63,7 +63,7 @@ pub fn speed_bonus(charge: &Charge, now: u64) -> u64 {
 }
 
 /// Calculate base fee: balance * (distance * saturation) / (MAX_ATOMIC_NUMBER * MAX_POSITION).
-/// Ensures fees scale with commitment, depth, and element crowding.
+/// Ensures fees scale with commitment, depth, and element's curve saturation.
 fn calculate_base_fee(balance: Gluon, distance: u64, saturation: u32) -> Gluon {
     let numerator = distance * (saturation as u64);
     let denominator = MAX_ATOMIC_NUMBER * (MAX_SATURATION as u64);

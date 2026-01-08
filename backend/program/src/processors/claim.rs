@@ -15,7 +15,7 @@ pub(crate) fn claim<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
         return Err(ProgramError::Custom(42));
     }
 
-    if charge.index == artefact.index {
+    if charge.index != artefact.index {
         // TODO proper handling of claim vialotion
         return Err(ProgramError::Custom(42));
     }

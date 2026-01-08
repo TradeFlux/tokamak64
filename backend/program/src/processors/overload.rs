@@ -42,7 +42,7 @@ pub(crate) fn overload<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let mut src = Element::zeroed();
     action::rebind(charge, &mut src, target);
 
-    board.tvl -= target.pot + target.curve.tvl;
+    board.tvl -= target.pot + (target.curve.tvl - charge.balance);
 
     Ok(())
 }

@@ -9,22 +9,19 @@ use crate::accounts::{AccountIter, FissionAccounts, FromAccounts};
 
 /// Unbind a charge from its current Element and move it outside the board; only from edge Elements.
 pub(crate) fn fission<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
-    let FissionAccounts {
-        charge,
-        src,
-        board,
-    } = FissionAccounts::extract(it)?;
+    let FissionAccounts { charge, src, board } = FissionAccounts::extract(it)?;
 
     src.coordinates
         .is_peripheral()
         .then_some(())
         .ok_or(ProgramError::InvalidArgument)?;
     let fee = exit_fee(charge, src);
-    board.tvl += charge.balance;
-    board.charge_count += 1;
-
     let remainder = charge.balance.checked_sub(fee);
     charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;
+
+    board.tvl -= charge.balance;
+    board.charge_count -= 1;
+
     let mut dst = Element::zeroed();
     action::rebind(charge, src, &mut dst);
     src.pot += fee;

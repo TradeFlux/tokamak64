@@ -24,10 +24,15 @@ where
         return Err(ProgramError::InvalidArgument);
     }
 
-    // Check sufficient balance
+    // Charge must be unbound (off-board)
     if charge.index.atomic_number() != 0 {
         // TODO: proper error handling - can only withdraw when not bound to an element
         return Err(ProgramError::Custom(50));
+    }
+
+    // Check sufficient balance
+    if charge.balance < amount {
+        return Err(ProgramError::InsufficientFunds);
     }
 
     // Transfer from charge balance back to wallet

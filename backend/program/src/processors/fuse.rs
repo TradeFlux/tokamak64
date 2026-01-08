@@ -9,11 +9,7 @@ use crate::accounts::{AccountIter, FromAccounts, FusionAccounts};
 
 /// Bind a charge onto the board into an edge Element; charge becomes bound for pressure/overload mechanics.
 pub(crate) fn fuse<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
-    let FusionAccounts {
-        charge,
-        dst,
-        board,
-    } = FusionAccounts::extract(it)?;
+    let FusionAccounts { charge, dst, board } = FusionAccounts::extract(it)?;
 
     dst.coordinates
         .is_peripheral()
