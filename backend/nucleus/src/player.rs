@@ -1,40 +1,42 @@
+//! # Player Accounts
+//!
+//! Wallet and Charge accounts represent player presence and resource allocation in TOKAMAK64.
+
 use bytemuck::{Pod, Zeroable};
 
 use crate::types::{AddressBytes, ElementIndex, Gluon, Q824};
 
-/// Wallet: player's liquid (unallocated) balance and identity.
-/// Entry point for deposits/withdrawals. Funds here incur no pressure.
-/// Field order: 8+32+32 = 72 bytes (no padding).
+/// Liquid Gluon (outside board pressure). Entry/exit point for on-chain value via TopUp/Drain.
 #[repr(C)]
 #[derive(Pod, Zeroable, Clone, Copy, Debug)]
 pub struct Wallet {
-    /// Liquid Gluon (not bound to any element).
+    /// Unallocated Gluon, ready to fund charges.
     pub balance: Gluon,
-    /// Authority pubkey (signer).
+    /// Wallet authority (signer).
     pub authority: AddressBytes,
-    /// Mint account for token transfers.
+    /// Stable token mint (USDT/USDC).
     pub mint: AddressBytes,
-    /// Counter for deriving multiple charge PDAs per player (bump seed component).
+    /// Count of charges created (for PDA derivation).
     pub charges: u32,
     _pad: u32,
 }
 
-/// Charge: atomic allocation of a player's funds bound to one element.
-/// Multiple charges per player allowed (across different elements).
-/// Field order: 8+8+8+4+4+32 = 64 bytes (no padding).
+/// Allocated Gluon bound to one element. Bound (index != 0) or unbound (index == 0).
+/// Reward share calculated at entry, claimed after element breaks.
 #[repr(C)]
 #[derive(Pod, Zeroable, Clone, Copy, Debug)]
 pub struct Charge {
-    /// Gluon allocated to this charge.
+    /// Allocated Gluon (on board or awaiting move/exit).
     pub balance: Gluon,
-    /// Timestamp of last action (for speed tax and cost calculations).
+    /// Last action timestamp (for speed tax calculation).
     pub timestamp: u64,
-    /// Which element this charge is bound to (0 if unbound/outside board).
+    /// Bound element: atomic number + generation (0 = unbound).
     pub index: ElementIndex,
-    /// Share of Element's pot as Q8.24 fixed-point (proportional reward at breaking).
+    /// Proportional share of element pot (Q8.24 fixed-point).
     pub share: Q824,
-    /// Public key of the charge's owner.
+    /// Charge authority (signer).
     pub authority: AddressBytes,
+    /// Stable token mint.
     pub mint: AddressBytes,
     _pad: u32,
 }

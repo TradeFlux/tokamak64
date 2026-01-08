@@ -43,16 +43,16 @@ pub enum TokamakInstruction {
     /// Only possible from edge Elements; applies exit cost.
     Fiss,
     /// Bind a charge onto the board into an edge Element (perimeter only).
-    /// Charge becomes bound and participates in Element pressure and breaking.
+    /// Charge becomes bound and participates in Element pressure and overload mechanics.
     Fuse,
-    /// Forcefully trigger an Element to break and reset, distributing its accumulated pot.
-    /// Creates an Artefact snapshot recording breaking event.
+    /// Forcefully trigger an Element to overload and reset, distributing its accumulated pot.
+    /// Creates an Artefact snapshot recording overload event.
     Overload,
     /// Convert stable tokens to Gluon and add to wallet (1:1 conversion).
     /// Reads: amount (u64). Deposits Gluon into account for Charge/Fuse actions.
     TopUp,
     /// Donate part of a bound charge's value to its current Element's shared pot.
-    /// Reduces player share; accelerates Element's breaking point.
+    /// Reduces player share; accelerates Element's overload (breaking point).
     Vent = IX_COUNT - 1,
 }
 

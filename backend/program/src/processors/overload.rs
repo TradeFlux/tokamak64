@@ -9,8 +9,8 @@ use pinocchio::ProgramResult;
 
 use crate::accounts::{AccountIter, FromAccounts, OverloadAccounts};
 
-/// Forcefully trigger an Element to break and reset, distributing its accumulated pot.
-/// Validates saturation threshold, snapshots breaking event in Artefact, advances generation.
+/// Forcefully trigger an Element to overload and reset, distributing its accumulated pot.
+/// Validates saturation threshold, snapshots overload event in Artefact, advances generation.
 pub(crate) fn overload<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let OverloadAccounts {
         charge,

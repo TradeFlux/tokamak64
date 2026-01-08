@@ -1,22 +1,26 @@
+//! # Fundamental Types
+//!
+//! Fixed-point arithmetic types, identifiers, and bitboard coordinates for TOKAMAK64.
+
 use bytemuck::{Pod, Zeroable};
 
-/// Gluon: atomic unit of value circulating in the game.
+/// Sole in-game currency. Accumulates in wallets (liquid), charges (allocated), and element pots (shared).
 pub type Gluon = u64;
 
-/// Q8.24 fixed-point: 8 integer bits, 24 fractional. Range [0, 12].
-/// Used for curve position and pressure-driven share calculations.
+/// Fixed-point (8 integer, 24 fractional bits): element saturation and player share in pots.
+/// Range [0, 12]; conversion: `q824 = actual_value * 2^24`.
 pub type Q824 = u32;
 
-/// Q16.48 fixed-point: 16 integer bits, 48 fractional.
-/// Used for curve state to accumulate precise pressure changes over time.
+/// Fixed-point (16 integer, 48 fractional bits): pressure integral for path-independent history tracking.
+/// Conversion: `q1648 = actual_value * 2^48`.
 pub type Q1648 = u64;
 
-/// AddressBytes: 32-byte public key (Solana address).
+/// 32-byte Solana public key: identifies authorities (signers) and mint accounts.
 pub type AddressBytes = [u8; 32];
 
-/// ElementIndex encodes atomic number (high 8 bits) and generation (low 56 bits).
-/// Atomic number identifies the element's static position; generation increments after reset.
-/// Layout: `[gen_56bits | atomic_8bits]`
+/// Encodes element atomic number (8 bits, high) and generation (56 bits, low).
+/// Detects stale charge references when element resets increment generation.
+/// Layout: `[generation_56bits | atomic_8bits]`
 #[repr(transparent)]
 #[derive(Pod, Zeroable, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct ElementIndex(pub u64);
@@ -25,65 +29,65 @@ impl ElementIndex {
     const GEN_BITS: u32 = u64::BITS - u8::BITS;
     const GEN_MASK: u64 = u64::MAX >> u8::BITS;
 
-    /// Atomic number of this element (0..255).
+    /// Extract atomic number (element position, 0..255).
     #[inline]
     pub fn atomic_number(self) -> u64 {
         self.0 >> Self::GEN_BITS
     }
 
-    /// Generation counter (increments on element reset).
+    /// Extract generation counter.
     #[inline]
     pub fn generation(self) -> u64 {
         self.0 & Self::GEN_MASK
     }
 
-    /// Increment generation (wraps within 56 bits).
+    /// Increment generation to invalidate stale references after element reset.
     #[inline]
     pub fn advance_generation(&mut self) {
         let generation = (self.0 + 1) & Self::GEN_MASK;
         self.0 = (self.0 & !Self::GEN_MASK) | generation;
     }
 
-    /// Reset to zero (used when player exits).
+    /// Mark charge as unbound (off-board).
     #[inline]
     pub fn clear(&mut self) {
         self.0 = 0;
     }
 
-    /// True if zero.
+    /// True if unbound (zero).
     #[inline]
     pub fn is_zero(self) -> bool {
         self.0 == 0
     }
 }
 
-/// Coordinates: 64-bit bitboard representing spatial extent on 8×8 board.
-/// Each bit = one square. Multiple bits = multi-square element.
+/// Bitboard of element's squares on 8×8 board (row-major: rank 8 at top, file A at left).
+/// Each bit represents one square. Used for adjacency checks and perimeter detection.
 #[repr(transparent)]
 #[derive(Pod, Zeroable, Clone, Copy, Debug)]
 pub struct Coordinates(pub u64);
 
 impl Coordinates {
     // File and rank masks for 8×8 row-major layout.
-    const FILE_A: u64 = 0x0101_0101_0101_0101; // left edge
-    const FILE_H: u64 = 0x8080_8080_8080_8080; // right edge
-    const RANK_1: u64 = 0x0000_0000_0000_00FF; // bottom edge
-    const RANK_8: u64 = 0xFF00_0000_0000_0000; // top edge
+    const FILE_A: u64 = 0x0101_0101_0101_0101; // left edge (file A)
+    const FILE_H: u64 = 0x8080_8080_8080_8080; // right edge (file H)
+    const RANK_1: u64 = 0x0000_0000_0000_00FF; // bottom edge (rank 1)
+    const RANK_8: u64 = 0xFF00_0000_0000_0000; // top edge (rank 8)
     const NFILE_A: u64 = !Self::FILE_A;
     const NFILE_H: u64 = !Self::FILE_H;
     const PERIMETER: u64 = Self::FILE_A | Self::FILE_H | Self::RANK_1 | Self::RANK_8;
 
-    /// True if self shares an orthogonal edge (N/S/E/W, not diagonal) with other.
+    /// True if shares orthogonal edge with another element (for movement validation).
     #[inline(always)]
     pub fn adjacent(self, other: Coordinates) -> bool {
-        let neighbors = ((self.0 & Self::NFILE_H) << 1) // east
-            | ((self.0 & Self::NFILE_A) >> 1) // west
-            | (self.0 << 8) // north
-            | (self.0 >> 8); // south
+        let neighbors = ((self.0 & Self::NFILE_H) << 1) // east neighbors
+            | ((self.0 & Self::NFILE_A) >> 1) // west neighbors
+            | (self.0 << 8) // north neighbors
+            | (self.0 >> 8); // south neighbors
         (neighbors & other.0) != 0
     }
 
-    /// True if this element touches the board perimeter.
+    /// True if touches board perimeter (entry/exit gateways).
     #[inline(always)]
     pub fn is_peripheral(self) -> bool {
         (self.0 & Self::PERIMETER) != 0

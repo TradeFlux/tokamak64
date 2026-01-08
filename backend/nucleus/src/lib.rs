@@ -1,3 +1,17 @@
+//! # Nucleus: Core Game Data Model and Mechanics
+//!
+//! Nucleus defines the fundamental data structures, types, constants, and action logic that drive TOKAMAK64.
+//! It is a pure data layer with no blockchain dependencies; core game rules are expressed as deterministic functions.
+//!
+//! ## Modules
+//!
+//! - **types**: Fixed-point math types (Q8.24, Q16.48), addresses, element indices, and board coordinates
+//! - **player**: Wallet and Charge account structures; player balance and binding state
+//! - **board**: Element curve state, pot mechanics, and global Board/Artefact snapshots
+//! - **action**: Core game logic for rebinding, claiming rewards, compressing elements, and venting value
+//! - **fees**: Movement cost and fee calculation logic based on depth and speed tax
+//! - **consts**: Game parameters and constants (max saturation, depth multipliers, etc.)
+
 pub mod action;
 pub mod board;
 pub mod consts;
@@ -7,16 +21,6 @@ pub mod types;
 
 #[cfg(test)]
 mod tests;
-
-/// Two's complement negation: bitwise inverse + 1.
-/// Converts signed values (encoded in u64) to their opposite for curve calculations.
-/// Caller must ensure no overflow occurs (typically only called on interpreted signed values).
-#[inline]
-pub fn twos_comp_negate(s: u64) -> u64 {
-    // Bitwise negation: !s
-    // Then add 1: !s + 1 (mathematically equivalent to 0 - s, but using bitwise ops)
-    (!s).wrapping_add(1)
-}
 
 /// Unsigned round-divide: `(mul1 * mul2 / div)` with nearest rounding (ties away from zero).
 /// All values treated as unsigned u64. For signed arithmetic, convert before calling.

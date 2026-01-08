@@ -1,3 +1,11 @@
+//! # Program Account Structures
+//!
+//! Defines account layouts for each instruction. Accounts are extracted from the instruction
+//! using a trait-based pattern that handles serialization, deserialization, and authorization.
+//!
+//! Each account struct bundles the required accounts for one instruction, with FromAccounts trait
+//! implementations that parse and validate them in sequence.
+
 use core::slice;
 use nucleus::{
     board::{Artefact, Board, Element},
@@ -10,135 +18,115 @@ use pinocchio::{account::AccountView, error::ProgramError};
 pub trait AccountIter<'a>: Iterator<Item = &'a AccountView> {}
 impl<'a, I: Iterator<Item = &'a AccountView>> AccountIter<'a> for I {}
 
-/// Accounts for Fuse: bind a charge to a destination edge Element.
+// ============================================================================
+// ENTRY & EXIT OPERATIONS
+// ============================================================================
+
+/// Fuse: Bind charge to edge element. Validates: peripheral destination.
 pub struct FusionAccounts<'a> {
-    /// Charge account to bind to board.
     pub(crate) charge: &'a mut Charge,
-    /// Destination Element (must be on perimeter).
     pub(crate) dst: &'a mut Element,
-    /// Board singleton for TVL tracking.
     pub(crate) board: &'a mut Board,
 }
 
-/// Accounts for Fiss: unbind a charge from its source Element and exit the board.
+/// Fiss: Unbind charge from edge element. Validates: peripheral source, bound charge.
 pub struct FissionAccounts<'a> {
-    /// Charge account to unbind from board.
     pub(crate) charge: &'a mut Charge,
-    /// Source Element (must be on perimeter).
     pub(crate) src: &'a mut Element,
-    /// Board singleton for TVL tracking.
     pub(crate) board: &'a mut Board,
 }
 
-/// Accounts for Compress: move Element's pot inward and rebind charge to deeper destination.
+// ============================================================================
+// MOVEMENT & VALUE TRANSFER
+// ============================================================================
+
+/// Compress: Move pot inward, rebind charge. Validates: adjacent elements, deeper destination.
 pub struct CompressionAccounts<'a> {
-    /// Charge account being rebind.
     pub(crate) charge: &'a mut Charge,
-    /// Source Element (pot source).
     pub(crate) src: &'a mut Element,
-    /// Destination Element (deeper; pot destination).
     pub(crate) dst: &'a mut Element,
 }
 
-/// Accounts for Overload: trigger Element reset and snapshot breaking event.
-pub struct OverloadAccounts<'a> {
-    /// Charge causing/triggering the overload.
+/// Rebind: Move charge to adjacent element. Validates: adjacent, charge bound.
+pub struct RebindAccounts<'a> {
     pub(crate) charge: &'a mut Charge,
-    /// Element to reset (saturation must exceed threshold).
+    pub(crate) src: &'a mut Element,
+    pub(crate) dst: &'a mut Element,
+}
+
+/// Vent: Donate charge value to element pot. Validates: charge in element, sufficient balance.
+pub struct VentAccounts<'a> {
+    pub(crate) charge: &'a mut Charge,
     pub(crate) target: &'a mut Element,
-    /// Artefact account to snapshot breaking event and pot.
+}
+
+// ============================================================================
+// BREAKING & REWARDS
+// ============================================================================
+
+/// Overload: Trigger element reset. Validates: saturation exceeds threshold.
+pub struct OverloadAccounts<'a> {
+    pub(crate) charge: &'a mut Charge,
+    pub(crate) target: &'a mut Element,
     pub(crate) artefact: &'a mut Artefact,
-    /// Board singleton for TVL tracking.
     pub(crate) board: &'a mut Board,
 }
 
-/// Accounts for Rebind: move bound charge from source Element to adjacent destination.
-pub struct RebindAccounts<'a> {
-    /// Charge account being moved.
-    pub(crate) charge: &'a mut Charge,
-    /// Source Element (current location).
-    pub(crate) src: &'a mut Element,
-    /// Destination Element (must be adjacent).
-    pub(crate) dst: &'a mut Element,
-}
-
-/// Accounts for Vent: donate charge value to its current Element's shared pot.
-pub struct VentAccounts<'a> {
-    /// Charge account being vented.
-    pub(crate) charge: &'a mut Charge,
-    /// Element receiving the vented value.
-    pub(crate) target: &'a mut Element,
-}
-
-/// Accounts for Claim: collect reward share from Element's breaking event.
+/// Claim: Collect reward share from overload event. Validates: generation matches.
 pub struct ClaimAccounts<'a> {
-    /// Charge account claiming rewards.
     pub(crate) charge: &'a mut Charge,
-    /// Artefact storing the breaking event snapshot.
     pub(crate) artefact: &'a mut Artefact,
 }
 
-/// Accounts for Charge: create new charge by allocating Gluon from wallet.
+// ============================================================================
+// WALLET & BALANCE MANAGEMENT
+// ============================================================================
+
+/// Charge: Allocate Gluon from wallet to charge. Validates: sufficient balance.
 pub struct ChargeAccounts<'a> {
-    /// New charge account to fund.
     pub(crate) charge: &'a mut Charge,
-    /// Wallet account to withdraw from.
     pub(crate) wallet: &'a mut Wallet,
 }
 
-/// Accounts for Discharge: merge charge's Gluon back into wallet.
+/// Discharge: Merge charge back to wallet. Validates: charge unbound.
 pub struct DischargeAccounts<'a> {
-    /// Charge account to merge from.
     pub(crate) charge: &'a mut Charge,
-    /// Wallet account to deposit to.
     pub(crate) wallet: &'a mut Wallet,
 }
 
-/// Accounts for TopUp: convert stable tokens (USDT/USDC) to Gluon in wallet.
+/// TopUp: Convert stable tokens to Gluon (1:1). Validates: token transfer.
 pub struct TopUpAccounts<'a> {
-    /// Wallet account to deposit Gluon into.
     pub(crate) wallet: &'a mut Wallet,
-    /// Source ATA (player's token account).
     pub(crate) src: &'a AccountView,
-    /// Token mint (USDT/USDC).
     pub(crate) mint: &'a AccountView,
-    /// Program's token vault ATA.
     pub(crate) vault: &'a AccountView,
-    /// Player's authority (signer).
     pub(crate) authority: &'a AccountView,
 }
 
-/// Accounts for Drain: convert wallet Gluon back to stable tokens in ATA.
+/// Drain: Convert Gluon to stable tokens (1:1). Validates: sufficient balance.
 pub struct DrainAccounts<'a> {
-    /// Wallet account to withdraw Gluon from.
     pub(crate) wallet: &'a mut Wallet,
-    /// Program's token vault ATA (source).
     pub(crate) vault: &'a AccountView,
-    /// Token mint (USDT/USDC).
     pub(crate) mint: &'a AccountView,
-    /// Destination ATA (player's token account).
     pub(crate) dst: &'a AccountView,
-    /// Vault authority/PDA (signer).
     pub(crate) authority: &'a AccountView,
 }
 
-/// Accounts for InitCharge: initialize a new charge account.
+// ============================================================================
+// ACCOUNT INITIALIZATION
+// ============================================================================
+
+/// InitCharge: Create new charge PDA. Validates: wallet authority.
 pub struct InitChargeAccounts<'a> {
-    /// Signer (becomes charge authority, pays rent).
     pub(crate) signer: &'a AccountView,
-    /// Wallet account (signer's wallet).
     pub(crate) wallet: &'a mut Wallet,
-    /// Charge account to initialize (PDA from signer + counter).
     pub(crate) charge: &'a AccountView,
 }
 
-/// Accounts for InitWallet: initialize a new wallet account.
+/// InitWallet: Create new wallet PDA. Validates: signer authority.
 pub struct InitWalletAccounts<'a> {
-    /// Signer (becomes wallet authority, pays rent).
     pub(crate) signer: &'a AccountView,
-    /// Wallet account to initialize (PDA from signer + mint).
     pub(crate) wallet: &'a AccountView,
-    /// Mint account (stable token mint: USDT/USDC).
     pub(crate) mint: &'a AccountView,
 }
 
