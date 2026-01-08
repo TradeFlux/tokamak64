@@ -7,7 +7,8 @@ use pinocchio::ProgramResult;
 
 use crate::accounts::{AccountIter, FromAccounts, InjectionAccounts};
 
-/// Bind a charge onto the board into an edge Element; charge becomes bound for pressure/overload mechanics.
+/// Bind a charge onto the board into an edge Element;
+/// charge becomes bound for pressure/overload mechanics.
 pub(crate) fn inject<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let InjectionAccounts { charge, dst, board } = InjectionAccounts::extract(it)?;
 
@@ -15,6 +16,10 @@ pub(crate) fn inject<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
         .on_edge()
         .then_some(())
         .ok_or(ProgramError::InvalidArgument)?;
+    if !charge.index.is_zero() {
+        // charge needs to be out of the board and no outstanding claims
+        return Err(ProgramError::Custom(43));
+    }
     let fee = injection_fee(charge, dst);
     board.tvl += charge.balance;
     board.charge_count += 1;

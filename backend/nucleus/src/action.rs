@@ -14,7 +14,7 @@ use crate::{
 /// Updates saturation and pressure on both elements.
 pub fn rebind(charge: &mut Charge, src: &mut Element, dst: &mut Element) {
     // Unbind: negate balance to get withdrawal delta.
-    let withdrawal = (!charge.balance).wrapping_add(1); // Two's complement negation
+    let withdrawal = charge.balance.wrapping_neg(); // Two's complement negation
     update_curve(withdrawal, src);
     // Bind: positive delta to destination, capture new share.
     charge.share = update_curve(charge.balance, dst);

@@ -1,41 +1,29 @@
 # curve
 
-A small math crate that provides a fixed lookup table (LUT) for a symmetric
-sigmoid‑shaped curve and a set of deterministic mapping helpers. It is designed
-for environments like smart contracts where inputs are sanitized and runtime
-checks are avoided.
+Bonding curve LUT for TOKAMAK64. For game design, see the [main README](../../README.md).
 
-The LUT stores cumulative cost values over a symmetric domain in fixed‑point:
-- `x` is Q16.16 (integer steps represent 1/65536 units)
-- `s` is Q16.48 (high‑precision cumulative cost)
+## Fixed-Point Formats
 
-## What’s in the crate
+| Type | Format | Usage |
+|------|--------|-------|
+| `x` | Q8.24 (u32) | Saturation [0, 12] |
+| `s` | Q16.48 (u64) | Cumulative cost |
+| `c` | u64 | Capacity (Gluon) |
 
-- `lut`: the generated LUT data and domain constants (`LUT_X_MIN`, `LUT_X_MAX`,
-  `LUT_S_MAX`).
-- `math`: public mapping helpers that convert between deltas in capacity,
-  cumulative cost, and `x`.
-- `lutgen`: a generator binary that rebuilds the LUT source file.
+Deltas use two's complement for negative values.
 
-## Public API (math)
+## Public API
 
-All functions assume in‑domain inputs and do not perform runtime validation.
-See each doc comment for constraints.
+### `dx_for_dc(x0, s0, dc, cmax) -> (u32, u64)`
+Calculate saturation change from capacity delta. Returns `(dx, ds)`.
 
-- `dx_for_dc(x0, s0, dc, cmax) -> i32`
-- `dc_for_dx(x0, dx, cmax) -> i64`
+### `dc_for_dx(x0, dx, cmax) -> u64`
+Calculate capacity cost for a saturation change.
 
-## LUT generation
+Both functions clamp results to stay within `[LUT_X_MIN, LUT_X_MAX]`.
 
-Rebuild the LUT source:
+## LUT Generation
 
 ```bash
-cargo run -p curve --bin lutgen --release > lut.rs
+cargo run -p curve --bin lutgen --release > curve/src/lut.rs
 ```
-
-## Testing
-
-```bash
-cargo test -p curve
-```
-

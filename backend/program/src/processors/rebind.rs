@@ -24,8 +24,8 @@ pub(crate) fn rebind<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let remainder = charge.balance.checked_sub(fee);
     charge.balance = remainder.ok_or(ProgramError::ArithmeticOverflow)?;
     action::rebind(charge, src, dst);
-    // Fee routing: moving inward (src.index > dst.index, higher atomic #) pays to dst;
-    // moving outward (src.index < dst.index, lower atomic #) pays to src.
+    // Fee routing: moving outward (src.index > dst.index) pays to src;
+    // moving inward (src.index < dst.index) pays to dst.
     if src.index > dst.index {
         src.pot += fee; // Moving outward: fee stays with departing element
     } else {

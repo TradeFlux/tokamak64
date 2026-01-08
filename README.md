@@ -118,12 +118,12 @@ The game provides 13 actions (instructions) that shape gameplay, organized into 
 ### Element Identity and Binding State
 
 Each Element has a unique **index** that encodes both identity and versioning:
-- **Atomic Number** (8 MSB): 1–26 (27 distinct Elements: Hydrogen through Iron)
+- **Atomic Number** (8 MSB): 0–26 (27 distinct Elements, 0-indexed in code)
 - **Generation** (56 LSB): Counter incremented when Element resets (overloads)
 - **Index Format**: `[generation_56bits | atomic_number_8bits]`
 
 **Bound vs. Unbound:**
-- A charge is **bound** when `index.atomic_number() != 0` (holds an atomic number 1–26)
+- A charge is **bound** when `index != 0` (holds a valid element reference)
 - A charge is **unbound** when `index == 0` (atomic number and generation both zero)
 - Unbound charges are off-board and cannot participate in Element mechanics or claim rewards
 

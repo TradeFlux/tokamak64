@@ -1,4 +1,4 @@
-//! Movement and action fees: injection, ejection, rebind, compression, and speed tax bonuses.
+//! Movement and action fees: injection, ejection, rebind, compression, and speed tax.
 
 use crate::{
     board::Element,
@@ -53,13 +53,12 @@ pub fn compression_fee(src: &Element) -> Gluon {
     result.max(MIN_FEE)
 }
 
-/// Speed bonus: increases with time since last action. Rewards patience.
+/// Speed tax: decreases with time since last action. Rewards patience.
 /// Elapsed time is quadratic capped at MAX_DELTA_TIMESTAMP. Returns multiplier >= 1.
-pub fn speed_bonus(charge: &Charge, now: u64) -> u64 {
-    let elapsed = now.saturating_sub(charge.timestamp);
-    let time_factor = elapsed.min(MAX_DELTA_TIMESTAMP).pow(2);
-    let max_factor = (MAX_DELTA_TIMESTAMP).pow(2);
-    1 + round_divide(MAX_SPEED_MULTIPLIER, time_factor, max_factor)
+pub fn fee_multiplier(charge: &Charge, now: u64) -> u64 {
+    const DIV: u64 = MAX_DELTA_TIMESTAMP.pow(2);
+    let time = MAX_DELTA_TIMESTAMP.saturating_sub(now.saturating_sub(charge.timestamp));
+    1 + round_divide(MAX_SPEED_MULTIPLIER, time.pow(2), DIV)
 }
 
 /// Calculate base fee: balance * (distance * saturation) / (MAX_ATOMIC_NUMBER * MAX_POSITION).
