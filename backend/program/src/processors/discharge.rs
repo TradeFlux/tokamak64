@@ -1,3 +1,5 @@
+//! Release a charge from element binding and reset its state.
+
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
 

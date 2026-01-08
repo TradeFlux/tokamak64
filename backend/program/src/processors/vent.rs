@@ -11,10 +11,7 @@ pub(crate) fn vent<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
 where
     I: AccountIter<'a>,
 {
-    let VentAccounts {
-        charge,
-        target,
-    } = VentAccounts::extract(it)?;
+    let VentAccounts { charge, target } = VentAccounts::extract(it)?;
 
     if charge.index != target.index {
         // TODO proper error on leaking to a wrong target

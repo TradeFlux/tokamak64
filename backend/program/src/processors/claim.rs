@@ -1,3 +1,5 @@
+//! Claim accumulated rewards from an artefact pot to a charge.
+
 use nucleus::action;
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;

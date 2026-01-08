@@ -1,6 +1,4 @@
-//! # Fundamental Types
-//!
-//! Fixed-point arithmetic types, identifiers, and bitboard coordinates for TOKAMAK64.
+//! Fundamental types: fixed-point arithmetic, element identifiers, and board coordinates.
 
 use bytemuck::{Pod, Zeroable};
 

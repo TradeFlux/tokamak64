@@ -2,22 +2,13 @@
 //!
 //! Nucleus defines the fundamental data structures, types, constants, and action logic that drive TOKAMAK64.
 //! It is a pure data layer with no blockchain dependencies; core game rules are expressed as deterministic functions.
-//!
-//! ## Modules
-//!
-//! - **types**: Fixed-point math types (Q8.24, Q16.48), addresses, element indices, and board coordinates
-//! - **player**: Wallet and Charge account structures; player balance and binding state
-//! - **board**: Element curve state, pot mechanics, and global Board/Artefact snapshots
-//! - **action**: Core game logic for rebinding, claiming rewards, compressing elements, and venting value
-//! - **fees**: Movement cost and fee calculation logic based on depth and speed tax
-//! - **consts**: Game parameters and constants (max saturation, depth multipliers, etc.)
 
-pub mod action;
-pub mod board;
-pub mod consts;
-pub mod fees;
-pub mod player;
 pub mod types;
+pub mod player;
+pub mod board;
+pub mod action;
+pub mod fees;
+pub mod consts;
 
 #[cfg(test)]
 mod tests;

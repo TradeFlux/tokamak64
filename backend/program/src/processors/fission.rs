@@ -1,3 +1,5 @@
+//! Unbind charge from board and move it outside; edge Elements only.
+
 use bytemuck::Zeroable;
 use nucleus::{action, board::Element, fees::exit_fee};
 use pinocchio::error::ProgramError;

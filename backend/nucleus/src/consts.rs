@@ -1,3 +1,5 @@
+//! Game parameters and constants: element limits, fee baselines, and curve saturation bounds.
+
 /// Maximum atomic number (0-indexed, so 27 distinct elements).
 pub const MAX_ATOMIC_NUMBER: u64 = 26;
 

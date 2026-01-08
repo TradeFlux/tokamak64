@@ -1,3 +1,5 @@
+//! Core game actions: rebinding, claiming rewards, compressing pots, and venting value.
+
 use curve::math::dx_for_dc;
 
 use crate::{

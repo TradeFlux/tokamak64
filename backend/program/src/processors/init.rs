@@ -1,3 +1,5 @@
+//! Initialize charge and wallet accounts.
+
 use core::{iter, slice};
 
 use nucleus::player::{Charge, Wallet};

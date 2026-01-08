@@ -1,6 +1,4 @@
-//! # Player Accounts
-//!
-//! Wallet and Charge accounts represent player presence and resource allocation in TOKAMAK64.
+//! Player accounts: wallets for liquid funds and charges for allocated funds bound to elements.
 
 use bytemuck::{Pod, Zeroable};
 

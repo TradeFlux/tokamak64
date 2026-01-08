@@ -1,11 +1,13 @@
+//! Instruction processors for TOKAMAK64 game actions.
+
+pub(crate) mod init;
 pub(crate) mod charge;
 pub(crate) mod claim;
 pub(crate) mod compress;
-pub(crate) mod discharge;
 pub(crate) mod drain;
+pub(crate) mod discharge;
 pub(crate) mod fission;
 pub(crate) mod fuse;
-pub(crate) mod init;
 pub(crate) mod overload;
 pub(crate) mod rebind;
 pub(crate) mod topup;

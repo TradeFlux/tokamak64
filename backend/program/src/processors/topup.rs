@@ -1,3 +1,5 @@
+//! Add funds to a wallet from a token account.
+
 use nucleus::consts::DECIMALS;
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;

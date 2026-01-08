@@ -1,10 +1,4 @@
-//! # Program Account Structures
-//!
-//! Defines account layouts for each instruction. Accounts are extracted from the instruction
-//! using a trait-based pattern that handles serialization, deserialization, and authorization.
-//!
-//! Each account struct bundles the required accounts for one instruction, with FromAccounts trait
-//! implementations that parse and validate them in sequence.
+//! Account structures and validation for TOKAMAK64 program instructions.
 
 use core::slice;
 use nucleus::{

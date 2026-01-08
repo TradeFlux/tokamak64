@@ -45,20 +45,20 @@ The game operates on a closed-loop economic system where costs feed back as oppo
 When many charges gather in an Element, **pressure accumulates** proportionally to the total value held by all charges present. The more crowded it becomes:
 
 - Movement costs increase (it becomes more expensive to leave)
-- A **breaking point** emerges—a threshold of accumulated pressure determined by a mathematical curve
-- When the breaking point is reached, the Element **resets**: all charges are ejected and the pot is distributed
+- An **oversaturation point** emerges—a threshold of accumulated pressure determined by a mathematical curve
+- When the oversaturation point is reached, the Element **resets**: all charges are ejected and the pot is distributed
 
-### Breaking & Rewards
+### Overload & Rewards
 
-When an Element breaks:
+When an Element overloads (saturation exceeds oversaturation point):
 
 - All accumulated value (the shared pot) is **distributed to bound charges** that were present during the accumulation
 - Reward distribution is proportional to each charge's value relative to total value in the Element
 - **All bound charges are automatically ejected for free**—no exit cost, instant departure
-- Breaking is not punishment—it's the core value redistribution mechanism
-- **Unbound charges** (those that have already exited via Fiss) receive nothing from breaks
+- Overload is not punishment—it's the core value redistribution mechanism
+- **Unbound charges** (those that have already exited via Fiss) receive nothing from overload
 
-This creates a fundamental tension: you can voluntarily exit early (via Fiss, paying costs from an edge Element), or stay and hope the Element breaks (getting rewards + free ejection).
+This creates a fundamental tension: you can voluntarily exit early (via Fiss, paying costs from an edge Element), or stay and hope the Element overloads (getting rewards + free ejection).
 
 ### Costs as Investment
 
@@ -69,31 +69,35 @@ Voluntary actions incur costs:
 - **Compressing value** (Compress): Costs scale with pot size and destination depth; fees are added to the pot being moved
 - **Donating to pot** (Vent): Transfers charge value to the Element's shared pot
 
-Importantly: **costs are never destroyed**. All costs are redirected into the board as shared value in Elements, becoming part of future breaking points and rewards. This creates a closed economic loop.
+Importantly: **costs are never destroyed**. All costs are redirected into the board as shared value in Elements, becoming part of future oversaturation points and rewards. This creates a closed economic loop.
 
 ## Core Mechanics
 
-The game provides 11 actions that shape gameplay:
+The game provides 13 actions (instructions) that shape gameplay, organized into 5 functional groups:
 
-### Entry & Exit
-- **Fuse**: Enter a charge onto the board into a **target edge Element only** (must be on the board's perimeter)
-- **Fiss**: Voluntarily unbind a charge from a **current edge Element only**, moving it outside the board (charge can no longer claim future rewards; exit costs apply)
-- **Breaking (automatic)**: When an Element resets, all bound charges are ejected for free, receive their reward share, and become unbound
+### Entry & Exit Operations
+- **Fuse**: Bind a charge onto the board into a **target edge Element only** (must be on the board's perimeter); charge becomes bound and participates in pressure mechanics
+- **Fiss**: Voluntarily unbind a charge from a **current edge Element only**, moving it outside the board; applies exit cost; unbound charges can no longer claim future rewards
+- **Overload (automatic)**: When an Element's pressure exceeds its oversaturation point, all bound charges are automatically ejected for free, receive proportional reward share, and become unbound
 
-### Managing Wallet & Charges
-- **Charge**: Create a new charge account by transferring Gluon from wallet to it
-- **Discharge**: Merge a charge's Gluon back into your wallet
-- **TopUp**: Convert stable tokens (USDT/USDC) into Gluon in your wallet (1:1)
-- **Drain**: Convert wallet Gluon back to stable tokens in your ATA
+### Account Initialization
+- **InitCharge**: Initialize a new charge account (PDA) for a player; derives from signer + counter; sets signer as authority
+- **InitWallet**: Initialize a new wallet account (PDA) for a player; derives from signer + mint; sets signer as authority
 
-### Moving Charges & Value
-- **Rebind**: Move a charge from its current Element to an adjacent Element (incurs movement cost)
-- **Compress**: Move an Element's pot inward to a deeper adjacent Element while also moving the bound player's charge (inward only; fees added to pot)
-- **Vent**: Donate part of a charge's value to its current Element's shared pot
+### Wallet & Balance Management
+- **Charge**: Create a new charge by allocating Gluon from wallet to a charge account; multiple charges per player allowed
+- **Discharge**: Merge a charge's remaining Gluon back into your wallet account
+- **TopUp**: Convert stable tokens (USDT/USDC) into Gluon in your wallet (1:1 conversion); entry point for on-chain value
+- **Drain**: Convert wallet Gluon back to stable tokens in your ATA; exit point for on-chain value
 
-### Triggering Breaks
-- **Overload**: Forcefully push an Element beyond its breaking point to trigger an immediate reset
-- **Claim**: Collect your charge's reward share after an Element breaks
+### Movement & Value Transfer
+- **Rebind**: Move a bound charge from one Element to an adjacent Element; incurs movement costs scaled by destination depth and speed tax
+- **Compress**: Move an Element's accumulated pot inward to a deeper adjacent Element while rebinding the charge; fees are added to the moving pot
+- **Vent**: Donate part of a bound charge's value to its current Element's shared pot; reduces individual share but accelerates reaching Element's oversaturation point
+
+### Overload & Rewards
+- **Overload**: Forcefully push an Element beyond its oversaturation point to trigger an immediate reset; creates an Artefact snapshot recording the overload event
+- **Claim**: Collect your charge's proportional reward share from an Element's pot after it overloads; distributes based on share value at time of reset
 
 ## Emergence & Depth
 
@@ -113,18 +117,18 @@ This topological gradient is not arbitrary—it structures where value concentra
 No explicit "strategy" is coded into the system. Instead, strategies emerge from cost incentives and value flow:
 
 - **Shallow holding**: Charges may stay in edge Elements to minimize movement costs while waiting for pots to mature, knowing they can exit at low cost
-- **Deep gambling**: Charges trapped in deep Elements may bet on breaking before the pressure tax becomes unbearable—breaking gives free exit + rewards
+- **Deep gambling**: Charges trapped in deep Elements may bet on overload before the pressure tax becomes unbearable—overload gives free exit + rewards
 - **Deep compression**: Sophisticated players compress pots inward to seed deeper Elements with larger, harder-to-escape pots
 - **Speed vs. patience**: The speed tax creates tension—immediate action costs more than waiting, but waiting sacrifices opportunity
-- **Strategic ejection**: Players may deliberately stay to absorb pressure, betting that breaking is imminent rather than paying voluntary exit costs
+- **Strategic ejection**: Players may deliberately stay to absorb pressure, betting that overload is imminent rather than paying voluntary exit costs
 - **Unintended cooperation**: Even selfish actions (moving, venting) fund future rewards for others, creating emergent mutual benefit
-- **Value oscillation**: Breaking in deep Elements sends charges outward for free, creating waves of activity and value redistribution
+- **Value oscillation**: Overload in deep Elements sends charges outward for free, creating waves of activity and value redistribution
 
 ## Why Play?
 
 TOKAMAK64 offers several sources of engagement:
 
-1. **Economic gameplay**: Understand pressure curves, predict breaking points, time your exits
+1. **Economic gameplay**: Understand pressure curves, predict when elements will overload, time your exits
 2. **Spatial puzzles**: Navigate the board's topology, plan efficient paths, understand Element connectivity
 3. **Competition within cooperation**: Every action you take funds future rewards for others, creating subtle incentives
 4. **Emergent narratives**: The natural flow of players concentrating value creates hot zones, cold zones, rushes, and reversals
@@ -143,8 +147,8 @@ TOKAMAK64 is implemented as a Solana on-chain program (smart contract), ensuring
 
 - **Board**: Tracks Element state including accumulated pots, pressure levels, and topology
 - **Player Accounts**: Wallets (holding Gluon) and charges (distinct entities holding Gluon, positioned on board)
-- **Curve Logic**: Mathematical functions that determine movement costs, breaking points, and reward distribution based on Element state
-- **Processors**: Transaction handlers (11 instructions) that atomically execute game actions and update state
+- **Curve Logic**: Mathematical functions that determine movement costs, overload thresholds (oversaturation points), and reward distribution based on Element state
+- **Processors**: Transaction handlers that atomically execute game actions and update state
 
 ## The Closed Loop
 
@@ -154,7 +158,7 @@ The elegance of TOKAMAK64 is that it requires no external input to sustain itsel
 2. Actions cost resources
 3. Costs accumulate as shared value in Elements (pots)
 4. Shared value creates pressure
-5. Pressure triggers breaking and redistribution of accumulated rewards
+5. Pressure triggers overload and redistribution of accumulated rewards
 6. Redistribution sends players outside of the board
 7. Activity continues, creating new value
 
@@ -176,12 +180,12 @@ The game has a clear progression through different states:
 7. Multiple charges can occupy the same Element; they accumulate pressure together
 
 ### Active Play
-8. While bound to an Element, a charge participates in pressure mechanics, breaking events, and reward claims
+8. While bound to an Element, a charge participates in pressure mechanics, overload events, and reward claims
 9. **Rebind**: Move a charge to an adjacent Element
 10. **Compress**: Move a pot deeper into the board, increasing its value
 11. **Vent**: Donate part of a charge's value to its Element's shared pot
-12. **Overload**: Forcefully trigger an Element to break
-13. **Claim**: Collect your share of rewards after breaking
+12. **Overload**: Forcefully trigger an Element to overload (reset)
+13. **Claim**: Collect your share of rewards after overload
 
 ### Exiting & Consolidation
 14. **Fiss**: Unbind a charge from its Element, moving it outside the board
@@ -213,12 +217,12 @@ A typical gameplay session:
 6. Navigate strategically using **Rebind** to move between Elements, building exposure to high-value pots
 7. Use **Vent** to donate value to your current Element's shared pot if you believe it will break soon
 8. Use **Compress** to move pots deeper if you're positioned to benefit from richer payouts
-9. Use **Claim** to collect your reward share when Elements break
-10. Use **Overload** to trigger early breaks if you believe timing favors you
-11. **Decide**: Do you stay hoping for a break (free exit + rewards) or exit voluntarily?
+9. Use **Claim** to collect your reward share when Elements overload
+10. Use **Overload** to trigger early overloads if you believe timing favors you
+11. **Decide**: Do you stay hoping for overload (free exit + rewards) or exit voluntarily?
 12. If exiting voluntarily: Use **Rebind** to navigate back toward the board's edge
 13. Use **Fiss** to unbind charges only from edge Elements, paying exit costs (note: unbound charges cannot claim future rewards)
-14. If breaking happens: You're automatically ejected for free with your reward share already distributed
+14. If overload happens: You're automatically ejected for free with your reward share already distributed
 15. Use **Discharge** to merge unbound charges back into your wallet
 16. Use **Drain** to convert remaining Gluon back to stable tokens and withdraw
 

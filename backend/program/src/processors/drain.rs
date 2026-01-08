@@ -1,3 +1,5 @@
+//! Convert Gluon from wallet back to stable tokens and withdraw.
+
 use nucleus::consts::DECIMALS;
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;

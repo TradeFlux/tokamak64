@@ -1,3 +1,5 @@
+//! Merge element pots via compression between adjacent elements.
+
 use nucleus::{
     action,
     fees::{merge_fee, migration_fee},

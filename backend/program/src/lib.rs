@@ -1,3 +1,7 @@
+//! # Program: Solana on-chain entrypoint and instruction processing for TOKAMAK64.
+//!
+//! This crate defines the on-chain program logic, instruction dispatch, and account interaction handlers.
+
 use instruction::TokamakInstruction;
 use pinocchio::{account::AccountView, address::declare_id, program_entrypoint, ProgramResult};
 

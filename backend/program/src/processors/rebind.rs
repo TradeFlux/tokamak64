@@ -1,3 +1,5 @@
+//! Rebind a charge to a different element.
+
 use nucleus::{action, fees::migration_fee};
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;

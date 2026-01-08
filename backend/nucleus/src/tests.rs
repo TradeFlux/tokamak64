@@ -6,7 +6,7 @@ mod tests {
         consts::*,
         fees::{entry_fee, merge_fee, migration_fee, speed_bonus},
         player::{Charge, Wallet},
-        round_divide, twos_comp_negate,
+        round_divide,
         types::{AddressBytes, Coordinates, ElementIndex, Gluon, Q824},
     };
 
@@ -33,12 +33,15 @@ mod tests {
     }
 
     fn make_charge(balance: Gluon, index: ElementIndex, share: Q824) -> Charge {
-        Charge {
-            balance,
-            timestamp: 0,
-            index,
-            share,
-            authority: dummy_address(),
+        use bytemuck::Zeroable;
+        let mut charge = Charge::zeroed();
+        charge.balance = balance;
+        charge.timestamp = 0;
+        charge.index = index;
+        charge.share = share;
+        charge.authority = dummy_address();
+        charge.mint = dummy_address();
+        charge
     }
 
     // === ElementIndex Tests ===
@@ -111,20 +114,6 @@ mod tests {
     }
 
     // === Utility Tests ===
-
-    #[test]
-    fn twos_comp_negate_positive() {
-        // In u64, -1 is represented as all bits set.
-        let result = twos_comp_negate(1);
-        assert_eq!(result as i64, -1i64);
-    }
-
-    #[test]
-    fn twos_comp_negate_negative() {
-        let neg_one = u64::MAX; // -1 in signed representation
-        let result = twos_comp_negate(neg_one);
-        assert_eq!(result, 1);
-    }
 
     #[test]
     fn round_divide_exact() {
@@ -270,11 +259,11 @@ mod tests {
 
     #[test]
     fn wallet_structure_correct() {
-        let wallet = Wallet {
-            balance: 1_000_000,
-            authority: dummy_address(),
-            mint: dummy_address(),
-        };
+        use bytemuck::Zeroable;
+        let mut wallet = Wallet::zeroed();
+        wallet.balance = 1_000_000;
+        wallet.authority = dummy_address();
+        wallet.mint = dummy_address();
         assert_eq!(wallet.balance, 1_000_000);
     }
 

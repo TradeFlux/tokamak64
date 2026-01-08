@@ -1,3 +1,5 @@
+//! Add funds to a charge account from a wallet.
+
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
 

@@ -1,3 +1,5 @@
+//! Bind charge onto board into edge Element; charge becomes bound.
+
 use bytemuck::Zeroable;
 use nucleus::{action, board::Element, fees::entry_fee};
 use pinocchio::error::ProgramError;

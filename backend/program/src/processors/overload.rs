@@ -1,3 +1,5 @@
+//! Rapidly discharge a charge (overload action).
+
 use bytemuck::Zeroable;
 use nucleus::{
     action::{self, claim},

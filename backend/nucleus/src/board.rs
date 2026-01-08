@@ -1,3 +1,5 @@
+//! Board state: elements, curves, pots, and global artefact snapshots.
+
 use bytemuck::{Pod, Zeroable};
 
 use crate::types::{Coordinates, ElementIndex, Gluon, Q1648, Q824};

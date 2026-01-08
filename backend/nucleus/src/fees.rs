@@ -1,3 +1,5 @@
+//! Movement and action fees: entry, merge, migration, and speed tax bonuses.
+
 use crate::{
     board::Element,
     consts::{
