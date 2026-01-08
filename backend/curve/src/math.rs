@@ -97,11 +97,11 @@ pub(crate) fn dx_for_ds(x0: u32, s0: u64, ds: u64) -> u32 {
 }
 
 /// Calculates the cumulative cost at `x` (Q8.24).
-/// If `x` goes out of bounds, it is clamped to `[LUT_X_MIN, LUT_X_MAX]`.
+/// Out-of-bounds values are clamped to the domain edges for graceful degradation.
 #[inline]
 pub(crate) fn evaluate_cost(x: u32) -> u64 {
-    use crate::lut::{LUT_X_MIN, LUT_X_MAX};
-    
+    use crate::lut::{LUT_X_MAX, LUT_X_MIN};
+
     let x = x.clamp(LUT_X_MIN, LUT_X_MAX);
     match X_LUT.binary_search(&x) {
         Ok(i) => S_LUT[i],
@@ -158,26 +158,23 @@ fn interp_s_for_x(x: u32, x0: u32, s0: u64, x1: u32, s1: u64) -> u64 {
 
 #[inline]
 fn x_for_s(s_target: u64) -> u32 {
-    use crate::lut::{LUT_X_MIN, LUT_X_MAX};
-    
+    use crate::lut::{LUT_X_MAX, LUT_X_MIN};
+
     match S_LUT.binary_search(&s_target) {
         Ok(i) => X_LUT[i],
         Err(i) => {
-            // Handle out-of-bounds: clamp to domain boundaries
+            // Clamp out-of-bounds cumulative costs to domain edges
             if i == 0 {
-                // s_target < S_LUT[0], return minimum x
-                return LUT_X_MIN;
+                LUT_X_MIN
+            } else if i >= S_LUT.len() {
+                LUT_X_MAX
+            } else {
+                let x0 = X_LUT[i - 1];
+                let x1 = X_LUT[i];
+                let s0 = S_LUT[i - 1];
+                let s1 = S_LUT[i];
+                interp_x_for_s(s_target, x0, s0, x1, s1)
             }
-            if i >= S_LUT.len() {
-                // s_target > S_LUT[len-1], return maximum x
-                return LUT_X_MAX;
-            }
-            
-            let x0 = X_LUT[i - 1];
-            let x1 = X_LUT[i];
-            let s0 = S_LUT[i - 1];
-            let s1 = S_LUT[i];
-            interp_x_for_s(s_target, x0, s0, x1, s1)
         }
     }
 }

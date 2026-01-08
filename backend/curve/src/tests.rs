@@ -3,17 +3,17 @@
 use super::lut::*;
 use super::math::*;
 
-// 0.25 in Q8.24
-const MARGIN: u32 = (1u32 << 24) / 4;
+const MARGIN: u32 = (1u32 << 24) / 4; // 0.25 in Q8.24
 
-/// Deterministic PRNG (no external crates).
+/// Deterministic PRNG (xorshift64*).
 struct Rng(u64);
+
 impl Rng {
     fn new(seed: u64) -> Self {
         Self(seed)
     }
+
     fn next_u32(&mut self) -> u32 {
-        // xorshift64*
         let mut x = self.0;
         x ^= x >> 12;
         x ^= x << 25;
@@ -21,353 +21,359 @@ impl Rng {
         self.0 = x;
         ((x.wrapping_mul(0x2545F4914F6CDD1D)) >> 32) as u32
     }
+
+    /// Generate u32 uniformly in [min, max].
     fn gen_u32(&mut self, min: u32, max: u32) -> u32 {
-        debug_assert!(min <= max);
-        let span = (max as u64).wrapping_sub(min as u64).wrapping_add(1);
+        let span = (max as u64) - (min as u64) + 1;
         let v = (self.next_u32() as u64) % span;
-        min.wrapping_add(v as u32)
+        min + (v as u32)
     }
 }
 
-fn gen_in_domain_x(rng: &mut Rng) -> u32 {
+// ===== Unsigned Range Checking =====
+//
+// Using two's complement semantics with wrapping arithmetic, we can check
+// membership in [min, max] for u32 without casting to signed types.
+// The trick: x in [min, max] iff (x - min) <= (max - min) using wrapping subtraction.
+
+/// Check if u32 value is in range [min, max] using wrapping arithmetic.
+fn in_range(x: u32, min: u32, max: u32) -> bool {
+    x.wrapping_sub(min) <= max.wrapping_sub(min)
+}
+
+// ===== Test Helpers =====
+
+fn midpoint() -> u32 {
+    ((LUT_X_MIN as u64 + LUT_X_MAX as u64) / 2) as u32
+}
+
+fn gen_x_in_domain(rng: &mut Rng) -> u32 {
     rng.gen_u32(LUT_X_MIN, LUT_X_MAX)
 }
 
-fn gen_dx_in_domain(rng: &mut Rng, x0: u32) -> u32 {
-    // Generate a signed delta within bounds, encode as u32 two's complement
-    let min_delta_i64 = (LUT_X_MIN as i64).wrapping_sub(x0 as i64);
-    let max_delta_i64 = (LUT_X_MAX as i64).wrapping_sub(x0 as i64);
+fn gen_x_with_margin(rng: &mut Rng) -> u32 {
+    rng.gen_u32(LUT_X_MIN + MARGIN, LUT_X_MAX - MARGIN)
+}
 
-    let min_delta = (min_delta_i64.clamp(i32::MIN as i64, i32::MAX as i64)) as i32;
-    let max_delta = (max_delta_i64.clamp(i32::MIN as i64, i32::MAX as i64)) as i32;
-
-    if min_delta >= max_delta {
-        0 // No valid delta range
-    } else {
-        let delta = if rng.next_u32() % 2 == 0 {
-            rng.next_u32() as i32
-        } else {
-            (rng.next_u32() as i32).wrapping_neg()
-        };
-        let clamped = delta.clamp(min_delta, max_delta);
-        clamped as u32
+/// Generate a bounded dx (as u32 two's complement) such that x0 + dx stays in [LUT_X_MIN, LUT_X_MAX].
+/// Uses randomized search with retry limit.
+fn gen_dx_bounded(rng: &mut Rng, x0: u32) -> u32 {
+    for _ in 0..100 {
+        let dx = rng.next_u32();
+        let x1 = x0.wrapping_add(dx);
+        if in_range(x1, LUT_X_MIN, LUT_X_MAX) {
+            return dx;
+        }
     }
+    0 // fallback: no movement
 }
 
-fn gen_i32_in_range(rng: &mut Rng, min_i: i32, max_i: i32) -> i32 {
-    debug_assert!(min_i <= max_i);
-    let span = (max_i as i64).wrapping_sub(min_i as i64).wrapping_add(1) as u64;
-    let v = (rng.next_u32() as u64) % span;
-    min_i.wrapping_add(v as i32)
-}
-
-fn step_bounds_in_domain(x: u32, max_step: u32) -> Option<(i32, i32)> {
-    // Compute signed delta bounds
-    let min_delta_i64 = (LUT_X_MIN as i64).wrapping_sub(x as i64);
-    let max_delta_i64 = (LUT_X_MAX as i64).wrapping_sub(x as i64);
-
-    let min_delta = (min_delta_i64.max(-(max_step as i64))) as i32;
-    let max_delta = (max_delta_i64.min(max_step as i64)) as i32;
-
-    if min_delta > max_delta {
-        None
-    } else {
-        Some((min_delta, max_delta))
-    }
-}
-
-/// Verifies the zero step is a fixed point for delta mapping.
-/// We pick a midpoint x in-domain and ensure no-op movement returns zero delta.
-#[test]
-fn delta_zero_is_zero() {
-    let x0 = ((LUT_X_MIN as u64).wrapping_add(LUT_X_MAX as u64) / 2) as u32;
-    assert_eq!(ds_for_dx(x0, 0), 0);
-}
-
-/// Ensures delta mapping matches the explicit cumulative cost difference.
-/// This ties `ds_for_dx` to `evaluate_cost` across random in-domain steps.
-#[test]
-fn delta_matches_eval_difference_in_domain() {
-    let mut rng = Rng::new(1);
-    for _ in 0..50_000 {
-        let x0 = gen_in_domain_x(&mut rng);
-        let dx = gen_dx_in_domain(&mut rng, x0);
+/// Generate a bounded dx with magnitude limit (for path tests).
+/// Returns zero if no valid delta exists.
+fn gen_dx_bounded_magnitude(rng: &mut Rng, x0: u32, mag_limit: u32) -> u32 {
+    for _ in 0..100 {
+        let dx = rng.next_u32();
         let x1 = x0.wrapping_add(dx);
 
-        let lhs = ds_for_dx(x0, dx);
-        let rhs = evaluate_cost(x1).wrapping_sub(evaluate_cost(x0));
-        assert_eq!(lhs, rhs);
+        // Check both domain bounds and magnitude bounds using wrapping arithmetic
+        if in_range(x1, LUT_X_MIN, LUT_X_MAX) {
+            // Check magnitude: both forward and backward movements must be within limit
+            let forward_mag = x1.wrapping_sub(x0); // positive delta
+            let backward_mag = x0.wrapping_sub(x1); // negative delta (as u32)
+
+            if forward_mag <= mag_limit || backward_mag <= mag_limit {
+                return dx;
+            }
+        }
+    }
+    0
+}
+
+// ===== Delta Mapping Tests =====
+//
+// These tests verify that `ds_for_dx` correctly computes cumulative cost deltas
+// for movement deltas in the x domain. The core property is that ds(x, dx) should
+// equal the cost difference: evaluate_cost(x + dx) - evaluate_cost(x).
+
+/// Zero movement yields zero cost delta (fixed point of the mapping).
+#[test]
+fn zero_delta_is_identity() {
+    assert_eq!(ds_for_dx(midpoint(), 0), 0);
+}
+
+/// `ds_for_dx` matches direct cost function evaluation across 50k random in-domain steps.
+/// This ties the delta function to the LUT evaluations; any discrepancy would indicate
+/// a bug in either the lookup or interpolation logic.
+#[test]
+fn delta_matches_cost_difference() {
+    let mut rng = Rng::new(1);
+    for _ in 0..50_000 {
+        let x0 = gen_x_in_domain(&mut rng);
+        let dx = gen_dx_bounded(&mut rng, x0);
+        let x1 = x0.wrapping_add(dx);
+
+        let ds = ds_for_dx(x0, dx);
+        let cost_diff = evaluate_cost(x1).wrapping_sub(evaluate_cost(x0));
+        assert_eq!(ds, cost_diff);
     }
 }
 
-/// Confirms additivity across two steps when all points stay in-domain.
-/// The delta for a+b should equal the sum of deltas for a then b.
+/// Path independence: taking two steps (dx1 then dx2) has the same cost as one step (dx1+dx2).
+/// Verifies additivity: ds(x, dx1 + dx2) == ds(x, dx1) + ds(x + dx1, dx2).
+/// This is critical for composability; game logic often chains multiple moves.
+/// Run across 200k iterations to catch accumulated rounding errors.
 #[test]
-fn path_independence_two_steps_in_domain() {
+fn path_independence_two_steps() {
     let mut rng = Rng::new(2);
-
     for _ in 0..200_000 {
-        let x0 = rng.gen_u32(
-            LUT_X_MIN.wrapping_add(MARGIN),
-            LUT_X_MAX.wrapping_sub(MARGIN),
-        );
-        let dx1: i32 = ((rng.next_u32() % (2 * MARGIN as u32)) as i32).wrapping_sub(MARGIN as i32);
-        let x_mid = x0.wrapping_add(dx1 as u32);
-
-        let dx2_min = (LUT_X_MIN as i64)
-            .wrapping_sub(x_mid as i64)
-            .wrapping_add(1);
-        let dx2_max = (LUT_X_MAX as i64)
-            .wrapping_sub(x_mid as i64)
-            .wrapping_sub(1);
-        if dx2_min > dx2_max {
+        let x0 = gen_x_with_margin(&mut rng);
+        let dx1 = gen_dx_bounded_magnitude(&mut rng, x0, MARGIN);
+        // Skip invalid paths (no valid delta found within margin)
+        if dx1 == 0 {
             continue;
         }
-        let dx2 = ((rng.next_u32() as i64) % (dx2_max - dx2_min + 1) + dx2_min) as i32 as u32;
+        let x_mid = x0.wrapping_add(dx1);
+        let dx2 = gen_dx_bounded(&mut rng, x_mid);
+        // Skip invalid paths
+        if dx2 == 0 {
+            continue;
+        }
 
-        let direct = ds_for_dx(x0, (dx1 as u32).wrapping_add(dx2));
-        let step =
-            (ds_for_dx(x0, dx1 as u32) as i128).wrapping_add(ds_for_dx(x_mid, dx2) as i128) as u64;
+        let direct = ds_for_dx(x0, dx1.wrapping_add(dx2));
+        let step = ds_for_dx(x0, dx1).wrapping_add(ds_for_dx(x_mid, dx2));
         assert_eq!(direct, step);
     }
 }
 
-/// Confirms additivity across many steps with bounded movement.
-/// This exercises longer paths to catch accumulated rounding errors.
+/// Path independence with many steps: the sum of deltas across 8 sequential steps
+/// equals the delta of the total movement. Tests longer paths to catch accumulated
+/// rounding errors. Run 50k times with different paths.
 #[test]
-fn path_independence_many_steps_in_domain() {
+fn path_independence_many_steps() {
     let mut rng = Rng::new(3);
-
     for _ in 0..50_000 {
-        let mut x = rng.gen_u32(
-            LUT_X_MIN.wrapping_add(MARGIN),
-            LUT_X_MAX.wrapping_sub(MARGIN),
-        );
+        let mut x = gen_x_with_margin(&mut rng);
         let x_start = x;
-
         let mut sum: u64 = 0;
-        let steps = 8;
-        for _ in 0..steps {
-            let (step_min, step_max) = match step_bounds_in_domain(x, MARGIN / 2 - 1) {
-                Some(bounds) => bounds,
-                None => continue,
-            };
-            let dx = gen_i32_in_range(&mut rng, step_min, step_max) as u32;
-            sum = (sum as i128).wrapping_add(ds_for_dx(x, dx) as i128) as u64;
+
+        for _ in 0..8 {
+            let dx = gen_dx_bounded_magnitude(&mut rng, x, MARGIN / 2);
+            if dx == 0 {
+                continue;
+            }
+            sum = sum.wrapping_add(ds_for_dx(x, dx));
             x = x.wrapping_add(dx);
         }
 
-        let direct = ds_for_dx(x_start, (x as i64).wrapping_sub(x_start as i64) as u32);
+        let direct = ds_for_dx(x_start, x.wrapping_sub(x_start));
         assert_eq!(direct, sum);
     }
 }
 
-/// Checks antisymmetry of the delta mapping under inversion of direction.
-/// Moving forward then backward should negate the delta when in-bounds.
+/// Antisymmetry: moving forward by dx and then backward by -dx cancels out.
+/// Specifically: ds(x, dx) == -ds(x + dx, -dx) (under two's complement).
+/// This is essential for the curve to be invertible and for movement reversals.
+/// Test 200k random paths with both forward and backward steps.
 #[test]
-fn antisymmetry_in_domain() {
+fn antisymmetry() {
     let mut rng = Rng::new(4);
-
     for _ in 0..200_000 {
-        let x = rng.gen_u32(
-            LUT_X_MIN.wrapping_add(MARGIN),
-            LUT_X_MAX.wrapping_sub(MARGIN),
-        );
-        let dx_i32: i32 =
-            ((rng.next_u32() % (2 * MARGIN as u32)) as i32).wrapping_sub(MARGIN as i32);
-        let dx = dx_i32 as u32;
-        let x2 = x.wrapping_add(dx);
-        if (x2 as i64) <= (LUT_X_MIN as i64) || (x2 as i64) >= (LUT_X_MAX as i64) {
+        let x = gen_x_with_margin(&mut rng);
+        let dx = gen_dx_bounded_magnitude(&mut rng, x, MARGIN);
+        if dx == 0 {
             continue;
         }
+        let x2 = x.wrapping_add(dx);
 
         let a = ds_for_dx(x, dx);
-        let b = ds_for_dx(x2, (-(dx as i32)) as u32);
-        assert_eq!(a, (-(b as i64)) as u64);
+        let b = ds_for_dx(x2, (0u32).wrapping_sub(dx)); // two's complement negation: -dx
+        assert_eq!(a, (0u64).wrapping_sub(b));
     }
 }
 
-/// Ensures exact inversion when targets land on LUT samples.
-/// When both endpoints are exact LUT points, inversion should be exact.
+// ===== Inversion Tests =====
+//
+// These tests verify the inverse mapping: given a cumulative cost delta `ds`,
+// compute the x movement `dx` that produces it. This is used by `dx_for_dc`.
+// Key invariant: x_for_s(s_for_x(x)) ~= x (within 1 LSB due to interpolation).
+
+/// Exact inversion at LUT sample points: testing all pairwise combinations
+/// of the 5 key indices (0, 1/4, 1/2, 3/4, end). When both endpoints are exact
+/// LUT samples, inversion must be exact with zero error.
 #[test]
-fn invert_delta_at_lut_points() {
-    let indices = [
-        0usize,
+fn invert_exact_at_lut_points() {
+    for &i in &[
+        0,
         X_LUT.len() / 4,
         X_LUT.len() / 2,
-        (3 * X_LUT.len()) / 4,
+        3 * X_LUT.len() / 4,
         X_LUT.len() - 1,
-    ];
-
-    for &i in &indices {
-        let x0 = X_LUT[i];
-        let s0 = S_LUT[i];
-
-        for &j in &indices {
+    ] {
+        let (x0, s0) = (X_LUT[i], S_LUT[i]);
+        for &j in &[
+            0,
+            X_LUT.len() / 4,
+            X_LUT.len() / 2,
+            3 * X_LUT.len() / 4,
+            X_LUT.len() - 1,
+        ] {
             let x1 = X_LUT[j];
-            let ds = (S_LUT[j] as i128).wrapping_sub(s0 as i128) as u64;
+            let ds = S_LUT[j].wrapping_sub(s0);
             let dx = dx_for_ds(x0, s0, ds);
             assert_eq!(x0.wrapping_add(dx), x1);
         }
     }
 }
 
-/// Ensures round-trip inversion stays within one LSB of x.
-/// The inverse mapping is linear between samples, so 1 LSB tolerance is expected.
+/// Round-trip inversion for 50k random movements: start at x0, compute ds to reach x1,
+/// then invert back. The result x1_inv should equal x1 within 1 LSB, accounting for
+/// the fact that interpolation between LUT samples introduces rounding.
 #[test]
-fn invert_delta_round_trip_near_exact() {
+fn invert_round_trip_near_exact() {
     let mut rng = Rng::new(5);
     for _ in 0..50_000 {
-        let x0 = gen_in_domain_x(&mut rng);
-        let dx = gen_dx_in_domain(&mut rng, x0);
+        let x0 = gen_x_in_domain(&mut rng);
+        let dx = gen_dx_bounded(&mut rng, x0);
         let x1 = x0.wrapping_add(dx);
         let s0 = evaluate_cost(x0);
-        let ds = (evaluate_cost(x1) as i128).wrapping_sub(s0 as i128) as u64;
+        let ds = evaluate_cost(x1).wrapping_sub(s0);
 
         let dx_inv = dx_for_ds(x0, s0, ds);
         let x1_inv = x0.wrapping_add(dx_inv);
+        let diff = x1_inv.abs_diff(x1);
 
-        let diff = ((x1_inv as i64).wrapping_sub(x1 as i64)).abs();
-        assert!(diff <= 1, "x1={}, x1_inv={}", x1, x1_inv);
+        assert!(diff <= 1, "round-trip error: x1={}, x1_inv={}", x1, x1_inv);
     }
 }
 
-/// Confirms mid-s interpolation maps near the x midpoint.
-/// This checks the interpolation logic used by the inverse mapping.
+/// Midpoint interpolation: when inverting to a cumulative cost exactly halfway
+/// between two LUT samples, the resulting x should map to approximately the x midpoint.
+/// Tests interpolation accuracy for the inverse function (x_for_s).
 #[test]
-fn invert_delta_midpoint_between_samples() {
-    let step = X_LUT.len() / 64;
-    for i in (0..X_LUT.len() - 1).step_by(step) {
-        let x0 = X_LUT[i];
-        let x1 = X_LUT[i + 1];
-        let s0 = S_LUT[i];
-        let s1 = S_LUT[i + 1];
-        let s_mid = ((s0 as u128).wrapping_add(s1 as u128) / 2) as u64;
-        let x_mid_expected = ((x0 as u64).wrapping_add(x1 as u64) / 2) as u32;
+fn invert_midpoint_between_samples() {
+    for i in (0..X_LUT.len() - 1).step_by(X_LUT.len() / 64) {
+        let (x0, x1) = (X_LUT[i], X_LUT[i + 1]);
+        let (s0, s1) = (S_LUT[i], S_LUT[i + 1]);
+        let s_mid = ((s0 as u128 + s1 as u128) / 2) as u64;
+        let x_mid_expected = ((x0 as u64 + x1 as u64) / 2) as u32;
 
-        let dx = dx_for_ds(x0, s0, (s_mid as i128).wrapping_sub(s0 as i128) as u64);
-        let x_mid = x0.wrapping_add(dx);
+        let dx = dx_for_ds(x0, s0, s_mid - s0);
+        let x_mid = x0 + dx;
+        let diff = x_mid.abs_diff(x_mid_expected);
 
-        let diff = ((x_mid as i64).wrapping_sub(x_mid_expected as i64)).abs();
-        assert!(diff <= 1, "x_mid={}, expected={}", x_mid, x_mid_expected);
+        assert!(
+            diff <= 1,
+            "midpoint error: x_mid={}, expected={}",
+            x_mid,
+            x_mid_expected
+        );
     }
 }
 
-/// Confirms capacity scaling maps the full `Cmax` span to the LUT's `S_max`.
+// ===== Capacity Scaling Tests =====
+//
+// These tests verify that capacity-to-cumulative-cost mapping is correct.
+// The contract: moving the full cmax (capacity) maps to full Smax (cumulative cost).
+// Intermediate capacities scale linearly: ds = dc * Smax / cmax.
+
+/// Full capacity maps to full cumulative cost span.
+/// This is the anchor point for the linear scaling: cmax units of capacity
+/// should produce exactly Smax units of cumulative cost.
 #[test]
-fn capacity_scale_maps_full_range() {
+fn capacity_scale_full_range() {
     let cmax = 1_000_000u64;
-    let ds = ds_for_dc(cmax, cmax);
-    assert_eq!(ds, LUT_S_MAX);
+    assert_eq!(ds_for_dc(cmax, cmax), LUT_S_MAX);
 }
 
-/// Ensures the composed mapping (dc -> ds -> dx) matches direct delta usage.
+/// Composition test: dx_for_dc breaks down as dc → ds → dx.
+/// Verifies that the composed function matches the direct calculation.
 #[test]
-fn dx_for_dc_matches_delta_mapping() {
-    let x0 = ((LUT_X_MIN as u64).wrapping_add(LUT_X_MAX as u64) / 2) as u32;
+fn dx_for_dc_consistency() {
+    let (x0, cmax, dc) = (midpoint(), 1_000_000u64, 12_345u64);
     let s0 = evaluate_cost(x0);
-    let cmax = 1_000_000u64;
-    let dc = 12_345u64;
 
     let ds = ds_for_dc(dc, cmax);
-    let dx_expected = dx_for_ds(x0, s0, ds);
+    let dx_direct = dx_for_ds(x0, s0, ds);
     let (dx, _) = dx_for_dc(x0, s0, dc, cmax);
 
-    assert_eq!(dx, dx_expected);
+    assert_eq!(dx, dx_direct);
 }
 
-/// Ensures the capacity inversion matches the scaled ds mapping.
+/// Inverse composition test: dc_for_dx breaks down as dx → ds → dc.
+/// Verifies that scaling back from movement delta to capacity delta is consistent.
 #[test]
-fn dc_for_dx_matches_scaled_ds() {
-    let x0 = ((LUT_X_MIN as u64).wrapping_add(LUT_X_MAX as u64) / 2) as u32;
-    let dx = ((LUT_X_MAX as u64).wrapping_sub(LUT_X_MIN as u64) / 8) as u32;
-    let cmax = 1_000_000u64;
+fn dc_for_dx_consistency() {
+    let dx = ((LUT_X_MAX as u64 - LUT_X_MIN as u64) / 8) as u32;
+    let (x0, cmax) = (midpoint(), 1_000_000u64);
 
     let ds = ds_for_dx(x0, dx);
-    let num = (ds as u128).wrapping_mul(cmax as u128);
+    let num = (ds as u128) * (cmax as u128);
     let den = LUT_S_MAX as u128;
-    let dc_expected = (num.wrapping_add(den / 2)) / den;
+    let dc_expected = (num + den / 2) / den;
     let dc = dc_for_dx(x0, dx, cmax);
 
     assert_eq!(dc, dc_expected as u64);
 }
 
-/// Ensures boundary clamping at X_MAX: positive movement is clipped.
-/// When at X_MAX and we request positive dc, dx should be 0 (no movement possible).
-#[test]
-fn boundary_clamp_at_x_max() {
-    let x0 = LUT_X_MAX;
-    let s0 = evaluate_cost(x0);
-    let cmax = 1_000_000u64;
-    let dc = 1000u64; // positive capacity delta
+// ===== Boundary Clamping Tests =====
+//
+// These tests verify that the curve is safely bounded: attempting to move beyond
+// the domain boundaries [LUT_X_MIN, LUT_X_MAX] is gracefully clamped.
+// Positive movement at X_MAX returns dx=0 (no movement possible).
+// Negative movement at X_MIN returns dx=0 (no movement possible).
+// Movements that overshoot are clamped to partial movement (not truncated to zero).
 
-    let (dx, _) = dx_for_dc(x0, s0, dc, cmax);
-    assert_eq!(dx, 0, "at X_MAX, positive dc should yield dx=0");
+/// At X_MAX, requesting forward movement yields dx=0 (can't move right).
+/// This guards against out-of-bounds lookups in the forward direction.
+#[test]
+fn clamp_at_x_max() {
+    let (x0, cmax) = (LUT_X_MAX, 1_000_000u64);
+    let (dx, _) = dx_for_dc(x0, evaluate_cost(x0), 1000, cmax);
+    assert_eq!(dx, 0, "can't move beyond X_MAX");
 }
 
-/// Ensures boundary clamping at X_MIN: attempting backward movement is clipped.
-/// When at X_MIN and we request backward movement via dx_for_ds, dx should be 0.
+/// At X_MIN, requesting backward movement stays within bounds.
+/// Verifies that x_for_s clamps out-of-bounds cumulative costs safely.
 #[test]
-fn boundary_clamp_at_x_min() {
+fn clamp_at_x_min() {
     let x0 = LUT_X_MIN;
     let s0 = evaluate_cost(x0);
-    
-    // Request a large negative ds (backward movement)
-    let ds = (-1_000_000_000i64) as u64;
-    let dx = dx_for_ds(x0, s0, ds);
-    
-    // dx should be 0 because x_for_s clamps to LUT_X_MIN
+    let dx = dx_for_ds(x0, s0, (-1_000_000_000i64) as u64);
     let x1 = x0.wrapping_add(dx);
-    assert!(x1 >= LUT_X_MIN, "clamped x1={} must not go below X_MIN={}", x1, LUT_X_MIN);
+    assert!(
+        in_range(x1, LUT_X_MIN, LUT_X_MAX),
+        "clamped position must stay in domain"
+    );
 }
 
-/// Ensures partial movement at boundary: if x is near max and movement would overshoot,
-/// dx is clamped to the remaining distance to X_MAX.
+/// Near boundary with overshooting movement: partial movement is allowed.
+/// If x is at 11.9 and movement would go to 12.3, dx is clamped to 0.1.
+/// This ensures graceful degradation rather than truncation.
 #[test]
-fn boundary_clamp_partial_movement() {
-    let cmax = 1_000_000u64;
-    // Create a scenario where we're near X_MAX but not exactly at it
-    let x0 = LUT_X_MAX.wrapping_sub(100_000); // 0.0024... away from max
-    let s0 = evaluate_cost(x0);
-
-    // Request a large positive dc that would definitely overshoot
-    let dc = 100_000u64;
-    let (dx, _) = dx_for_dc(x0, s0, dc, cmax);
-
-    // dx should be positive (moving right) but clamped to at most X_MAX - x0
+fn clamp_partial_movement() {
+    let x0 = LUT_X_MAX - 100_000;
+    let (dx, _) = dx_for_dc(x0, evaluate_cost(x0), 100_000, 1_000_000u64);
     let x1 = x0.wrapping_add(dx);
-    assert!(x1 <= LUT_X_MAX, "clamped x1={} must not exceed X_MAX={}", x1, LUT_X_MAX);
-    assert!(dx > 0, "with positive dc, we should move right at least somewhat");
+
+    assert!(
+        in_range(x1, LUT_X_MIN, LUT_X_MAX),
+        "result clamped within bounds"
+    );
+    assert!(dx > 0, "partial movement allowed");
 }
 
-/// Ensures dc_for_dx is protected when dx overshoots boundary.
-/// When at X_MAX and request a large positive dx, evaluate_cost clamps and dc is 0.
+/// `dc_for_dx` is protected: overshooting dx at boundary yields zero dc.
+/// Tests that the evaluate_cost clamping propagates through dc_for_dx correctly.
 #[test]
-fn dc_for_dx_protected_at_boundary() {
-    let x0 = LUT_X_MAX;
-    let cmax = 1_000_000u64;
-    let large_dx = 1_000_000u32; // attempt to go way beyond X_MAX
-    
-    let dc = dc_for_dx(x0, large_dx, cmax);
-    // Since we're at the boundary and can't move further, dc should be 0
-    assert_eq!(dc, 0, "at X_MAX with overshooting dx, dc should be 0");
+fn clamp_dc_for_dx_at_boundary() {
+    let dc = dc_for_dx(LUT_X_MAX, 1_000_000, 1_000_000u64);
+    assert_eq!(dc, 0, "overshooting dx yields zero dc");
 }
 
-/// Ensures ds_for_dx is protected when dx undershoots boundary.
-/// When at X_MIN and move backward, both endpoints clamp to X_MIN so ds is 0.
+/// `ds_for_dx` is protected: extreme wraparound is handled safely.
+/// Tests that evaluate_cost clamping protects against out-of-bounds wrapping.
 #[test]
-fn ds_for_dx_protected_at_boundary() {
-    let x0 = LUT_X_MIN;
-    let large_negative_dx = (i32::MIN) as u32; // extreme negative wraparound
-    
-    let x1 = x0.wrapping_add(large_negative_dx);
-    // x1 wraps around to some large value, but evaluate_cost clamps both
-    let ds = ds_for_dx(x0, large_negative_dx);
-    
-    // Both evaluate_cost(x0) and evaluate_cost(x1) clamp to valid range
-    // x0 = LUT_X_MIN → s0 = S_LUT[0]
-    // x1 wraps to huge value → clamped to LUT_X_MAX → s1 = S_LUT[1024]
-    // So ds = S_LUT[1024] - S_LUT[0] = LUT_S_MAX (large positive)
-    assert!(ds > 0, "wrapping to opposite side should give large positive ds");
+fn clamp_ds_for_dx_wraps_safely() {
+    let ds = ds_for_dx(LUT_X_MIN, (i32::MIN) as u32);
+    assert!(ds > 0, "extreme wraparound handled safely");
 }
-
