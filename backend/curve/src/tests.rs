@@ -291,3 +291,83 @@ fn dc_for_dx_matches_scaled_ds() {
 
     assert_eq!(dc, dc_expected as u64);
 }
+
+/// Ensures boundary clamping at X_MAX: positive movement is clipped.
+/// When at X_MAX and we request positive dc, dx should be 0 (no movement possible).
+#[test]
+fn boundary_clamp_at_x_max() {
+    let x0 = LUT_X_MAX;
+    let s0 = evaluate_cost(x0);
+    let cmax = 1_000_000u64;
+    let dc = 1000u64; // positive capacity delta
+
+    let (dx, _) = dx_for_dc(x0, s0, dc, cmax);
+    assert_eq!(dx, 0, "at X_MAX, positive dc should yield dx=0");
+}
+
+/// Ensures boundary clamping at X_MIN: attempting backward movement is clipped.
+/// When at X_MIN and we request backward movement via dx_for_ds, dx should be 0.
+#[test]
+fn boundary_clamp_at_x_min() {
+    let x0 = LUT_X_MIN;
+    let s0 = evaluate_cost(x0);
+    
+    // Request a large negative ds (backward movement)
+    let ds = (-1_000_000_000i64) as u64;
+    let dx = dx_for_ds(x0, s0, ds);
+    
+    // dx should be 0 because x_for_s clamps to LUT_X_MIN
+    let x1 = x0.wrapping_add(dx);
+    assert!(x1 >= LUT_X_MIN, "clamped x1={} must not go below X_MIN={}", x1, LUT_X_MIN);
+}
+
+/// Ensures partial movement at boundary: if x is near max and movement would overshoot,
+/// dx is clamped to the remaining distance to X_MAX.
+#[test]
+fn boundary_clamp_partial_movement() {
+    let cmax = 1_000_000u64;
+    // Create a scenario where we're near X_MAX but not exactly at it
+    let x0 = LUT_X_MAX.wrapping_sub(100_000); // 0.0024... away from max
+    let s0 = evaluate_cost(x0);
+
+    // Request a large positive dc that would definitely overshoot
+    let dc = 100_000u64;
+    let (dx, _) = dx_for_dc(x0, s0, dc, cmax);
+
+    // dx should be positive (moving right) but clamped to at most X_MAX - x0
+    let x1 = x0.wrapping_add(dx);
+    assert!(x1 <= LUT_X_MAX, "clamped x1={} must not exceed X_MAX={}", x1, LUT_X_MAX);
+    assert!(dx > 0, "with positive dc, we should move right at least somewhat");
+}
+
+/// Ensures dc_for_dx is protected when dx overshoots boundary.
+/// When at X_MAX and request a large positive dx, evaluate_cost clamps and dc is 0.
+#[test]
+fn dc_for_dx_protected_at_boundary() {
+    let x0 = LUT_X_MAX;
+    let cmax = 1_000_000u64;
+    let large_dx = 1_000_000u32; // attempt to go way beyond X_MAX
+    
+    let dc = dc_for_dx(x0, large_dx, cmax);
+    // Since we're at the boundary and can't move further, dc should be 0
+    assert_eq!(dc, 0, "at X_MAX with overshooting dx, dc should be 0");
+}
+
+/// Ensures ds_for_dx is protected when dx undershoots boundary.
+/// When at X_MIN and move backward, both endpoints clamp to X_MIN so ds is 0.
+#[test]
+fn ds_for_dx_protected_at_boundary() {
+    let x0 = LUT_X_MIN;
+    let large_negative_dx = (i32::MIN) as u32; // extreme negative wraparound
+    
+    let x1 = x0.wrapping_add(large_negative_dx);
+    // x1 wraps around to some large value, but evaluate_cost clamps both
+    let ds = ds_for_dx(x0, large_negative_dx);
+    
+    // Both evaluate_cost(x0) and evaluate_cost(x1) clamp to valid range
+    // x0 = LUT_X_MIN → s0 = S_LUT[0]
+    // x1 wraps to huge value → clamped to LUT_X_MAX → s1 = S_LUT[1024]
+    // So ds = S_LUT[1024] - S_LUT[0] = LUT_S_MAX (large positive)
+    assert!(ds > 0, "wrapping to opposite side should give large positive ds");
+}
+

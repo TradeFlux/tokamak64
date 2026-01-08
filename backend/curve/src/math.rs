@@ -14,6 +14,8 @@ use crate::lut::{LUT_S_MAX, S_LUT, X_LUT};
 
 /// Calculates `dx` from a capacity delta `dc` by scaling through `ds`,
 /// given that the current curve state is `(x0, s0)` and total capacity is `cmax`.
+/// If the resulting movement would go out of bounds, `dx` is clamped so that
+/// `x0 + dx` stays within `[LUT_X_MIN, LUT_X_MAX]`, allowing partial movement.
 ///
 /// Arguments:
 /// - `x0`: Current x position in Q8.24 (u32).
@@ -22,6 +24,7 @@ use crate::lut::{LUT_S_MAX, S_LUT, X_LUT};
 /// - `cmax`: Total capacity that maps to `Smax` (u64).
 ///
 /// Returns: `(dx, ds)` where dx is two's complement encoded (u32), ds is u64.
+/// Note: `dx` may be clamped even if `ds` is not, to ensure `x0 + dx` stays in bounds.
 ///
 /// Constraints:
 /// - `x0` is within `[LUT_X_MIN, LUT_X_MAX]`.
@@ -36,6 +39,8 @@ pub fn dx_for_dc(x0: u32, s0: u64, dc: u64, cmax: u64) -> (u32, u64) {
 
 /// Calculates `dc` (delta capacity) for moving from `x0` to `x0 + dx`,
 /// given that capacity maps linearly onto the LUT range.
+/// If `x0 + dx` goes out of bounds, the movement is clamped to stay within
+/// `[LUT_X_MIN, LUT_X_MAX]`.
 ///
 /// Arguments:
 /// - `x0`: Current x position in Q8.24 (u32).
@@ -45,7 +50,7 @@ pub fn dx_for_dc(x0: u32, s0: u64, dc: u64, cmax: u64) -> (u32, u64) {
 /// Returns: `dc` as u64 (two's complement encoded for negative values).
 ///
 /// Constraints:
-/// - `x0 + dx` is within `[LUT_X_MIN, LUT_X_MAX]`.
+/// - `x0` is within `[LUT_X_MIN, LUT_X_MAX]`.
 /// - `cmax > 0`.
 /// - `ds * Cmax` fits in `u128`.
 pub fn dc_for_dx(x0: u32, dx: u32, cmax: u64) -> u64 {
@@ -71,8 +76,9 @@ pub(crate) fn ds_for_dx(x0: u32, dx: u32) -> u64 {
     s1.wrapping_sub(s0)
 }
 
-/// Calculates `dx` given `x0`, its cumulative cost `s0`, and a desired `ds`,
-/// given that the target cumulative cost remains within the LUT range.
+/// Calculates `dx` given `x0`, its cumulative cost `s0`, and a desired `ds`.
+/// If the target cumulative cost goes out of bounds, `dx` is clamped so that
+/// `x0 + dx` stays within `[LUT_X_MIN, LUT_X_MAX]`, allowing partial movement.
 ///
 /// Arguments:
 /// - `x0`: Current x position in Q8.24 (u32).
@@ -84,22 +90,24 @@ pub(crate) fn ds_for_dx(x0: u32, dx: u32) -> u64 {
 /// Constraints:
 /// - `x0` is within `[LUT_X_MIN, LUT_X_MAX]`.
 /// - `s0` equals the LUT evaluation at `x0`.
-/// - `s0 + ds` is within valid range (two's complement).
 pub(crate) fn dx_for_ds(x0: u32, s0: u64, ds: u64) -> u32 {
     let s = s0.wrapping_add(ds);
     let x1 = x_for_s(s);
     x1.wrapping_sub(x0)
 }
 
-/// Calculates the cumulative cost at `x` (Q8.24),
-/// given that `x` is within the LUT domain.
+/// Calculates the cumulative cost at `x` (Q8.24).
+/// If `x` goes out of bounds, it is clamped to `[LUT_X_MIN, LUT_X_MAX]`.
 #[inline]
 pub(crate) fn evaluate_cost(x: u32) -> u64 {
+    use crate::lut::{LUT_X_MIN, LUT_X_MAX};
+    
+    let x = x.clamp(LUT_X_MIN, LUT_X_MAX);
     match X_LUT.binary_search(&x) {
         Ok(i) => S_LUT[i],
         Err(i) => {
             // x is between X_LUT[i-1] and X_LUT[i]
-            // (since x is in-domain, i is in 1..len)
+            // (since x is now clamped in-domain, i is in 1..len)
             let x0 = X_LUT[i - 1];
             let x1 = X_LUT[i];
             let s0 = S_LUT[i - 1];
@@ -150,9 +158,21 @@ fn interp_s_for_x(x: u32, x0: u32, s0: u64, x1: u32, s1: u64) -> u64 {
 
 #[inline]
 fn x_for_s(s_target: u64) -> u32 {
+    use crate::lut::{LUT_X_MIN, LUT_X_MAX};
+    
     match S_LUT.binary_search(&s_target) {
         Ok(i) => X_LUT[i],
         Err(i) => {
+            // Handle out-of-bounds: clamp to domain boundaries
+            if i == 0 {
+                // s_target < S_LUT[0], return minimum x
+                return LUT_X_MIN;
+            }
+            if i >= S_LUT.len() {
+                // s_target > S_LUT[len-1], return maximum x
+                return LUT_X_MAX;
+            }
+            
             let x0 = X_LUT[i - 1];
             let x1 = X_LUT[i];
             let s0 = S_LUT[i - 1];
