@@ -35,6 +35,6 @@ pub struct Charge {
     pub share: Q824,
     /// Public key of the charge's owner.
     pub authority: AddressBytes,
-    pub wallet: AddressBytes,
+    pub mint: AddressBytes,
     _pad: u32,
 }

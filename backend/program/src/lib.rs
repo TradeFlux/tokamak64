@@ -1,5 +1,5 @@
 use instruction::TokamakInstruction;
-use pinocchio::{account::AccountView, program_entrypoint, ProgramResult};
+use pinocchio::{account::AccountView, address::declare_id, program_entrypoint, ProgramResult};
 
 use crate::instruction::IxData;
 
@@ -8,6 +8,7 @@ mod instruction;
 mod processors;
 
 program_entrypoint!(process_instruction);
+declare_id!("DuJrE9ZB4TqcMByw9g4CiDQdNQosPQCQw2ECWGfLiyi");
 
 fn process_instruction(
     id: &pinocchio::Address,
@@ -21,8 +22,8 @@ fn process_instruction(
     let mut data = IxData::new(data);
     let ix = TokamakInstruction::parse(&mut data)?;
     match ix {
-        InitCharge => init_charge::init_charge(it),
-        InitWallet => init_wallet::init_wallet(it),
+        InitCharge => init::charge(it, data),
+        InitWallet => init::wallet(it, data),
         Charge => charge::charge(it, data),
         Claim => claim::claim(it),
         Compress => compress::compress(it),

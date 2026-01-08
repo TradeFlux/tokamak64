@@ -124,17 +124,17 @@ pub struct DrainAccounts<'a> {
 
 /// Accounts for InitCharge: initialize a new charge account.
 pub struct InitChargeAccounts<'a> {
-    /// Signer (becomes charge authority).
+    /// Signer (becomes charge authority, pays rent).
     pub(crate) signer: &'a AccountView,
-    /// Wallet account (signer's wallet)
+    /// Wallet account (signer's wallet).
     pub(crate) wallet: &'a mut Wallet,
-    /// Charge account to initialize (PDA from signer + counter 0).
+    /// Charge account to initialize (PDA from signer + counter).
     pub(crate) charge: &'a AccountView,
 }
 
 /// Accounts for InitWallet: initialize a new wallet account.
 pub struct InitWalletAccounts<'a> {
-    /// Signer (becomes wallet authority).
+    /// Signer (becomes wallet authority, pays rent).
     pub(crate) signer: &'a AccountView,
     /// Wallet account to initialize (PDA from signer + mint).
     pub(crate) wallet: &'a AccountView,
@@ -311,7 +311,7 @@ impl<'a> FromAccounts<'a> for InitWalletAccounts<'a> {
     }
 }
 
-fn parse<'a, T, I>(it: &mut I) -> Result<&'a mut T, ProgramError>
+pub(crate) fn parse<'a, T, I>(it: &mut I) -> Result<&'a mut T, ProgramError>
 where
     T: bytemuck::Pod,
     I: Iterator<Item = &'a AccountView>,
