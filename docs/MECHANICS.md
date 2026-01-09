@@ -26,8 +26,8 @@ The game provides 13 instructions.
 
 | Instruction | Purpose |
 |-------------|---------|
-| **Inject** | Bind a Charge onto the board into a target **edge Element only**. Charge becomes bound and participates in saturation mechanics. Edge Elements: H, He, Li, Be, B, C (touch board perimeter). |
-| **Eject** | Voluntarily unbind a Charge from its **current edge Element only**. Applies exit cost. Unbound Charges cannot claim future rewards from that Element. |
+| **Bind** | Bind a Charge onto the board into a target **edge Element only**. Charge becomes bound and participates in saturation mechanics. Edge Elements: H, He, Li, Be, B, C (touch board perimeter). |
+| **Unbind** | Voluntarily unbind a Charge from its **current edge Element only**. Applies exit cost. Unbound Charges cannot claim future rewards from that Element. |
 
 ### Movement & Value Transfer
 
@@ -41,7 +41,7 @@ The game provides 13 instructions.
 
 | Instruction | Purpose |
 |-------------|---------|
-| **Overload** | Trigger an Element reset when saturation exceeds threshold. Typically executed atomically in the same transaction as the Rebind/Inject that pushes saturation over max. Triggering Charge receives its share and re-binds to the reset Element (first-mover advantage). All other Charges ejected for free. |
+| **Overload** | Trigger an Element reset when saturation exceeds threshold. Typically executed atomically in the same transaction as the Rebind/Bind that pushes saturation over max. Triggering Charge receives its share and re-binds to the reset Element (first-mover advantage). All other Charges unbound for free. |
 | **Claim** | Collect proportional reward share from an Element's pot after reset. Requires exact index match (atomic number + generation). Only for Charges that were bound at reset instant. |
 
 ## Element Identity
@@ -73,7 +73,7 @@ Generation enables detecting stale Charge references after Element reset. A Char
 
 ### Fee Calculation
 
-All movement fees (Rebind, Inject, Eject) scale based on:
+All movement fees (Rebind, Bind, Unbind) scale based on:
 - **Distance²** (quadratic) — Atomic number difference; long jumps are exponentially expensive
 - **Saturation** (linear) — Element fullness (0-100%); crowded Elements cost more
 - **Speed tax** (up to 128×) — Time since last action; immediate moves are prohibitively expensive
@@ -115,7 +115,7 @@ The speed multiplier decays **quadratically** from 128× (immediate action) to 1
 ## Overload Mechanics
 
 Overload typically occurs atomically in the same transaction as the triggering action:
-1. **Rebind or Inject** — Pushes saturation over threshold
+1. **Rebind or Bind** — Pushes saturation over threshold
 2. **Overload** — Executed immediately in same transaction
 
 When Overload executes:
@@ -124,11 +124,11 @@ When Overload executes:
 2. **Claim (triggering Charge)** — Triggering Charge receives reward based on its share
 3. **Reset** — Element generation increments, curve/pot/saturation cleared
 4. **Bonus** — Triggering Charge immediately re-binds to the reset Element (first-mover advantage: early share in fresh cycle)
-5. **Ejection** — All other bound Charges become unbound (free exit)
+5. **Unbinding** — All other bound Charges become unbound (free exit)
 
-**Key invariant:** Only the triggering Charge stays bound; all others are ejected for free (no exit costs during reset).
+**Key invariant:** Only the triggering Charge stays bound; all others are unbound for free (no exit costs during reset).
 
-**Note:** While Overload can be called separately, it's typically bundled with the triggering Rebind/Inject for atomicity.
+**Note:** While Overload can be called separately, it's typically bundled with the triggering Rebind/Bind for atomicity.
 
 ## Claim Sequence
 
@@ -229,11 +229,11 @@ If something feels unfair, another player paid more to shape it.
 [2] wallet    (writable)  - Player wallet
 ```
 
-### Inject / Eject
+### Bind / Unbind
 ```
 [0] signer    (signer)    - Charge authority
 [1] charge    (writable)  - Charge account
-[2] element   (writable)  - Edge element (dst for Inject, src for Eject)
+[2] element   (writable)  - Edge element (dst for Bind, src for Unbind)
 [3] board     (writable)  - Global board state
 ```
 
@@ -289,7 +289,7 @@ If something feels unfair, another player paid more to shape it.
 
 **Reset threshold**: Fixed at 1.0 normalized.
 
-**Reset resolution**: Payout pot by shares → clear pot/saturation → free ejection (except trigger remains).
+**Reset resolution**: Payout pot by shares → clear pot/saturation → free unbinding (except trigger remains).
 
 **Costs**: Voluntary actions only; speed tax multiplier + directional bias (inward cheaper than outward); fees route to deeper pot.
 

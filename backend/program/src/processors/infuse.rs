@@ -11,7 +11,7 @@ use crate::{
 };
 
 /// Convert stable tokens (USDT/USDC) to Gluon and deposit into wallet (1:1 conversion).
-/// Transfers stable tokens to program vault; wallet balance increases for Charge/Inject actions.
+/// Transfers stable tokens to program vault; wallet balance increases for Charge/Bind actions.
 pub(crate) fn infuse<'a, I>(it: &mut I, mut data: IxData) -> ProgramResult
 where
     I: AccountIter<'a>,

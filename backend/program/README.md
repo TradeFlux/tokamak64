@@ -35,11 +35,11 @@ DuJrE9ZB4TqcMByw9g4CiDQdNQosPQCQw2ECWGfLiyi
 [2] wallet    (writable)  - Player wallet
 ```
 
-### Inject / Eject
+### Bind / Unbind
 ```
 [0] signer    (signer)    - Charge authority
 [1] charge    (writable)  - Charge account
-[2] element   (writable)  - Edge element (dst for Inject, src for Eject)
+[2] element   (writable)  - Edge element (dst for Bind, src for Unbind)
 [3] board     (writable)  - Global board state
 ```
 

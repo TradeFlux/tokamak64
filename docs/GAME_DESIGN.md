@@ -10,6 +10,28 @@ The game world is a static 8×8 grid (64 tiles).
 
 **Elements** are groups of connected tiles named after chemical elements and ordered by **atomic number (Z)**: there are 26 Elements on the board (Z=1 to Z=26), with element 0 serving as an off-board placeholder.
 
+```
+    1    2    3    4    5    6    7    8
+  ┌──────────────┬─────────┬────┬─────────┐
+A │  H1          │  He2    │ Li3│      Be4│
+  │    ┌─────────┴────┬────┤    ├────┐    │
+B │    │       Al13   │Si14│    │    │    │
+  ├────┴────┬─────────┤    ├────┤    │    │
+C │  Mg12   │  Cr24   │    │ P15│ S16│    │
+  ├────┬────┴────┬────┼────┤    │    ├────┤
+D │    │  V23    │Mn25│    │    │    │ B5 │
+  │    ├────┬────┼────┘    ├────┴────┤    │
+E │Na11│    │    │     Fe26│     Cl17│    │
+  ├────│    │    ├────┬────┴────┬────┴────┤
+F │    │Ti22│Sc21│    │     Ar18│      C6 │
+  │    │    ├────┤    ├─────────┴────┬────┤
+G │    │    │    │Ca20│        K19   │    │
+  │    └────┤    ├────┴────┬─────────┘    │
+H │  Ne10   │ F9 │      O8 │           N7 │
+  └─────────┴────┴─────────┴──────────────┘
+
+```
+
 - **Edge Elements**: H (Hydrogen), He (Helium), Li (Lithium), Be (Beryllium), B (Boron), C (Carbon) — touch the board perimeter
 - **Mid-depth Elements**: N, O, F, Ne, Na, Mg, Al, Si, P, S, Cl, Ar, K, Ca — progressively deeper
 - **Deep Elements**: Sc, Ti, V, Cr, Mn — approaching the core
@@ -168,7 +190,7 @@ A bound Charge can irreversibly add any amount of its Gluon directly to its curr
 The system requires no external input to sustain itself:
 
 ```
-Charges take actions (Inject/Rebind/Compress/Eject/Vent)
+Charges take actions (Bind/Rebind/Compress/Unbind/Vent)
        ↓
 Actions cost Gluon
        ↓
@@ -240,3 +262,6 @@ Stalled progression → larger accumulated yields for future cycles.
 7. **Emergent complexity** — Simple rules (sigmoid curve + directional costs + shared pots) produce sophisticated decision-making and diverse strategies.
 
 The fusion reactor theme (inward magnetic confinement, element progression H→Fe, density-triggered reactions) makes these principles intuitive but isn't required to understand the mechanics.
+
+
+

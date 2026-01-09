@@ -40,13 +40,13 @@ You can create multiple Charges—each is an independent entity that can be posi
 
 ### 3. Enter the Board
 
-Use **Inject** to place a Charge on the board:
+Use **Bind** to place a Charge on the board:
 
 ```
-Charge (unbound) → Inject → Charge (bound to edge Element)
+Charge (unbound) → Bind → Charge (bound to edge Element)
 ```
 
-**Important:** You can only inject into edge Elements—H, He, Li, Be, B, C (those touching the board perimeter).
+**Important:** You can only bind into edge Elements—H, He, Li, Be, B, C (those touching the board perimeter).
 
 ## Playing the Game
 
@@ -75,13 +75,13 @@ Your Charge contributes to saturation simply by being bound. As more Charges gat
 
 ### Trigger Overload
 
-When your Rebind or Inject pushes saturation over the threshold, you typically execute **Overload** in the same transaction (two instructions atomically):
+When your Rebind or Bind pushes saturation over the threshold, you typically execute **Overload** in the same transaction (two instructions atomically):
 
 - You receive your reward share immediately
 - You re-bind to the reset Element (first-mover advantage in fresh cycle)
-- All other Charges are ejected for free (repositioning opportunity)
+- All other Charges are unbound for free (repositioning opportunity)
 
-**In practice**: You submit a transaction with both instructions—the Rebind/Inject that triggers the threshold, immediately followed by Overload.
+**In practice**: You submit a transaction with both instructions—the Rebind/Bind that triggers the threshold, immediately followed by Overload.
 
 ### Donate to the Pot
 
@@ -107,10 +107,10 @@ Use **Compress** to carry pots to Elements with higher Z:
 
 ### Voluntary Exit
 
-Use **Eject** to leave the board:
+Use **Unbind** to leave the board:
 
 ```
-Charge (bound to edge Element) → Eject → Charge (unbound)
+Charge (bound to edge Element) → Unbind → Charge (unbound)
 ```
 
 - Must be in an edge Element (H, He, Li, Be, B, C)
@@ -247,7 +247,7 @@ The game has no explicit roles, but recurring patterns emerge from profit-chasin
 
 **Strategy**: Early binders who wait through long buildup periods.
 
-- Inject into low-saturation Elements
+- Bind into low-saturation Elements
 - Accept weak initial pots in exchange for strong shares
 - Wait for others to add value (fees, compressions)
 - Reap large shares when reset finally occurs
@@ -294,7 +294,7 @@ The game has no explicit roles, but recurring patterns emerge from profit-chasin
 - Focus exclusively on edge and shallow-mid Elements
 - Capitalize on fast saturation buildup (smaller curves)
 - Accept lower yields for higher turnover
-- Minimize depth risk (easy to eject if needed)
+- Minimize depth risk (easy to unbind if needed)
 
 **Risk**: Low absolute profits; vulnerable to compression (value moved away before reset).
 

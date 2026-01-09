@@ -62,6 +62,31 @@ Movement has directional bias: moving inward (toward Iron) is cheaper; moving ou
 
 The game cycles forever—no shutdown, only evolving states shaped by player timing.
 
+## Board Layout
+
+8×8 grid (64 tiles) with 26 Elements:
+
+```
+    1    2    3    4    5    6    7    8
+  ┌──────────────┬─────────┬────┬─────────┐
+A │  H1          │  He2    │ Li3│      Be4│
+  │    ┌─────────┴────┬────┤    ├────┐    │
+B │    │       Al13   │Si14│    │    │    │
+  ├────┴────┬─────────┤    ├────┤    │    │
+C │  Mg12   │  Cr24   │    │ P15│ S16│    │
+  ├────┬────┴────┬────┼────┤    │    ├────┤
+D │    │  V23    │Mn25│    │    │    │ B5 │
+  │    ├────┬────┼────┘    ├────┴────┤    │
+E │Na11│    │    │     Fe26│     Cl17│    │
+  ├────│    │    ├────┬────┴────┬────┴────┤
+F │    │Ti22│Sc21│    │     Ar18│      C6 │
+  │    │    ├────┤    ├─────────┴────┬────┤
+G │    │    │    │Ca20│        K19   │    │
+  │    └────┤    ├────┴────┬─────────┘    │
+H │  Ne10   │ F9 │      O8 │           N7 │
+  └─────────┴────┴─────────┴──────────────┘
+```
+
 ## Documentation
 
 - **[Game Design](docs/GAME_DESIGN.md)** — Board topology, commitment mechanics, value flow, design motivation
