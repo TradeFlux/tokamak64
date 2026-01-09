@@ -20,8 +20,8 @@ pub struct Curve {
     pub pressure: Q1648,
     /// Current saturation as Q8.24 (0 to 6); higher = crowded, higher costs.
     pub saturation: Q824,
-    /// Padding for 32-byte alignment (Pod requirement).
-    pub _pad: u32,
+    /// Cumulative number of shares owned by bound charges (can differ from saturation)
+    pub shares: Q824,
 }
 
 /// Element: single board group where players gather and accumulate pressure.
@@ -69,4 +69,7 @@ pub struct Artefact {
     pub pot: Gluon,
     /// Which element this was (reference only).
     pub index: ElementIndex,
+    /// Cumulative number of shares owned by bound charges at the moment of overload
+    pub shares: Q824,
+    _pad: u32,
 }

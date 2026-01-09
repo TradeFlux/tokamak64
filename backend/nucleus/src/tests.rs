@@ -1,8 +1,10 @@
+use bytemuck::Zeroable;
+
 use crate::{
     action::{claim, compress, rebind},
     board::{Artefact, Board, Curve, Element},
     consts::*,
-    fees::{bind_fee, compression_fee, fee_multiplier, rebind_fee, unbind_fee},
+    fees::{bind_fee, compression_fee, fee_multiplier, rebind_fee},
     player::{Charge, Wallet},
     round_divide,
     types::{AddressBytes, Coordinates, ElementIndex, Gluon, Q824},
@@ -16,17 +18,13 @@ fn dummy_address() -> AddressBytes {
 fn make_element(atomic: u64, gen: u64, capacity: Gluon, pot: Gluon) -> Element {
     let mut index = ElementIndex(0);
     index.0 = (atomic << 56) | (gen & ((1u64 << 56) - 1));
+    let mut curve = Curve::zeroed();
+    curve.capacity = capacity;
     Element {
         index,
         pot,
         coordinates: Coordinates(1u64),
-        curve: Curve {
-            capacity,
-            tvl: 0,
-            pressure: 0,
-            saturation: 0,
-            _pad: 0,
-        },
+        curve,
     }
 }
 
@@ -146,6 +144,7 @@ fn round_divide_ties_away_from_zero() {
 fn rebind_to_empty_element() {
     let mut charge = make_charge(100, ElementIndex((1u64 << 56) | 5), 50);
     let mut src = make_element(1, 0, 1000, 0);
+    src.curve.shares = 50;
     let mut dst = Element {
         ..make_element(2, 0, 1000, 0)
     };
@@ -175,10 +174,10 @@ fn rebind_updates_index_and_share() {
 #[test]
 fn claim_distributes_reward() {
     let mut charge = make_charge(0, ElementIndex((1u64 << 56) | 1), 500_000); // share = 50%
-    let mut artefact = Artefact {
-        pot: 1_000_000,
-        index: ElementIndex((1u64 << 56) | 1),
-    };
+    let mut artefact = Artefact::zeroed();
+    artefact.shares = MAX_SATURATION;
+    artefact.pot = 1_000_000;
+    artefact.index = ElementIndex((1u64 << 56) | 1);
 
     claim(&mut charge, &mut artefact);
 
@@ -193,6 +192,7 @@ fn claim_distributes_reward() {
 fn compress_moves_pot() {
     let mut charge = make_charge(100, ElementIndex((1u64 << 56) | 1), 100);
     let mut src = make_element(1, 0, 1000, 500);
+    src.curve.shares = 100;
     let mut dst = make_element(2, 0, 1000, 200);
 
     compress(&mut charge, &mut src, &mut dst);
