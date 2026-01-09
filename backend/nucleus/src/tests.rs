@@ -46,7 +46,7 @@ fn make_charge(balance: Gluon, index: ElementIndex, share: Q824) -> Charge {
 fn element_index_encode_decode() {
     let mut idx = ElementIndex(0);
     idx.0 = (42u64 << 56) | 7; // atomic=42, gen=7
-    assert_eq!(idx.atomic_number(), 42);
+    assert_eq!(idx.atomic(), 42);
     assert_eq!(idx.generation(), 7);
 }
 
@@ -54,7 +54,7 @@ fn element_index_encode_decode() {
 fn element_index_next_gen() {
     let mut idx = ElementIndex((5u64 << 56) | 100);
     idx.advance_generation();
-    assert_eq!(idx.atomic_number(), 5);
+    assert_eq!(idx.atomic(), 5);
     assert_eq!(idx.generation(), 101);
 }
 
@@ -63,7 +63,7 @@ fn element_index_next_gen_wraps() {
     let max_gen = (1u64 << 56) - 1;
     let mut idx = ElementIndex((10u64 << 56) | max_gen);
     idx.advance_generation();
-    assert_eq!(idx.atomic_number(), 10);
+    assert_eq!(idx.atomic(), 10);
     assert_eq!(idx.generation(), 0); // wraps around
 }
 

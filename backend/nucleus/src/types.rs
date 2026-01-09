@@ -31,7 +31,7 @@ impl ElementIndex {
 
     /// Extract atomic number (element position, 0..255).
     #[inline]
-    pub fn atomic_number(self) -> u64 {
+    pub fn atomic(self) -> u64 {
         self.0 >> Self::GEN_BITS
     }
 
@@ -58,6 +58,11 @@ impl ElementIndex {
     #[inline]
     pub fn is_zero(self) -> bool {
         self.0 == 0
+    }
+
+    #[inline]
+    pub fn tiles(&self) -> u64 {
+        self.0.count_ones() as u64
     }
 }
 

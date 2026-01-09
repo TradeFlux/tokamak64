@@ -22,7 +22,7 @@ where
     }
 
     // Charge must be unbound (off-board)
-    if charge.index.atomic_number() != 0 {
+    if charge.index.atomic() != 0 {
         // TODO: proper error handling - can only withdraw when not bound to an element
         return Err(ProgramError::Custom(50));
     }

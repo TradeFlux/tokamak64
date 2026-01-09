@@ -13,8 +13,8 @@ use crate::{
 /// Rebind fee: cost to move a charge between two elements (distance-based).
 /// Higher atomic number distance and higher saturation = higher fee.
 pub fn rebind_fee(charge: &Charge, src: &Element, dst: &Element) -> Gluon {
-    let src_z = src.index.atomic_number();
-    let dst_z = dst.index.atomic_number();
+    let src_z = src.index.atomic();
+    let dst_z = dst.index.atomic();
     let delta_z = dst_z.wrapping_sub(src_z);
     let curve = if src.index > dst.index {
         &src.curve
@@ -27,21 +27,13 @@ pub fn rebind_fee(charge: &Charge, src: &Element, dst: &Element) -> Gluon {
 /// Bind fee: cost to bind a charge to an element (first commitment).
 /// Prevents spam and seeds the element pot.
 pub fn bind_fee(charge: &Charge, dst: &Element) -> Gluon {
-    calculate_base_fee(
-        charge.balance,
-        dst.index.atomic_number(),
-        dst.curve.saturation,
-    )
+    calculate_base_fee(charge.balance, dst.index.atomic(), dst.curve.saturation)
 }
 
 /// Unbind fee: cost to unbind a charge from an element (abandoning commitment).
 /// Prevents rapid cycling and ensures skin-in-game.
 pub fn unbind_fee(charge: &Charge, src: &Element) -> Gluon {
-    calculate_base_fee(
-        charge.balance,
-        src.index.atomic_number(),
-        src.curve.saturation,
-    )
+    calculate_base_fee(charge.balance, src.index.atomic(), src.curve.saturation)
 }
 
 /// Compression fee: cost to compress an element inward (consolidate into deeper element).

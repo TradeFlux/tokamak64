@@ -17,7 +17,6 @@ pub fn rebind(charge: &mut Charge, src: &mut Element, dst: &mut Element) {
     update_curve(withdrawal, src);
     // We have unbound from the curve, remove our shares to the pool
     src.curve.shares -= charge.share;
-    charge.share = 0;
     // Bind: positive delta to destination, capture new share.
     charge.share = update_curve(charge.balance, dst);
     // We have bound to the curve, add our shares to the pool

@@ -3,6 +3,8 @@
 /// Maximum atomic number (0-indexed, so 27 distinct elements).
 pub const MAX_ATOMIC_NUMBER: u64 = 26;
 
+pub const SUM_ATOMIC_NUMBERS: u64 = MAX_ATOMIC_NUMBER * (MAX_ATOMIC_NUMBER + 1) / 2;
+
 /// Maximum curve position (Q8.24, range [0, 6]).
 pub const MAX_SATURATION: u32 = curve::consts::LUT_X_MAX;
 

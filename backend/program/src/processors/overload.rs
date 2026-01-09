@@ -4,7 +4,8 @@ use bytemuck::Zeroable;
 use nucleus::{
     action::{self, claim},
     board::{Curve, Element},
-    consts::MAX_SATURATION,
+    consts::{MAX_ATOMIC_NUMBER, MAX_SATURATION, SUM_ATOMIC_NUMBERS},
+    round_divide,
 };
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
@@ -29,12 +30,12 @@ pub(crate) fn overload<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     // 2. Create artefact: snapshot the state of the overloaded element
     artefact.pot = target.pot;
     artefact.index = target.index;
+    artefact.shares = target.curve.shares;
     claim(charge, artefact);
 
     // 3. Advance target element to next generation
     // Reset curve to genesis state and clear pot (moved to artefact)
     target.curve = Curve::zeroed();
-    // TODO recompute curve capacity from the board
     target.pot = 0;
 
     // Increment generation in the element index
@@ -43,6 +44,8 @@ pub(crate) fn overload<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     action::rebind(charge, &mut src, target);
 
     board.tvl -= target.pot + (target.curve.tvl - charge.balance);
+    let mul = target.index.atomic() * target.index.tiles();
+    target.curve.capacity = round_divide(board.tvl, mul, SUM_ATOMIC_NUMBERS);
 
     Ok(())
 }
