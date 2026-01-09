@@ -8,19 +8,7 @@ Solana on-chain program for TOKAMAK64. For game design, see the [main README](..
 DuJrE9ZB4TqcMByw9g4CiDQdNQosPQCQw2ECWGfLiyi
 ```
 
-## Instructions
-
-| # | Name | # | Name |
-|---|------|---|------|
-| 0 | InitCharge | 7 | Rebind |
-| 1 | InitWallet | 8 | Eject |
-| 2 | Charge | 9 | Inject |
-| 3 | Claim | 10 | Overload |
-| 4 | Compress | 11 | Infuse |
-| 5 | Extract | 12 | Vent |
-| 6 | Discharge | | |
-
-## Account Layouts
+## Instructios & Account Layouts
 
 ### InitWallet / InitCharge
 ```

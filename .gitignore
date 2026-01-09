@@ -1,3 +1,4 @@
 backend/target
 backend/Cargo.lock
 AGENT*.md
+CLAUDE.md
