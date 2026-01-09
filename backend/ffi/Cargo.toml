@@ -1,14 +1,14 @@
 [package]
-name = "tokamak-jet"
+name = "tokamak-ffi"
 version.workspace = true
 edition.workspace = true
 
 [dependencies]
 # Workspace
-bytemuck = { workspace = true }
 curve = { workspace = true }
 nucleus = { workspace = true }
 # External
-flatbuffers = "24.3"
+flutter_rust_bridge = { version = "2.4", features = ["chrono"] }
 
-[build-dependencies]
+[lib]
+crate-type = ["cdylib", "rlib"]

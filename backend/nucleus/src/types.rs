@@ -19,7 +19,7 @@ pub type AddressBytes = [u8; 32];
 
 /// Encodes element atomic number (8 bits, high) and generation (56 bits, low).
 /// Detects stale charge references when element resets increment generation.
-/// Layout: `[generation_56bits | atomic_8bits]`
+/// Layout: `[generation 56bits | atomic 8bits]`
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 #[cfg_attr(feature = "bytemuck", derive(Pod, Zeroable))]

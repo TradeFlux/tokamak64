@@ -1,11 +1,13 @@
 [package]
-name = "nucleus"
-version = "0.1.0"
+name = "tokamak-nucleus"
+version.workspace = true
 edition.workspace = true
 
 [dependencies]
-bytemuck = { workspace = true, features = ["derive"], optional = true }
+# Workspace
 curve = { workspace = true }
+# External
+bytemuck = { workspace = true, features = ["derive"], optional = true }
 
 [features]
 default = ["bytemuck"]

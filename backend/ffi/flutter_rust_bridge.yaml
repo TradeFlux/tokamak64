@@ -1,0 +1,32 @@
+# Flutter Rust Bridge configuration
+# Generates Dart bindings from FFI crate
+
+rust:
+  crate_name: tokamak_ffi
+  lib_name: tokamak_ffi
+
+dart:
+  output_dir: ../../../dart/lib/generated
+
+# Disable opaque types 
+opaque:
+  enabled: false
+
+# Minimal configuration for POD types only
+source_rust_extensions:
+  - dart
+
+# Build targets (scaffold for future expansion)
+build_targets:
+  linux:
+    enabled: true
+  windows:
+    enabled: true
+  macos:
+    enabled: true
+  ios:
+    enabled: false
+  android:
+    enabled: false
+  web:
+    enabled: false
