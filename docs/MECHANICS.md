@@ -26,7 +26,7 @@ The game provides 13 instructions.
 
 | Instruction | Purpose |
 |-------------|---------|
-| **Inject** | Bind a Charge onto the board into a target **edge Element only**. Charge becomes bound and participates in saturation mechanics. Edge Elements: H, He, Li, Be, C (touch board perimeter). |
+| **Inject** | Bind a Charge onto the board into a target **edge Element only**. Charge becomes bound and participates in saturation mechanics. Edge Elements: H, He, Li, Be, B, C (touch board perimeter). |
 | **Eject** | Voluntarily unbind a Charge from its **current edge Element only**. Applies exit cost. Unbound Charges cannot claim future rewards from that Element. |
 
 ### Movement & Value Transfer
@@ -34,7 +34,7 @@ The game provides 13 instructions.
 | Instruction | Purpose |
 |-------------|---------|
 | **Rebind** | Move a bound Charge from one Element to an adjacent Element. Inward movement (toward higher Z) is cheaper; outward movement (toward lower Z) is more expensive. Incurs movement costs plus speed tax. |
-| **Compress** | Move an Element's pot inward to a deeper adjacent Element while rebinding the Charge. Incurs migration fee + merge fee (both added to moved pot). Inward-only. |
+| **Compress** | Move an Element's pot to an adjacent Element with higher Z while rebinding the Charge. Can be sideways (same depth) or skip depths, as long as dst.index > src.index and Elements are adjacent. Incurs compression fee (added to moved pot). Cost scales with pot size and depth difference—strategic routing. |
 | **Vent** | Donate part of a bound Charge's Gluon to its current Element's pot. Charge must be bound to that Element. Does not affect commitment share or saturation. |
 
 ### Reset & Rewards
@@ -58,7 +58,7 @@ Each Element has a unique **index** encoding identity and versioning:
 - **Atomic Number** (8 MSB): 1–26 (26 Elements on board, 0 is off-board placeholder)
 - **Generation** (56 LSB): Counter incremented when Element resets
 
-**Element names** (atomic number): H (1), He (2), Li (3), Be (4), C (5), N (6), O (7), F (8), Ne (9), Na (10), Mg (11), Al (12), Si (13), P (14), S (15), Cl (16), Ar (17), K (18), Ca (19), Sc (20), Ti (21), V (22), Cr (23), Mn (24), **Fe (25)**, **Ni (26)**.
+**Element names** (atomic number): H (1), He (2), Li (3), Be (4), B (5), C (6), N (7), O (8), F (9), Ne (10), Na (11), Mg (12), Al (13), Si (14), P (15), S (16), Cl (17), Ar (18), K (19), Ca (20), Sc (21), Ti (22), V (23), Cr (24), Mn (25), **Fe (26)**.
 
 ### Bound vs. Unbound
 
@@ -84,11 +84,13 @@ Fee destination depends on direction:
 
 ### Compress
 
-Always moves inward. Both fees go to the pot being moved (which then merges with destination):
-- **Migration fee** — depth cost
+Moves to any adjacent Element where dst.index > src.index (can be sideways at same depth or skip depths). Both fees go to the pot being moved (which then merges with destination):
+- **Migration fee** — scales with depth difference
 - **Merge fee** — consolidation cost
 
 The resulting pot is always larger than the sum of source + destination pots.
+
+**Strategic routing**: Since costs vary by depth difference and board topology, compression direction is strategic. Element 1 might compress to adjacent Element 2 (sideways) or Element 7 (skipping depths), depending on board layout and cost optimization.
 
 ### Speed Tax
 
@@ -165,7 +167,7 @@ These properties **never change**. If something seems to contradict one, the int
 | Invariant | Description |
 |-----------|-------------|
 | **Pots never move alone** | A pot changes location only when a Charge carries it inward via Compress. |
-| **Compression is inward-only** | Always toward higher Z. Never outward, never sideways, never skipping depth. |
+| **Compression requires Z increase** | Always dst.index > src.index (toward higher Z). Can be sideways or skip depths as long as Elements are adjacent and Z increases. |
 | **Entitlement at reset only** | Only Charges bound at exact reset instant receive rewards. No reservations. |
 
 ### Saturation Invariants
@@ -295,6 +297,6 @@ Conversion: `q824 = actual_value * 2^24`, `q1648 = actual_value * 2^48`
 
 **Costs**: Voluntary actions only; speed tax multiplier + directional bias (inward cheaper than outward); fees route to deeper pot.
 
-**Compression**: Inward adjacent; carry full pot + merge + add fee to pot.
+**Compression**: To adjacent Element where dst.index > src.index (can be sideways/skip depths); carry full pot + merge + add fee to pot. Cost scales with depth difference.
 
 **Contributions**: Direct irreversible pot add; no saturation/influence effect.

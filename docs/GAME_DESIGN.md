@@ -10,7 +10,7 @@ The game world is a static 8×8 grid (64 tiles).
 
 **Elements** are groups of connected tiles named after chemical elements and ordered by **atomic number (Z)**: there are 26 Elements on the board (Z=1 to Z=26), with element 0 serving as an off-board placeholder.
 
-- **Edge Elements**: H (Hydrogen), He (Helium), Li (Lithium), Be (Beryllium), C (Carbon) — touch the board perimeter
+- **Edge Elements**: H (Hydrogen), He (Helium), Li (Lithium), Be (Beryllium), B (Boron), C (Carbon) — touch the board perimeter
 - **Mid-depth Elements**: N, O, F, Ne, Na, Mg, Al, Si, P, S, Cl, Ar, K, Ca — progressively deeper
 - **Deep Elements**: Sc, Ti, V, Cr, Mn — approaching the core
 - **Core Element**: **Fe (Iron)** — maximum depth (Z=26), terminal attractor for compressed value
@@ -123,17 +123,17 @@ Moving quickly costs more than waiting. A **speed tax multiplier** applies based
 
 ## Compression
 
-Compression allows relocating pots inward—but only inward.
+Compression allows relocating pots to Elements with higher Z.
 
 ### How Compression Works
 
-When a Charge rebinds to a deeper adjacent Element via **Compress**, it can opt to **carry the pot**:
-- The Charge pays a compression fee (scales with pot size)
+When a Charge rebinds to an adjacent Element with higher Z via **Compress**, it can opt to **carry the pot**:
+- The Charge pays a compression fee (scales with pot size and depth difference)
 - Fee is added directly to the pot being moved
 - Carried pot merges with destination's existing pot
 - Result: strictly larger merged pot at higher Z
 
-**Inward-only**: Compression never moves pots outward or sideways. Value flows toward Fe (Iron), never away.
+**Z increase only**: Compression requires dst.index > src.index. Destination can be sideways (same depth level) or skip depths—as long as Elements are adjacent and Z increases. Cost varies by depth difference, making compression routing strategic.
 
 **Atomic with movement**: Compression completes instantly. Arrival binding may immediately trigger destination reset if saturation crosses threshold.
 

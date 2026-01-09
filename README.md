@@ -28,7 +28,7 @@ Movement has directional bias: moving inward (toward Iron) is cheaper; moving ou
 1. Fund Solana wallet with USDT/USDC
 2. **Infuse** — convert stablecoins to Gluon (in-game currency, 1:1)
 3. **Charge** — allocate Gluon to create a Charge
-4. **Inject** — place Charge on board (edge Elements only: H, He, Li, Be, C)
+4. **Inject** — place Charge on board (edge Elements only: H, He, Li, Be, B, C)
 5. **Rebind** — move between adjacent Elements
 6. **Overload** — trigger Element reset (typically bundled atomically with Rebind/Inject that pushes saturation over threshold)
 7. **Claim** — collect reward share after reset
@@ -46,11 +46,11 @@ Movement has directional bias: moving inward (toward Iron) is cheaper; moving ou
 | **Reset** | When saturation exceeds threshold: pot distributed, Charges ejected (free exit). |
 | **Depth (Z)** | Atomic number (1–26). Higher Z = deeper, bigger pots, harder to escape. |
 | **Commitment Share** | Measured when binding. Sigmoid curve: early binding grants larger shares. |
-| **Compression** | Carry pot inward to deeper Element. Fee added to pot. Inward-only. |
+| **Compression** | Carry pot to adjacent Element with higher Z. Can be sideways or skip depths. Fee added to pot. Cost varies by depth difference. |
 
 ## Why Play?
 
-**Profit-chasing via positioning**: Early arrival grants large commitment shares; late arrival gets diminishing returns but can trigger resets. Compression escalates stakes by pushing value deeper. Reading saturation buildup and timing repositioning is the core skill.
+**Profit-chasing via positioning**: Early arrival grants large commitment shares; late arrival gets diminishing returns but can trigger resets. Compression escalates stakes by moving value to higher Z Elements (strategic routing based on cost/topology). Reading saturation buildup and timing repositioning is the core skill.
 
 **Emergent roles without coordination**:
 - **Sentinels** wait patiently through buildup

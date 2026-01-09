@@ -46,7 +46,7 @@ Use **Inject** to place a Charge on the board:
 Charge (unbound) → Inject → Charge (bound to edge Element)
 ```
 
-**Important:** You can only inject into edge Elements—H, He, Li, Be, C (those touching the board perimeter).
+**Important:** You can only inject into edge Elements—H, He, Li, Be, B, C (those touching the board perimeter).
 
 ## Playing the Game
 
@@ -95,12 +95,13 @@ Use **Vent** to transfer Gluon from your Charge to the Element's pot:
 
 ### Move Pots Inward
 
-Use **Compress** to carry pots deeper:
+Use **Compress** to carry pots to Elements with higher Z:
 
-- Carry current Element's pot to a deeper adjacent Element
+- Carry current Element's pot to an adjacent Element where dst.index > src.index
+- Can be sideways (same depth) or skip depths, as long as Elements are adjacent
 - Pays migration + merge fees (both added to the pot)
-- Creates larger, more valuable pots at higher depths
-- **Inward-only**—no outward or sideways compression
+- Creates larger, more valuable pots at higher Z
+- **Strategic routing**: Costs vary by depth difference and board topology—choose compression paths carefully
 
 ## Exiting the Board
 
@@ -112,7 +113,7 @@ Use **Eject** to leave the board:
 Charge (bound to edge Element) → Eject → Charge (unbound)
 ```
 
-- Must be in an edge Element (H, He, Li, Be, C)
+- Must be in an edge Element (H, He, Li, Be, B, C)
 - Pay exit costs
 - Keep remaining Gluon
 - **Cannot claim rewards from future resets of that Element**
@@ -229,7 +230,7 @@ The game has no explicit roles, but recurring patterns emerge from profit-chasin
 
 ### Scavengers (Shallow Farmers)
 
-**Strategy**: Harvest quick, small cycles in outer Elements (H, He, Li, Be, C).
+**Strategy**: Harvest quick, small cycles in outer Elements (H, He, Li, Be, B, C).
 
 - Focus exclusively on edge and shallow-mid Elements
 - Capitalize on fast saturation buildup (smaller curves)
@@ -240,7 +241,7 @@ The game has no explicit roles, but recurring patterns emerge from profit-chasin
 
 ### Divers (Deep Specialists)
 
-**Strategy**: Position for massive Iron (Fe, Z=25) and deep Element resets.
+**Strategy**: Position for massive Iron (Fe, Z=26) and deep Element resets.
 
 - Move deep into the board via multiple Rebinds
 - Tolerate high costs and entrapment risk
