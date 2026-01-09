@@ -1,0 +1,38 @@
+# Flutter Rust Bridge configuration for TOKAMAK64
+
+# Path to the FFI rust crate (relative to this config)
+rust_crate_dir: ../backend/ffi
+
+# Rust library name (from Cargo.toml name)
+rust_lib_name: tokamak_ffi
+
+# Generated Dart bindings output
+output_dart: lib/generated
+
+# WASM support (for future web target)
+web:
+  enabled: false
+
+# iOS/Android support
+mobile:
+  ios:
+    enabled: false
+  android:
+    enabled: false
+
+# Desktop platforms
+desktop:
+  macos:
+    enabled: true
+  windows:
+    enabled: true
+  linux:
+    enabled: true
+
+# Code generation settings
+dart_root: .
+dart_decl_class_name: TokamakFFI
+dart_decl_output_class_name: TokamakFFI
+
+# Logging
+log_level: info
