@@ -16,15 +16,15 @@ impl<'a, I: Iterator<Item = &'a AccountView>> AccountIter<'a> for I {}
 // ENTRY & EXIT OPERATIONS
 // ============================================================================
 
-/// Inject: Bind charge to edge element. Validates: peripheral destination.
-pub struct InjectionAccounts<'a> {
+/// Bind: Bind charge to edge element. Validates: peripheral destination.
+pub struct BindAccounts<'a> {
     pub(crate) charge: &'a mut Charge,
     pub(crate) dst: &'a mut Element,
     pub(crate) board: &'a mut Board,
 }
 
-/// Eject: Unbind charge from edge element. Validates: peripheral source, bound charge.
-pub struct EjectionAccounts<'a> {
+/// Unbind: Unbind charge from edge element. Validates: peripheral source, bound charge.
+pub struct UnbindAccounts<'a> {
     pub(crate) charge: &'a mut Charge,
     pub(crate) src: &'a mut Element,
     pub(crate) board: &'a mut Board,
@@ -132,7 +132,7 @@ pub trait FromAccounts<'a>: Sized {
     fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError>;
 }
 
-impl<'a> FromAccounts<'a> for InjectionAccounts<'a> {
+impl<'a> FromAccounts<'a> for BindAccounts<'a> {
     fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         let signer = next(it)?;
         let charge: &'a mut Charge = parse(it)?;
@@ -145,7 +145,7 @@ impl<'a> FromAccounts<'a> for InjectionAccounts<'a> {
     }
 }
 
-impl<'a> FromAccounts<'a> for EjectionAccounts<'a> {
+impl<'a> FromAccounts<'a> for UnbindAccounts<'a> {
     fn extract<I: Iterator<Item = &'a AccountView>>(it: &mut I) -> Result<Self, ProgramError> {
         let signer = next(it)?;
         let charge: &'a mut Charge = parse(it)?;

@@ -44,7 +44,7 @@ You don't exist on the board directly. You interact only through **Charges**—e
 - A Charge is **unbound** when off the board
 - You can control multiple Charges simultaneously—independent positions, independent strategies
 
-When a Charge binds to an Element (via **Inject**), it occupies **all tiles of that Element simultaneously**. Multiple Charges can occupy the same Element without blocking each other.
+When a Charge binds to an Element (via **Bind**), it occupies **all tiles of that Element simultaneously**. Multiple Charges can occupy the same Element without blocking each other.
 
 **Why shared presence?** If Elements had finite capacity, early arrivals would lock out others—punishing timing skill with arbitrary cutoffs. Shared presence means positions aren't scarce; what's scarce is *when* you're present. This shifts competition from "get there first" to "be there at the right moment."
 
@@ -78,11 +78,11 @@ Commitment follows a **sigmoid (logistic) curve** with inflection point at satur
 
 Each Element tracks **saturation**—the real-time sum of commitment shares of all currently bound Charges.
 
-- Saturation rises when a Charge binds (entry via Inject or Rebind)
-- Saturation falls when a Charge unbinds (exit via Eject or Rebind)
+- Saturation rises when a Charge binds (entry via Bind or Rebind)
+- Saturation falls when a Charge unbinds (exit via Unbind or Rebind)
 - Saturation is fully reversible—it can oscillate
 
-When saturation crosses the Element's fixed threshold (1.0 normalized), the Element **resets**. In practice, the triggering player typically executes Overload atomically in the same transaction as the Rebind/Inject that pushes saturation over the threshold.
+When saturation crosses the Element's fixed threshold (1.0 normalized), the Element **resets**. In practice, the triggering player typically executes Overload atomically in the same transaction as the Rebind/Bind that pushes saturation over the threshold.
 
 **Why reversible?** If saturation only increased, Elements would inevitably reset regardless of strategy—removing timing skill. Reversibility creates genuine tension: crowds can form and disperse, Charges can bluff by entering then leaving, saturation can rise and fall based on coordinated or chaotic behavior.
 
@@ -105,7 +105,7 @@ Pots grow from:
 When an Element resets:
 1. **Snapshot**: Pot value and bound Charges recorded
 2. **Distribution**: Pot divided proportionally to each bound Charge's fixed commitment share
-3. **Ejection**: All Charges except the trigger are unbound (free repositioning via Eject)
+3. **Unbinding**: All Charges except the trigger are unbound (free repositioning)
 4. **Trigger bonus**: Triggering Charge remains bound to the reset Element (first-mover advantage in new cycle)
 5. **Clearing**: Pot and saturation reset to zero
 

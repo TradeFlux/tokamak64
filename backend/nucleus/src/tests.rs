@@ -2,7 +2,7 @@ use crate::{
     action::{claim, compress, rebind},
     board::{Artefact, Board, Curve, Element},
     consts::*,
-    fees::{compression_fee, fee_multiplier, injection_fee, rebind_fee},
+    fees::{bind_fee, compression_fee, fee_multiplier, rebind_fee, unbind_fee},
     player::{Charge, Wallet},
     round_divide,
     types::{AddressBytes, Coordinates, ElementIndex, Gluon, Q824},
@@ -204,11 +204,11 @@ fn compress_moves_pot() {
 // === Fee Tests ===
 
 #[test]
-fn injection_fee_respects_min() {
+fn bind_fee_respects_min() {
     let charge = make_charge(100, ElementIndex(0), 0);
     let element = make_element(1, 0, 1000, 0);
 
-    let fee = injection_fee(&charge, &element);
+    let fee = bind_fee(&charge, &element);
     assert!(fee >= MIN_FEE);
 }
 

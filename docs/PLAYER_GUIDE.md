@@ -99,9 +99,9 @@ Use **Compress** to carry pots to Elements with higher Z:
 
 - Carry current Element's pot to an adjacent Element where dst.index > src.index
 - Can be sideways (same depth) or skip depths, as long as Elements are adjacent
-- Pays migration + merge fees (both added to the pot)
+- Pays movement fee + compression fee (up to 5% of pot, based on saturation)
 - Creates larger, more valuable pots at higher Z
-- **Strategic routing**: Costs vary by depth difference and board topology—choose compression paths carefully
+- **Strategic routing**: Costs vary by distance and pot size—choose compression paths carefully
 
 ## Exiting the Board
 

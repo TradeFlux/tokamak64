@@ -1,17 +1,17 @@
 //! Bind charge onto board into edge Element; charge becomes bound.
 
 use bytemuck::Zeroable;
-use nucleus::{action, board::Element, fees::injection_fee};
+use nucleus::{action, board::Element, fees::bind_fee};
 use pinocchio::error::ProgramError;
 use pinocchio::ProgramResult;
 
 use super::common::charge_fee;
-use crate::accounts::{AccountIter, FromAccounts, InjectionAccounts};
+use crate::accounts::{AccountIter, BindAccounts, FromAccounts};
 
 /// Bind a charge onto the board into an edge Element;
 /// charge becomes bound for pressure/overload mechanics.
-pub(crate) fn inject<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
-    let InjectionAccounts { charge, dst, board } = InjectionAccounts::extract(it)?;
+pub(crate) fn bind<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
+    let BindAccounts { charge, dst, board } = BindAccounts::extract(it)?;
 
     dst.coordinates
         .on_edge()
@@ -25,7 +25,7 @@ pub(crate) fn inject<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     board.tvl += charge.balance;
     board.charge_count += 1;
 
-    let fee = charge_fee(charge, injection_fee(charge, dst))?;
+    let fee = charge_fee(charge, bind_fee(charge, dst))?;
 
     let mut src = Element::zeroed();
     action::rebind(charge, &mut src, dst);

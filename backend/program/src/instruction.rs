@@ -33,9 +33,9 @@ pub enum TokamakInstruction {
     /// Move a bound charge from one Element to an adjacent Element.
     Rebind,
     /// Unbind a charge from its current Element and move it outside the board.
-    Eject,
+    Unbind,
     /// Bind a charge onto the board into an edge Element (perimeter only).
-    Inject,
+    Bind,
     /// Forcefully trigger an Element to overload and reset, distributing its accumulated pot.
     Overload,
     /// Convert stable tokens to Gluon and add to wallet (1:1 conversion).

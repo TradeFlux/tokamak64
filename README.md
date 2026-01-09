@@ -17,7 +17,7 @@ Movement has directional bias: moving inward (toward Iron) is cheaper; moving ou
 - Fixed 8×8 board divided into 26 **Elements** (H, He, Li... Fe)
 - You control **Charges** that occupy entire Elements
 - Multiple Charges per Element accumulate **saturation**
-- When saturation exceeds threshold, Element **resets**: pot distributed, Charges ejected
+- When saturation exceeds threshold, Element **resets**: pot distributed, Charges unbound
 - Moving inward is cheap; moving outward is expensive
 - All costs feed back as shared value
 
@@ -28,9 +28,9 @@ Movement has directional bias: moving inward (toward Iron) is cheaper; moving ou
 1. Fund Solana wallet with USDT/USDC
 2. **Infuse** — convert stablecoins to Gluon (in-game currency, 1:1)
 3. **Charge** — allocate Gluon to create a Charge
-4. **Inject** — place Charge on board (edge Elements only: H, He, Li, Be, B, C)
+4. **Bind** — place Charge on board (edge Elements only: H, He, Li, Be, B, C)
 5. **Rebind** — move between adjacent Elements
-6. **Overload** — trigger Element reset (typically bundled atomically with Rebind/Inject that pushes saturation over threshold)
+6. **Overload** — trigger Element reset (typically bundled atomically with Rebind/Bind that pushes saturation over threshold)
 7. **Claim** — collect reward share after reset
 8. **Discharge** — merge Charge back to wallet
 9. **Extract** — convert Gluon back to stablecoins
@@ -43,7 +43,7 @@ Movement has directional bias: moving inward (toward Iron) is cheaper; moving ou
 | **Charge** | Your on-board entity. Bound when on board, unbound when off. Multiple per player. |
 | **Gluon** | In-game currency. Always yours—never locked or staked. |
 | **Saturation** | Sum of commitment shares. Rises on entry, falls on exit. |
-| **Reset** | When saturation exceeds threshold: pot distributed, Charges ejected (free exit). |
+| **Reset** | When saturation exceeds threshold: pot distributed, Charges unbound (free exit). |
 | **Depth (Z)** | Atomic number (1–26). Higher Z = deeper, bigger pots, harder to escape. |
 | **Commitment Share** | Measured when binding. Sigmoid curve: early binding grants larger shares. |
 | **Compression** | Carry pot to adjacent Element with higher Z. Can be sideways or skip depths. Fee added to pot. Cost varies by depth difference. |

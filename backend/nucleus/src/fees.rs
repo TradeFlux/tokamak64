@@ -1,4 +1,4 @@
-//! Movement and action fees: injection, ejection, rebind, compression, and speed tax.
+//! Movement and action fees: bind, unbind, rebind, compression, and speed tax.
 
 use crate::{
     board::Element,
@@ -24,9 +24,9 @@ pub fn rebind_fee(charge: &Charge, src: &Element, dst: &Element) -> Gluon {
     calculate_base_fee(charge.balance, delta_z, curve.saturation)
 }
 
-/// Injection fee: cost to bind a charge to an element (first commitment).
+/// Bind fee: cost to bind a charge to an element (first commitment).
 /// Prevents spam and seeds the element pot.
-pub fn injection_fee(charge: &Charge, dst: &Element) -> Gluon {
+pub fn bind_fee(charge: &Charge, dst: &Element) -> Gluon {
     calculate_base_fee(
         charge.balance,
         dst.index.atomic_number(),
@@ -34,9 +34,9 @@ pub fn injection_fee(charge: &Charge, dst: &Element) -> Gluon {
     )
 }
 
-/// Ejection fee: cost to unbind a charge from an element (abandoning commitment).
+/// Unbind fee: cost to unbind a charge from an element (abandoning commitment).
 /// Prevents rapid cycling and ensures skin-in-game.
-pub fn ejection_fee(charge: &Charge, src: &Element) -> Gluon {
+pub fn unbind_fee(charge: &Charge, src: &Element) -> Gluon {
     calculate_base_fee(
         charge.balance,
         src.index.atomic_number(),
