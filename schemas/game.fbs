@@ -1,0 +1,28 @@
+// Root game state schema.
+// Contains the board state (global singleton) and all elements.
+// Excludes player-specific data (charges and wallets).
+
+include "board.fbs";
+
+namespace tokamak;
+
+// Game: root table containing the complete board state.
+// This represents the observable game state at any point in time.
+// Does not include player-specific accounts (Charge, Wallet) which are stored separately.
+table Game {
+  // Global board singleton: TVL, quantum pocket, charge count, quantum index.
+  board: tokamak.board.Board (required);
+
+  // All 26 elements on the board (H=1 to Fe=26).
+  // Index in array corresponds to atomic number - 1.
+  // Element 0 is reserved as off-board placeholder (not included here).
+  elements: [tokamak.board.Element] (required);
+
+  // Timestamp when this snapshot was taken (Unix seconds).
+  snapshot_time: uint64;
+
+  // Optional: current slot number (Solana-specific).
+  slot: uint64;
+}
+
+root_type Game;

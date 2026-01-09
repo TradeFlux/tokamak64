@@ -1,0 +1,38 @@
+// Player accounts: wallets for liquid funds and charges for allocated funds bound to elements.
+
+include "types.fbs";
+
+namespace tokamak.player;
+
+// Liquid Gluon (outside board pressure).
+// Entry/exit point for on-chain value via Infuse/Extract.
+table Wallet {
+  // Unallocated Gluon, ready to fund charges.
+  balance: uint64;
+  // Wallet authority (signer).
+  authority: tokamak.types.AddressBytes;
+  // Stable token mint (USDT/USDC).
+  mint: tokamak.types.AddressBytes;
+  // Count of charges created (for PDA derivation).
+  charges: uint32;
+}
+
+// Allocated Gluon bound to one element.
+// Bound (index != 0) or unbound (index == 0).
+// Reward share calculated at entry, claimed after element breaks.
+table Charge {
+  // Allocated Gluon (on board or awaiting move/exit).
+  balance: uint64;
+  // Last action timestamp (for speed tax calculation).
+  timestamp: uint64;
+  // Bound element: atomic number + generation (0 = unbound).
+  // Element atomic number (8 bits high) and generation (56 bits low).
+  // Layout: [generation_56bits | atomic_8bits]
+  index: uint64;
+  // Proportional share of element pot (Q8.24 fixed-point).
+  share: uint32;
+  // Charge authority (signer).
+  authority: tokamak.types.AddressBytes;
+  // Stable token mint.
+  mint: tokamak.types.AddressBytes;
+}

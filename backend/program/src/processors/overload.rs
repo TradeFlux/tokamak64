@@ -4,7 +4,7 @@ use bytemuck::Zeroable;
 use nucleus::{
     action::{self, claim},
     board::{Curve, Element},
-    consts::{MAX_ATOMIC_NUMBER, MAX_SATURATION, SUM_ATOMIC_NUMBERS},
+    consts::{MAX_SATURATION, SUM_ATOMIC_NUMBERS},
     round_divide,
 };
 use pinocchio::error::ProgramError;

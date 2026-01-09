@@ -1,0 +1,64 @@
+// Board state: elements, curves, pots, and global artefact snapshots.
+
+include "types.fbs";
+
+namespace tokamak.board;
+
+// Bonding curve state for an element.
+// Determines entry cost, player share value, and pressure mechanics.
+table Curve {
+  // Maximum Gluon this curve can accumulate.
+  capacity: uint64;
+  // Total Gluon ever accumulated (TVL, net of deposits/withdrawals).
+  tvl: uint64;
+  // Accumulated pressure integral as Q16.48 fixed-point.
+  // Path-independent checksum of history.
+  pressure: uint64;
+  // Current saturation as Q8.24 fixed-point (0 to 6).
+  // Higher = crowded, higher costs.
+  saturation: uint32;
+  // Cumulative number of shares owned by bound charges.
+  // Can differ from saturation.
+  shares: uint32;
+}
+
+// Element: single board group where players gather and accumulate pressure.
+// Resets (overloads) when saturation exceeds threshold.
+table Element {
+  // Shared pot (rewards, cost contributions).
+  pot: uint64;
+  // Static identity + generation counter.
+  // Element atomic number (8 bits high) and generation (56 bits low).
+  // Layout: [generation_56bits | atomic_8bits]
+  index: uint64;
+  // Bonding curve state.
+  curve: Curve;
+  // Bitboard: which squares this element occupies (row-major).
+  // Each bit represents one square on 8×8 board.
+  coordinates: uint64;
+}
+
+// Board: global singleton tracking game-wide state.
+table Board {
+  // Total Gluon locked across all active charges.
+  tvl: uint64;
+  // Gluon in quantum pocket reserve (reserved for rare unlocks/events).
+  quantum_pocket: uint64;
+  // Count of active charges on board (used in global pressure calculations).
+  charge_count: uint32;
+  // Quantum unlock progression index (tracks fully-reset elements).
+  quantum_index: uint8;
+}
+
+// Artefact: snapshot of a reset element.
+// Players can claim their share but cannot re-enter.
+// Created when an element resets (saturation exceeds threshold).
+table Artefact {
+  // Remaining pot to distribute to shareholders.
+  pot: uint64;
+  // Which element this was (reference only).
+  // Element atomic number (8 bits high) and generation (56 bits low).
+  index: uint64;
+  // Cumulative number of shares owned by bound charges at the moment of overload.
+  shares: uint32;
+}

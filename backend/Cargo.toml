@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["curve", "nucleus", "program"]
+members = ["curve", "jet", "nucleus", "program"]
 
 [workspace.package]
 edition = "2021"

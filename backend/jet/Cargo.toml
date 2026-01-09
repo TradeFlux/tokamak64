@@ -1,0 +1,11 @@
+[package]
+name = "jet"
+version = "0.1.0"
+edition.workspace = true
+
+[dependencies]
+bytemuck.workspace = true
+flatbuffers = "24.3"
+nucleus.workspace = true
+
+[build-dependencies]
