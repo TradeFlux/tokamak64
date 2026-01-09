@@ -18,7 +18,7 @@ pub struct Curve {
     pub tvl: Gluon,
     /// Accumulated pressure integral as Q16.48; path-independent checksum of history.
     pub pressure: Q1648,
-    /// Current saturation as Q8.24 (0 to ~12); higher = crowded, higher costs.
+    /// Current saturation as Q8.24 (0 to 6); higher = crowded, higher costs.
     pub saturation: Q824,
     /// Padding for 32-byte alignment (Pod requirement).
     pub _pad: u32,

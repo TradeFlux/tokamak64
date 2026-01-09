@@ -16,7 +16,7 @@ program_entrypoint!(process_instruction);
 declare_id!("DuJrE9ZB4TqcMByw9g4CiDQdNQosPQCQw2ECWGfLiyi");
 
 fn process_instruction(
-    id: &pinocchio::Address,
+    _id: &pinocchio::Address,
     accounts: &[AccountView],
     data: &[u8],
 ) -> ProgramResult {

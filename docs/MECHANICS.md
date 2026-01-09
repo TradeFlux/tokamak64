@@ -71,6 +71,23 @@ Generation enables detecting stale Charge references after Element reset. A Char
 
 ## Fee Routing
 
+### Fee Calculation
+
+All movement fees (Rebind, Inject, Eject) use the same base formula:
+
+```
+base_fee = balance × (distance² × saturation) / (MAX_ATOMIC_NUMBER² × MAX_SATURATION)
+total_fee = base_fee × speed_multiplier
+```
+
+Where:
+- **balance**: Charge's Gluon balance
+- **distance**: Atomic number difference (for Inject/Eject, distance = element's Z)
+- **saturation**: Target element's current saturation (Q8.24)
+- **speed_multiplier**: Time-based penalty (see Speed Tax below)
+
+Fees scale **quadratically with distance** and **linearly with saturation**. Deeper moves and crowded Elements are progressively more expensive.
+
 ### Rebind (Movement)
 
 Fee destination depends on direction:
@@ -84,11 +101,11 @@ Fee destination depends on direction:
 
 ### Compress
 
-Moves to any adjacent Element where dst.index > src.index (can be sideways at same depth or skip depths). Both fees go to the pot being moved (which then merges with destination):
-- **Migration fee** — scales with depth difference
-- **Merge fee** — consolidation cost
+Moves to any adjacent Element where dst.index > src.index (can be sideways at same depth or skip depths). Compression incurs two fees (both added to destination pot):
+- **Rebind fee** — standard movement fee: `balance × (distance² × saturation × speed_tax) / (26² × 6.0)`
+- **Compression fee** — consolidation tax: `source_pot × (saturation / MAX_SATURATION) × 5%`
 
-The resulting pot is always larger than the sum of source + destination pots.
+The compression fee scales from 0% (empty element) to 5% (fully saturated). Both fees are paid by the Charge and added to the destination pot. The source pot then merges with destination, making the resulting pot strictly larger than the sum of original source + destination pots.
 
 **Strategic routing**: Since costs vary by depth difference and board topology, compression direction is strategic. Element 1 might compress to adjacent Element 2 (sideways) or Element 7 (skipping depths), depending on board layout and cost optimization.
 
@@ -102,7 +119,14 @@ Movement costs scale with time since last action:
 | `MAX_DELTA_TIMESTAMP` | 1024 slots |
 | Full decay time | ~7 minutes (at ~400ms/slot) |
 
-The multiplier decreases linearly from maximum to 1 as time elapses. Acting immediately after a previous action is prohibitively expensive.
+The speed multiplier formula:
+```
+multiplier = 1 + MAX_SPEED_MULTIPLIER × (time_remaining)² / MAX_DELTA_TIMESTAMP²
+```
+
+Where `time_remaining = MAX_DELTA_TIMESTAMP - elapsed_slots` (capped at 0).
+
+The multiplier decays **quadratically** from 128 (immediate action) to 1 (full decay after ~7 min). Acting immediately after a previous action is prohibitively expensive.
 
 **Why speed tax?** Prevents automation/reflex advantage.
 
@@ -267,7 +291,7 @@ If something feels unfair, another player paid more to shape it.
 | Constant | Value | Description |
 |----------|-------|-------------|
 | `MAX_ATOMIC_NUMBER` | 26 | 26 Elements on board (1-indexed, 0 is off-board) |
-| `MAX_SATURATION` | Q8.24 max | Curve position range [0, 12] |
+| `MAX_SATURATION` | Q8.24 max | Curve position range [0, 6] |
 | `MIN_FEE` | 100,000 | Minimum fee in Gluon (dust prevention) |
 | `DECIMALS` | 6 | Gluon precision (matches stablecoins) |
 | `MAX_SPEED_MULTIPLIER` | 127 | Maximum speed tax multiplier |
@@ -277,7 +301,7 @@ If something feels unfair, another player paid more to shape it.
 
 | Type | Format | Usage |
 |------|--------|-------|
-| `Q824` | Q8.24 (u32) | Saturation [0, 12], commitment share |
+| `Q824` | Q8.24 (u32) | Saturation [0, 6], commitment share |
 | `Q1648` | Q16.48 (u64) | Pressure integral, path-independent history |
 
 Conversion: `q824 = actual_value * 2^24`, `q1648 = actual_value * 2^48`
@@ -297,6 +321,6 @@ Conversion: `q824 = actual_value * 2^24`, `q1648 = actual_value * 2^48`
 
 **Costs**: Voluntary actions only; speed tax multiplier + directional bias (inward cheaper than outward); fees route to deeper pot.
 
-**Compression**: To adjacent Element where dst.index > src.index (can be sideways/skip depths); carry full pot + merge + add fee to pot. Cost scales with depth difference.
+**Compression**: To adjacent Element where dst.index > src.index (can be sideways/skip depths); pay rebind fee + compression fee (0-5% of pot, scaled by saturation), then merge source pot into destination. Total cost scales with distance, pot size, and saturation.
 
 **Contributions**: Direct irreversible pot add; no saturation/influence effect.

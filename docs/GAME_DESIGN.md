@@ -67,10 +67,10 @@ Your Gluon is not locked or transferred. It's an input to measurement, not a pay
 
 ### The Sigmoid Curve: Early Advantage
 
-Commitment follows a **sigmoid (logistic) curve**:
-- **Early binding** (low saturation): Steep curve slope → large commitment share per Gluon
-- **Mid binding** (rising saturation): Diminishing returns
-- **Late binding** (near threshold): Flat curve → marginal share gain, mostly pushes toward reset
+Commitment follows a **sigmoid (logistic) curve** with inflection point at saturation 3.0 (midpoint of [0, 6] range):
+- **Early binding** (low saturation): Large commitment share per Gluon (~20×+ efficiency at sat=0)
+- **Mid binding** (near inflection): Diminishing returns (~2× efficiency at sat=3)
+- **Late binding** (near threshold): Marginal share gain (~1× efficiency at sat=6), mostly pushes toward reset
 
 **Why sigmoid?** Linear commitment would make late arrivals as influential as early ones—killing patience as a strategy. Exponential would lock out late arrivals entirely—making timing too brittle. Sigmoid balances: early patience is rewarded with strong shares, but late arrivals can still trigger profitable resets (even with weak shares).
 

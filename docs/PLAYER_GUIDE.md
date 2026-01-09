@@ -180,6 +180,65 @@ Having multiple Charges lets you:
 - Test hypotheses without full commitment
 - Play different archetypes simultaneously
 
+## Understanding Fee Strategy
+
+Movement fees determine positioning costs. The formula:
+
+```
+fee = balance × (distance² × saturation × speed_tax) / (26² × 6.0)
+```
+
+The **multiplier is computed first**, then applied to your balance. This keeps fees proportional.
+
+### Concrete Examples (100 GLUON Charge)
+
+**Note**: Saturation ranges from 0.0 to 6.0. Reset occurs at 6.0 (100% full). Percentages show how full the element is.
+
+**Adjacent moves with timing:**
+```
+Element 13→14 at sat=0.3 (5% full):
+  Patient (7 min):  0.10 GLUON
+  Rushed (0s):      0.95 GLUON (9×)
+```
+
+**Edge to inner (Element 1→13, distance=12):**
+```
+At sat=0.6 (10% full), patient:   2.13 GLUON
+At sat=1.8 (30% full), patient:   6.39 GLUON (3× more)
+At sat=3.6 (60% full), patient:  12.78 GLUON (6× more)
+At sat=5.4 (90% full), patient:  19.17 GLUON (9× more)
+```
+
+**Patient path to Fe (Element 26):**
+```
+Incremental movement as saturation builds:
+  1→13 (d=12, sat=0.9, 15% full):  3.20 GLUON
+  13→24 (d=11, sat=1.5, 25% full): 4.47 GLUON
+  24→25 (d=1, sat=2.4, 40% full):  0.10 GLUON
+  25→26 (d=1, sat=3.0, 50% full):  0.10 GLUON
+  ────────────────────────────────────────
+  TOTAL (patient):                 7.87 GLUON (7.9%)
+
+Rushed movement (immediate actions):
+  TOTAL:                         998.82 GLUON (999%)
+  → Rushing costs 127× more!
+```
+
+### Strategic Tradeoffs
+
+| Factor | Effect | Implication |
+|--------|--------|-------------|
+| **Distance²** | Quadratic scaling | d=10 costs 100× more than d=1; incremental movement is strategic |
+| **Saturation** | Linear scaling (0-6.0) | Early arrival (<30% full) = minimal fees + strong shares; critical advantage |
+| **Speed tax** | Up to 128× multiplier | Patience saves massive costs; automation loses advantage |
+| **Balance** | Linear scaling | Splitting Charges doesn't reduce total fees; weakens shares proportionally |
+
+**Key insights**:
+- **Saturation range**: 0.0 to 6.0 (reset at 100% full)
+- **Strategic window**: Arrive early (<30% full) for low fees + strong shares
+- **Distance dominates**: A rushed long jump can cost 10× your balance
+- **Patient incremental movement** through low-saturation elements is optimal
+
 ## Player Archetypes
 
 The game has no explicit roles, but recurring patterns emerge from profit-chasing incentives:

@@ -6,11 +6,14 @@
 //! different total capacities.
 //!
 //! All values use unsigned arithmetic:
-//! - `x`: u32 in range [0, 12] (Q8.24)
+//! - `x`: u32 in range [0, 6] (Q8.24)
 //! - `s`: u64 cumulative cost (Q16.48)
 //! - `dx`, `ds`, `dc`: unsigned deltas, with two's complement for negation
 
-use crate::lut::{LUT_S_MAX, S_LUT, X_LUT};
+use crate::{
+    consts::{LUT_S_MAX, LUT_X_MAX, LUT_X_MIN},
+    lut::{S_LUT, X_LUT},
+};
 
 /// Calculates `dx` from a capacity delta `dc` by scaling through `ds`,
 /// given that the current curve state is `(x0, s0)` and total capacity is `cmax`.
@@ -100,8 +103,6 @@ pub(crate) fn dx_for_ds(x0: u32, s0: u64, ds: u64) -> u32 {
 /// Out-of-bounds values are clamped to the domain edges for graceful degradation.
 #[inline]
 pub(crate) fn evaluate_cost(x: u32) -> u64 {
-    use crate::lut::{LUT_X_MAX, LUT_X_MIN};
-
     let x = x.clamp(LUT_X_MIN, LUT_X_MAX);
     match X_LUT.binary_search(&x) {
         Ok(i) => S_LUT[i],
@@ -158,8 +159,6 @@ fn interp_s_for_x(x: u32, x0: u32, s0: u64, x1: u32, s1: u64) -> u64 {
 
 #[inline]
 fn x_for_s(s_target: u64) -> u32 {
-    use crate::lut::{LUT_X_MAX, LUT_X_MIN};
-
     match S_LUT.binary_search(&s_target) {
         Ok(i) => X_LUT[i],
         Err(i) => {

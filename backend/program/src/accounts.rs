@@ -306,6 +306,10 @@ where
     I: Iterator<Item = &'a AccountView>,
 {
     let info = next(it)?;
+    // Ensure account data is large enough before attempting cast
+    if info.data_len() < size_of::<T>() {
+        return Err(ProgramError::InvalidAccountData);
+    }
     let s = unsafe { slice::from_raw_parts_mut(info.data_ptr(), size_of::<T>()) };
     bytemuck::try_from_bytes_mut(s).map_err(|_| ProgramError::InvalidAccountData)
 }

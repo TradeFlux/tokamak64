@@ -61,11 +61,11 @@ pub fn fee_multiplier(charge: &Charge, now: u64) -> u64 {
     1 + round_divide(MAX_SPEED_MULTIPLIER, time.pow(2), DIV)
 }
 
-/// Calculate base fee: balance * (distance * saturation) / (MAX_ATOMIC_NUMBER * MAX_POSITION).
-/// Ensures fees scale with commitment, depth, and element's curve saturation.
+/// Calculate base fee: balance * (distance² * saturation) / (MAX_ATOMIC_NUMBER² * MAX_POSITION).
+/// Fees scale quadratically with distance and linearly with commitment/saturation.
 fn calculate_base_fee(balance: Gluon, distance: u64, saturation: u32) -> Gluon {
-    let numerator = distance * (saturation as u64);
-    let denominator = MAX_ATOMIC_NUMBER * (MAX_SATURATION as u64);
-    let result = round_divide(balance, numerator, denominator);
+    const DENOMINATOR: u64 = MAX_ATOMIC_NUMBER.pow(2) * (MAX_SATURATION as u64);
+    let numerator = distance.pow(2) * (saturation as u64);
+    let result = round_divide(balance, numerator, DENOMINATOR);
     result.max(MIN_FEE)
 }

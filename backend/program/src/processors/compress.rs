@@ -10,8 +10,8 @@ use pinocchio::ProgramResult;
 use super::common::charge_fee;
 use crate::accounts::{AccountIter, CompressionAccounts, FromAccounts};
 
-/// Move Element's pot inward to deeper destination and rebind charge; adds fees to moving pot.
-/// Migration fee (depth-based movement cost) + merge fee (consolidation tax) both go to destination.
+/// Move Element's pot inward to deeper destination and rebind charge; adds fees to destination pot.
+/// Rebind fee (standard movement cost) + compression fee (0-5% of pot, scaled by saturation) both paid by Charge, added to destination.
 pub(crate) fn compress<'a, I: AccountIter<'a>>(it: &mut I) -> ProgramResult {
     let CompressionAccounts { charge, src, dst } = CompressionAccounts::extract(it)?;
 

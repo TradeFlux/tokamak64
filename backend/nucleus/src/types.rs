@@ -7,7 +7,7 @@ use bytemuck::{Pod, Zeroable};
 pub type Gluon = u64;
 
 /// Fixed-point (8 integer, 24 fractional bits): element saturation and player share in pots.
-/// Range [0, 12]; conversion: `q824 = actual_value * 2^24`.
+/// Range [0, 6]; conversion: `q824 = actual_value * 2^24`.
 pub type Q824 = u32;
 
 /// Fixed-point (16 integer, 48 fractional bits): pressure integral for path-independent history tracking.

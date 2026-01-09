@@ -1,5 +1,9 @@
 //! Tests for LUT delta mapping and inversion properties.
 
+use crate::consts::LUT_S_MAX;
+use crate::consts::LUT_X_MAX;
+use crate::consts::LUT_X_MIN;
+
 use super::lut::*;
 use super::math::*;
 
