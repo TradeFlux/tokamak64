@@ -239,6 +239,40 @@ Rushed movement (immediate actions):
 - **Patient incremental movement** through low-saturation elements is optimal
 - **Timing matters**: Wait ~7 minutes between moves to avoid speed tax
 
+### Tactical Flanking: Attacking Saturated Elements from Deeper Territory
+
+**The Problem**: In standard bonding curve games, once an element becomes "overheated" (too saturated), activity stops because attacking it becomes prohibitively expensive. The game stagnates.
+
+**The Solution**: TOKAMAK64's fee structure creates a *directional asymmetry* that makes outward attacks dramatically cheaper than inward attacks.
+
+**The Mechanic**: When you move outward (toward lower Z), the movement fee is calculated based on **where you're coming from**, not where you're going. This creates a 14× fee advantage for positions deep on the board.
+
+**The Example**:
+
+Boron (Z=5) is saturated at 95% with a massive pot. Everyone trying to enter from Beryllium (Z=4) pays heavy fees—around 1.41 GLUON for a 1000 GLUON Charge.
+
+But you already positioned a Charge in Carbon (Z=6, only 2% saturation). Moving outward from Carbon to Boron costs just 0.10 GLUON—**14× cheaper**—because the fee is based on Carbon's low saturation, not Boron's high saturation.
+
+**Why This Matters**:
+
+- **No pot is ever safe**: The richest, most expensive Elements can always be attacked cheaply from an adjacent deeper position
+- **Depth becomes opportunity, not trap**: Instead of being stuck deep on the board, you're positioned in a vantage point for surgical, low-cost strikes
+- **Prevents stagnation**: High-saturation Elements remain contested because attacking them is always within reach
+- **Rewards strategic positioning over raw wealth**: Being somewhere smart (deep but ready to strike) beats being rich but facing a paywall
+
+**Strategic Implication**:
+
+Skilled players don't cluster at shallow edges fighting over high fees. Instead, they:
+
+1. Position deep into quiet territory (cheap entry)
+2. Wait for shallow Elements to saturate and accumulate pots
+3. Execute low-cost outward strikes when conditions align
+4. Trigger resets and capture first-mover advantage
+
+The game becomes a positioning chess match: **control the deeper staging grounds, and you can strike shallower pots at will.**
+
+
+
 ## Player Archetypes
 
 The game has no explicit roles, but recurring patterns emerge from profit-chasing incentives:
