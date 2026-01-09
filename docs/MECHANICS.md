@@ -73,20 +73,15 @@ Generation enables detecting stale Charge references after Element reset. A Char
 
 ### Fee Calculation
 
-All movement fees (Rebind, Inject, Eject) use the same base formula:
+All movement fees (Rebind, Inject, Eject) scale based on:
+- **Distance²** (quadratic) — Atomic number difference; long jumps are exponentially expensive
+- **Saturation** (linear) — Element fullness (0-100%); crowded Elements cost more
+- **Speed tax** (up to 128×) — Time since last action; immediate moves are prohibitively expensive
+- **Balance** (linear) — Charge's Gluon amount
 
-```
-base_fee = balance × (distance² × saturation) / (MAX_ATOMIC_NUMBER² × MAX_SATURATION)
-total_fee = base_fee × speed_multiplier
-```
+The total fee is: `base_fee × speed_multiplier`
 
-Where:
-- **balance**: Charge's Gluon balance
-- **distance**: Atomic number difference (for Inject/Eject, distance = element's Z)
-- **saturation**: Target element's current saturation (Q8.24)
-- **speed_multiplier**: Time-based penalty (see Speed Tax below)
-
-Fees scale **quadratically with distance** and **linearly with saturation**. Deeper moves and crowded Elements are progressively more expensive.
+Fees are proportional to balance, so larger Charges pay proportionally more for the same move.
 
 ### Rebind (Movement)
 
@@ -102,8 +97,8 @@ Fee destination depends on direction:
 ### Compress
 
 Moves to any adjacent Element where dst.index > src.index (can be sideways at same depth or skip depths). Compression incurs two fees (both added to destination pot):
-- **Rebind fee** — standard movement fee: `balance × (distance² × saturation × speed_tax) / (26² × 6.0)`
-- **Compression fee** — consolidation tax: `source_pot × (saturation / MAX_SATURATION) × 5%`
+- **Rebind fee** — standard movement fee (distance, saturation, speed tax)
+- **Compression fee** — consolidation tax: up to 5% of source pot, scaled by saturation
 
 The compression fee scales from 0% (empty element) to 5% (fully saturated). Both fees are paid by the Charge and added to the destination pot. The source pot then merges with destination, making the resulting pot strictly larger than the sum of original source + destination pots.
 
@@ -113,22 +108,9 @@ The compression fee scales from 0% (empty element) to 5% (fully saturated). Both
 
 Movement costs scale with time since last action:
 
-| Parameter | Value |
-|-----------|-------|
-| `MAX_SPEED_MULTIPLIER` | 127 |
-| `MAX_DELTA_TIMESTAMP` | 1024 slots |
-| Full decay time | ~7 minutes (at ~400ms/slot) |
+The speed multiplier decays **quadratically** from 128× (immediate action) to 1× (full decay after ~7 minutes). Acting immediately after a previous action is prohibitively expensive.
 
-The speed multiplier formula:
-```
-multiplier = 1 + MAX_SPEED_MULTIPLIER × (time_remaining)² / MAX_DELTA_TIMESTAMP²
-```
-
-Where `time_remaining = MAX_DELTA_TIMESTAMP - elapsed_slots` (capped at 0).
-
-The multiplier decays **quadratically** from 128 (immediate action) to 1 (full decay after ~7 min). Acting immediately after a previous action is prohibitively expensive.
-
-**Why speed tax?** Prevents automation/reflex advantage.
+**Why speed tax?** Prevents automation/reflex advantage. Patience is rewarded.
 
 ## Overload Mechanics
 
@@ -286,25 +268,15 @@ If something feels unfair, another player paid more to shape it.
 [2] target    (writable)  - Element to receive donation
 ```
 
-## Constants
+## Game Constants
 
 | Constant | Value | Description |
 |----------|-------|-------------|
-| `MAX_ATOMIC_NUMBER` | 26 | 26 Elements on board (1-indexed, 0 is off-board) |
-| `MAX_SATURATION` | Q8.24 max | Curve position range [0, 6] |
-| `MIN_FEE` | 100,000 | Minimum fee in Gluon (dust prevention) |
-| `DECIMALS` | 6 | Gluon precision (matches stablecoins) |
-| `MAX_SPEED_MULTIPLIER` | 127 | Maximum speed tax multiplier |
-| `MAX_DELTA_TIMESTAMP` | 1024 | Slots for full speed tax decay (~7 min) |
-
-## Fixed-Point Formats
-
-| Type | Format | Usage |
-|------|--------|-------|
-| `Q824` | Q8.24 (u32) | Saturation [0, 6], commitment share |
-| `Q1648` | Q16.48 (u64) | Pressure integral, path-independent history |
-
-Conversion: `q824 = actual_value * 2^24`, `q1648 = actual_value * 2^48`
+| **Elements** | 26 | Total Elements on board (H to Fe) |
+| **Saturation range** | 0-100% | Empty to reset threshold |
+| **Speed tax** | 1× to 128× | Multiplier based on time since last action |
+| **Speed decay time** | ~7 minutes | Time for full speed tax decay |
+| **Min fee** | 0.1 GLUON | Minimum fee to prevent dust |
 
 ## Math Engine Reference
 
@@ -321,6 +293,6 @@ Conversion: `q824 = actual_value * 2^24`, `q1648 = actual_value * 2^48`
 
 **Costs**: Voluntary actions only; speed tax multiplier + directional bias (inward cheaper than outward); fees route to deeper pot.
 
-**Compression**: To adjacent Element where dst.index > src.index (can be sideways/skip depths); pay rebind fee + compression fee (0-5% of pot, scaled by saturation), then merge source pot into destination. Total cost scales with distance, pot size, and saturation.
+**Compression**: To adjacent Element with higher Z (can be sideways/skip depths); pay rebind fee + compression fee (0-5% of pot, scaled by saturation), then merge source pot into destination. Total cost scales with distance, pot size, and saturation.
 
 **Contributions**: Direct irreversible pot add; no saturation/influence effect.
