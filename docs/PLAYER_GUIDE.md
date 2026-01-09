@@ -1,6 +1,6 @@
 # Player Guide
 
-This guide walks you through playing TOKAMAK64: operations, emerging archetypes, and profit-chasing strategies.
+This guide covers TOKAMAK64 operations and strategy.
 
 ## Prerequisites
 
@@ -175,10 +175,7 @@ You constantly balance:
 
 ### Multiple Charges = Multiple Bets
 
-Having multiple Charges lets you:
-- Diversify across Elements (hedge positioning risk)
-- Test hypotheses without full commitment
-- Play different archetypes simultaneously
+Multiple Charges let you diversify across Elements (hedge positioning risk) and test strategies without full commitment.
 
 ## Understanding Fee Strategy
 
@@ -197,8 +194,8 @@ Fees are proportional to your balance, so a 100 GLUON Charge pays 10× more than
 **Adjacent moves with timing:**
 ```
 Element 13→14 at 5% saturation:
-  Patient (7 min):  0.10 GLUON
-  Rushed (0s):      0.95 GLUON (9×)
+  Patient (~51s):  0.10 GLUON
+  Rushed (0s):     0.95 GLUON (9×)
 ```
 
 **Edge to inner (Element 1→13, distance=12):**
@@ -237,203 +234,68 @@ Rushed movement (immediate actions):
 - **Strategic window**: Arrive early (<30% saturation) for low fees + strong shares
 - **Distance dominates**: Long jumps are exponentially expensive
 - **Patient incremental movement** through low-saturation elements is optimal
-- **Timing matters**: Wait ~7 minutes between moves to avoid speed tax
+- **Timing matters**: Wait ~51 seconds (1024 slots) between moves to avoid speed tax
 
-### Tactical Flanking: Attacking Saturated Elements from Deeper Territory
+### Outward Strikes from Depth
 
-**The Problem**: In standard bonding curve games, once an element becomes "overheated" (too saturated), activity stops because attacking it becomes prohibitively expensive. The game stagnates.
+Outward movement fees are based on the **source** Element's saturation, not the destination. This creates opportunity:
 
-**The Solution**: TOKAMAK64's fee structure creates a *directional asymmetry* that makes outward attacks dramatically cheaper than inward attacks.
+- Position a Charge in a quiet deep Element (low saturation, cheap entry)
+- Wait for an adjacent shallower Element to saturate and build a large pot
+- Strike outward at minimal cost—fees scale with your quiet source, not the crowded target
 
-**The Mechanic**: When you move outward (toward lower Z), the movement fee is calculated based on **where you're coming from**, not where you're going. This creates a 14× fee advantage for positions deep on the board.
+**Example**: Boron (Z=5) at 95% saturation costs 1.41 GLUON to enter from Beryllium. But entering from Carbon (Z=6, 2% saturation) costs 0.10 GLUON—14× cheaper.
 
-**The Example**:
+**Implication**: High-saturation pots are always vulnerable from deeper positions. Control deeper staging grounds to strike shallower pots at will.
 
-Boron (Z=5) is saturated at 95% with a massive pot. Everyone trying to enter from Beryllium (Z=4) pays heavy fees—around 1.41 GLUON for a 1000 GLUON Charge.
 
-But you already positioned a Charge in Carbon (Z=6, only 2% saturation). Moving outward from Carbon to Boron costs just 0.10 GLUON—**14× cheaper**—because the fee is based on Carbon's low saturation, not Boron's high saturation.
 
-**Why This Matters**:
+## Strategic Tradeoffs
 
-- **No pot is ever safe**: The richest, most expensive Elements can always be attacked cheaply from an adjacent deeper position
-- **Depth becomes opportunity, not trap**: Instead of being stuck deep on the board, you're positioned in a vantage point for surgical, low-cost strikes
-- **Prevents stagnation**: High-saturation Elements remain contested because attacking them is always within reach
-- **Rewards strategic positioning over raw wealth**: Being somewhere smart (deep but ready to strike) beats being rich but facing a paywall
+Three independent dimensions define positioning strategy:
 
-**Strategic Implication**:
+### Entry Timing
 
-Skilled players don't cluster at shallow edges fighting over high fees. Instead, they:
+The sigmoid curve creates a tradeoff between share size and certainty:
 
-1. Position deep into quiet territory (cheap entry)
-2. Wait for shallow Elements to saturate and accumulate pots
-3. Execute low-cost outward strikes when conditions align
-4. Trigger resets and capture first-mover advantage
+| Timing | Share | Tradeoff |
+|--------|-------|----------|
+| Early (low saturation) | Large | High opportunity cost if pot stalls or gets compressed away |
+| Late (near threshold) | Small | Lower risk, but depends on accurate threshold prediction |
 
-The game becomes a positioning chess match: **control the deeper staging grounds, and you can strike shallower pots at will.**
+Trigger advantage partially compensates for late entry—the triggering Charge re-binds first in the fresh cycle.
 
+### Depth
 
+Deeper Elements (higher Z) have larger curves and accumulate bigger pots:
 
-## Player Archetypes
+| Depth | Cycle Speed | Stakes | Exit Cost |
+|-------|-------------|--------|-----------|
+| Shallow (H–C) | Fast | Lower | Cheap (edge unbind) |
+| Deep (toward Fe) | Slow | Higher | Expensive (multiple outward rebinds) |
 
-The game has no explicit roles, but recurring patterns emerge from profit-chasing incentives:
+Compression only flows inward, so deep positions are vulnerable to unexpected pot arrivals that trigger resets.
 
-### Sentinels (Patient Holders)
+### Activity
 
-**Strategy**: Early binders who wait through long buildup periods.
+Speed tax creates a cost curve for repositioning frequency:
 
-- Bind into low-saturation Elements
-- Accept weak initial pots in exchange for strong shares
-- Wait for others to add value (fees, compressions)
-- Reap large shares when reset finally occurs
+| Activity | Cost | Coverage |
+|----------|------|----------|
+| Patient (few moves) | Minimal fees | Concentrated exposure |
+| Active (frequent repositioning) | Cumulative speed tax | Distributed exposure |
 
-**Risk**: Element stalls (nobody else arrives); opportunity cost of waiting.
+Patience dominates when reset timing is predictable. Active repositioning pays off only when multiple Elements approach threshold simultaneously.
 
-### Catalysts (Precision Triggers)
+## Equilibrium Considerations
 
-**Strategy**: Late arrivals who trigger profitable resets with surgical timing.
-
-- Monitor building saturation across multiple Elements
-- Enter precisely when reset is imminent and pot is large
-- Accept weak shares; profit comes from triggering large pots
-- Receive first-mover advantage by re-binding to reset Element
-
-**Risk**: Misjudge timing (arrive too early or too late); speed tax if repositioning rapidly.
-
-### Shepherds / Compressors (Flow Redirectors)
-
-**Strategy**: Actively reshape value flows via compression.
-
-- Identify stagnant pots in shallow Elements
-- Compress value inward to create massive deep pots
-- Follow the value deeper, positioning for eventual reset
-- Sometimes deliberately escalate to trigger resets
-
-**Risk**: Compression costs scale with pot size; may escalate beyond control; attracts competition.
-
-### Arsonists (Aggressive Escalators)
-
-**Strategy**: Deliberately destabilize via compression and contributions (Vent).
-
-- Use Vent to rapidly grow pots
-- Compress aggressively to push value toward center
-- Trigger chaos and volatility
-- Profit from resulting resets or manipulate timing
-
-**Risk**: Creates unpredictable dynamics; may benefit competitors; burns resources without guaranteed returns.
-
-### Scavengers (Shallow Farmers)
-
-**Strategy**: Harvest quick, small cycles in outer Elements (H, He, Li, Be, B, C).
-
-- Focus exclusively on edge and shallow-mid Elements
-- Capitalize on fast saturation buildup (smaller curves)
-- Accept lower yields for higher turnover
-- Minimize depth risk (easy to unbind if needed)
-
-**Risk**: Low absolute profits; vulnerable to compression (value moved away before reset).
-
-### Divers (Deep Specialists)
-
-**Strategy**: Position for massive Iron (Fe, Z=26) and deep Element resets.
-
-- Move deep into the board via multiple Rebinds
-- Tolerate high costs and entrapment risk
-- Wait for enormous pots to accumulate
-- Profit from deep resets and (future) Quantum Pocket triggers
-
-**Risk**: Trapped deep with no cheap escape; opportunity cost of waiting; compression may trigger unexpected resets.
-
-### Opportunists (Reactive Movers)
-
-**Strategy**: No fixed plan—react to sudden spikes in saturation or pot size.
-
-- Monitor all Elements constantly
-- Rapidly reposition when opportunities emerge
-- Accept speed tax when necessary
-- Flexible, chaotic, high-frequency
-
-**Risk**: Speed tax makes rapid repositioning expensive; lack of early shares reduces yields.
-
-## Reading the Board
-
-All state is public:
-
-- Every Element's pot size
-- Every Element's saturation level
-- Every Charge's position
-- Proximity to saturation thresholds
-
-Use this information to time your positioning.
-
-**No hidden state, only interpretation skill.**
-
-## What Skilled Players Look Like
-
-A skilled player:
-
-- Waits more than they act (patience beats speed)
-- Understands when pots are dangerous (vulnerable to compression, near reset)
-- Uses compression sparingly (escalation, not safety)
-- Contributes (Vent) only with intent (signals, not random seeding)
-- Respects directional bias (inward cheap, outward expensive)
-- Positions based on "where/when will next reset occur?" not "should I stay or leave?"
-
-They lose value sometimes. Everyone does.
-
-What separates them is **they know why they lost it**.
-
-## Temporary Alliances
-
-No chat needed. Aligned presence creates temporary cooperation:
-
-- Multiple Charges in same Element share interest in reset timing
-- Compressors moving value inward create opportunities for Catalysts
-- Sentinels seed value that Shepherds can redirect
-
-These alliances dissolve immediately after reset—everyone repositions.
-
-## Common Mistakes
-
-### Treating It Like a Hold/Exit Game
-
-**Wrong mindset**: "Should I stay or leave?"
-**Right mindset**: "Where is the next profitable reset?"
-
-This isn't about commitment duration. It's about positioning timing.
-
-### Compressing for Safety
-
-Compression grows pots (via fee) and attracts attention. It's **escalation**, not **protection**.
-
-Compress to reshape the board or create opportunities—never to "secure" value.
-
-### Ignoring Speed Tax
-
-Acting twice quickly is prohibitively expensive.
-
-Each action asks: **"Is this worth doing now, or should I wait?"**
-
-Patience is a first-class strategy, not a fallback.
-
-### Confusing Contributions with Investment
-
-Vent doesn't buy shares or protection. It broadcasts intent.
-
-Contribute to signal or seed—never expecting guaranteed returns.
+- **No dominant strategy**: Early entry beats late entry on shares, but late entry beats early on certainty. Neither dominates.
+- **Compression as coordination problem**: Compressing value creates larger pots but benefits all participants in the destination Element, not just the compressor.
+- **Information is symmetric**: All state is public. Edge comes from interpreting incentives, not from information asymmetry.
+- **Vent as costly signal**: Contributions grow pots without affecting shares—pure signaling that invites both cooperation and predation.
 
 ## Summary
 
-The game is entirely transparent. Your edge comes from:
+Your edge comes from reading incentives, timing positioning, managing multiple Charges, and understanding fee asymmetry (inward typically cheaper due to curve capacity differences).
 
-1. **Reading incentives**: Where is saturation building? Where are pots growing? Where will next reset occur?
-2. **Timing positioning**: Balance early shares vs. reset imminence
-3. **Managing multiple Charges**: Diversify, hedge, test strategies
-4. **Respecting directional bias**: Inward cheap (natural flow toward center), outward expensive
-
-Remember:
-
-> **TOKAMAK64 is a game where value is created by friction, moved by risk (compression), and claimed by presence (being bound at reset instant).**
-
-The game cycles forever. No shutdown, no victory screen—only positioning, timing, and profit-chasing.
-
-Everything else is implementation detail.
+Value is created by friction, moved by compression, claimed by presence at reset. The game cycles forever.

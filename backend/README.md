@@ -27,8 +27,8 @@ cargo build-sbf -p program        # Solana BPF target
 
 ## Implementation Notes
 
-**Speed Tax Timing**: `MAX_DELTA_TIMESTAMP = 1024` slots. At ~400ms/slot, full decay takes ~7 minutes.
+**Speed Tax**: `MAX_DELTA_TIMESTAMP = 1024` slots. At 50ms/slot (L2), full decay takes ~51 seconds.
 
-**Fee Routing (Rebind)**:
-- Inward (`src.index < dst.index`): fee → destination pot
-- Outward (`src.index > dst.index`): fee → source pot
+**Fee Calculation (Rebind)**:
+- Inward (`src.index < dst.index`): fee based on destination saturation (before binding) → destination pot
+- Outward (`src.index > dst.index`): fee based on source saturation (before unbinding) → source pot

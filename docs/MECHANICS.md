@@ -33,7 +33,7 @@ The game provides 13 instructions.
 
 | Instruction | Purpose |
 |-------------|---------|
-| **Rebind** | Move a bound Charge from one Element to an adjacent Element. Inward movement (toward higher Z) is cheaper; outward movement (toward lower Z) is more expensive. Incurs movement costs plus speed tax. |
+| **Rebind** | Move a bound Charge to an adjacent Element. Fee uses destination saturation (inward) or source saturation (outward). Incurs movement costs plus speed tax. |
 | **Compress** | Move an Element's pot to an adjacent Element with higher Z while rebinding the Charge. Can be sideways (same depth) or skip depths, as long as dst.index > src.index and Elements are adjacent. Incurs compression fee (added to moved pot). Cost scales with pot size and depth difference—strategic routing. |
 | **Vent** | Donate part of a bound Charge's Gluon to its current Element's pot. Charge must be bound to that Element. Does not affect commitment share or saturation. |
 
@@ -92,8 +92,6 @@ Fee destination depends on direction:
 | **Inward** | `src.index < dst.index` | Destination Element | Funds deeper Elements, accelerating value accumulation toward center |
 | **Outward** | `src.index > dst.index` | Source Element | Taxes departing Charges, incentivizing sustained commitment |
 
-**Why directional routing?** Creates inward value flow toward Fe. All friction ultimately concentrates toward center.
-
 ### Compress
 
 Moves to any adjacent Element where dst.index > src.index (can be sideways at same depth or skip depths). Compression incurs two fees (both added to destination pot):
@@ -108,9 +106,7 @@ The compression fee scales from 0% (empty element) to 5% (fully saturated). Both
 
 Movement costs scale with time since last action:
 
-The speed multiplier decays **quadratically** from 128× (immediate action) to 1× (full decay after ~7 minutes). Acting immediately after a previous action is prohibitively expensive.
-
-**Why speed tax?** Prevents automation/reflex advantage. Patience is rewarded.
+The speed multiplier decays **quadratically** from 128× (immediate action) to 1× (full decay after 1024 slots, ~51 seconds on L2).
 
 ## Overload Mechanics
 
@@ -150,10 +146,7 @@ For all other Charges that were bound:
 3. Reward distributed proportionally
 4. Charge becomes unbound
 
-**Why index must match:**
-- Validates Charge was actually bound when Element reset
-- Different generation = different reset cycle, ineligible
-- Prevents claiming from wrong Elements or double-claiming
+Index match validates the Charge was bound at that specific reset cycle.
 
 ## System Invariants
 
@@ -192,15 +185,9 @@ These properties **never change**. If something seems to contradict one, the int
 | **No hidden state** | Pot sizes, saturation levels, depth, board structure—all visible. |
 | **No special players** | Every rule applies identically to everyone. No admin advantages. |
 
-### Non-Rules (Things That Do NOT Exist)
+### Non-Rules
 
-- No interest or inflation timer
-- No decay or passive value loss
-- No capture or forced stakes
-- No grief protection
-- No "fairness correction"
-
-If something feels unfair, another player paid more to shape it.
+No interest/inflation, no decay, no forced stakes, no grief protection, no fairness correction.
 
 ## Account Layouts
 
@@ -274,8 +261,8 @@ If something feels unfair, another player paid more to shape it.
 |----------|-------|-------------|
 | **Elements** | 26 | Total Elements on board (H to Fe) |
 | **Saturation range** | 0-100% | Empty to reset threshold |
-| **Speed tax** | 1× to 128× | Multiplier based on time since last action |
-| **Speed decay time** | ~7 minutes | Time for full speed tax decay |
+| **Speed tax** | 1× to 128× | Multiplier based on slots since last action |
+| **Speed decay** | 1024 slots (~51s) | Full decay on L2 (50ms slots) |
 | **Min fee** | 0.1 GLUON | Minimum fee to prevent dust |
 
 ## Math Engine Reference
@@ -291,7 +278,7 @@ If something feels unfair, another player paid more to shape it.
 
 **Reset resolution**: Payout pot by shares → clear pot/saturation → free unbinding (except trigger remains).
 
-**Costs**: Voluntary actions only; speed tax multiplier + directional bias (inward cheaper than outward); fees route to deeper pot.
+**Costs**: Voluntary actions only; speed tax multiplier; inward fees use destination saturation, outward fees use source saturation.
 
 **Compression**: To adjacent Element with higher Z (can be sideways/skip depths); pay rebind fee + compression fee (0-5% of pot, scaled by saturation), then merge source pot into destination. Total cost scales with distance, pot size, and saturation.
 

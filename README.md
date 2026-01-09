@@ -8,7 +8,7 @@ TOKAMAK64 is played on a fixed 8×8 board divided into 26 **Elements** (regions)
 
 You control **Charges** that bind to Elements. Multiple Charges can occupy the same Element, building **saturation**. When saturation exceeds the threshold, the Element **resets**—distributing its accumulated pot to bound Charges.
 
-Movement has directional bias: moving inward (toward Iron) is cheaper; moving outward costs more. This creates natural value flow toward the center, inspired by how fusion reactors have inward magnetic confinement. All costs feed back into the system as shared value — nothing is destroyed.
+Movement fees depend on saturation: inward fees use destination saturation, outward fees use source saturation. Since deeper Elements have larger curves (lower typical saturation), inward moves tend to be cheaper—creating natural value flow toward the center. All costs feed back into the system as shared value.
 
 **The fundamental question**: *"Where and when will the next profitable reset occur?"*
 
@@ -18,7 +18,7 @@ Movement has directional bias: moving inward (toward Iron) is cheaper; moving ou
 - You control **Charges** that occupy entire Elements
 - Multiple Charges per Element accumulate **saturation**
 - When saturation exceeds threshold, Element **resets**: pot distributed, Charges unbound
-- Moving inward is cheap; moving outward is expensive
+- Inward moves typically cheaper (fee asymmetry from curve capacity)
 - All costs feed back as shared value
 
 **Core tension**: Constantly reposition between building hotspots, balancing early arrival (strong shares) against timing risk.
@@ -50,17 +50,9 @@ Movement has directional bias: moving inward (toward Iron) is cheaper; moving ou
 
 ## Why Play?
 
-**Profit-chasing via positioning**: Early arrival grants large commitment shares; late arrival gets diminishing returns but can trigger resets. Compression escalates stakes by moving value to higher Z Elements (strategic routing based on cost/topology). Reading saturation buildup and timing repositioning is the core skill.
+**Profit-chasing via positioning**: Early arrival grants large commitment shares; late arrival gets diminishing returns but can trigger resets. Compression escalates stakes by moving value deeper. The core skill is reading saturation buildup and timing repositioning.
 
-**Emergent roles without coordination**:
-- **Sentinels** wait patiently through buildup
-- **Catalysts** trigger profitable resets with precision
-- **Compressors** redirect value flows to reshape hotspots
-- **Arsonists** escalate chaos with aggressive contributions
-- **Scavengers** harvest shallow quick cycles
-- **Divers** time deep Iron resets for massive yields
-
-The game cycles forever—no shutdown, only evolving states shaped by player timing.
+**No dominant strategy**: Entry timing, depth, and activity level are independent tradeoffs. The game cycles forever—equilibrium emerges from player decisions, not prescribed roles.
 
 ## Board Layout
 
@@ -91,7 +83,7 @@ H │  Ne10   │ F9 │      O8 │           N7 │
 
 - **[Game Design](docs/GAME_DESIGN.md)** — Board topology, commitment mechanics, value flow, design motivation
 - **[Mechanics](docs/MECHANICS.md)** — All 13 instructions, fee routing, invariants, technical details
-- **[Player Guide](docs/PLAYER_GUIDE.md)** — Mental models, archetypes, profit-chasing strategies
+- **[Player Guide](docs/PLAYER_GUIDE.md)** — Operations, fee strategy, strategic tradeoffs
 
 ## Building
 
