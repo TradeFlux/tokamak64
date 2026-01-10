@@ -398,43 +398,42 @@ pub fn ix_data_with_u64(ix: TokamakInstruction, value: u64) -> Vec<u8> {
     data
 }
 
-/// Account metas: signer + charge + element + board
-pub fn metas_charge_elem(
-    signer: Pubkey,
-    charge: Pubkey,
-    element: Pubkey,
-    board: Pubkey,
-) -> Vec<AccountMeta> {
-    vec![
-        AccountMeta::new(signer, true),
-        AccountMeta::new(charge, false),
-        AccountMeta::new(element, false),
-        AccountMeta::new(board, false),
-    ]
+// ============================================================================
+// INSTRUCTION BUILDER
+// ============================================================================
+
+/// Build instruction from variant and metas
+#[macro_export]
+macro_rules! ix {
+    ($variant:expr, $metas:expr) => {
+        ::solana_sdk::instruction::Instruction::new_with_bytes(
+            $crate::PROGRAM_ID,
+            &$crate::ix_data($variant),
+            $metas,
+        )
+    };
+    ($variant:expr, $value:expr, $metas:expr) => {
+        ::solana_sdk::instruction::Instruction::new_with_bytes(
+            $crate::PROGRAM_ID,
+            &$crate::ix_data_with_u64($variant, $value),
+            $metas,
+        )
+    };
 }
 
-/// Account metas: signer + charge + source + destination
-pub fn metas_charge_src_dst(
-    signer: Pubkey,
-    charge: Pubkey,
-    src: Pubkey,
-    dst: Pubkey,
-) -> Vec<AccountMeta> {
-    vec![
-        AccountMeta::new(signer, true),
-        AccountMeta::new(charge, false),
-        AccountMeta::new(src, false),
-        AccountMeta::new(dst, false),
-    ]
-}
+// ============================================================================
+// ACCOUNT METAS MACRO
+// ============================================================================
 
-/// Account metas: signer + charge + artefact
-pub fn metas_charge_art(signer: Pubkey, charge: Pubkey, artefact: Pubkey) -> Vec<AccountMeta> {
-    vec![
-        AccountMeta::new(signer, true),
-        AccountMeta::new(charge, false),
-        AccountMeta::new(artefact, false),
-    ]
+/// Build account metas: first arg is signer (writable), rest are read-only
+#[macro_export]
+macro_rules! metas {
+    ($signer:expr, $($rest:expr),+ $(,)?) => {
+        vec![
+            ::solana_sdk::instruction::AccountMeta::new($signer.pubkey, true),
+            $(::solana_sdk::instruction::AccountMeta::new($rest.pubkey, false),)+
+        ]
+    };
 }
 
 // ============================================================================
@@ -469,4 +468,31 @@ pub fn assert_count(result: &InstructionResult, idx: usize, expected: u32) {
         "Expected charge_count {}, got {}",
         expected, b.charge_count
     );
+}
+
+// ============================================================================
+// RESULT ACCESSOR
+// ============================================================================
+
+/// Extension for easy result account access
+pub trait ResultExt {
+    fn get<T: bytemuck::Pod + Copy>(&self, idx: usize) -> T;
+}
+
+impl ResultExt for InstructionResult {
+    fn get<T: bytemuck::Pod + Copy>(&self, idx: usize) -> T {
+        read(&self.resulting_accounts[idx].1)
+    }
+}
+
+// ============================================================================
+// TEST HELPER MACRO
+// ============================================================================
+
+/// Execute instruction with accounts and checks
+#[macro_export]
+macro_rules! test_run {
+    ($ix:expr, $accounts:expr, $checks:expr) => {
+        $crate::mollusk().process_and_validate_instruction(&$ix, $accounts, $checks)
+    };
 }
