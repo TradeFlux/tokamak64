@@ -2,27 +2,20 @@
 //!
 //! This crate contains auto-generated code from FlatBuffers schemas.
 //! The code is generated at build time via build.rs using the flatc compiler.
-//!
-//! ## Schema Modules
-//! - `tokamak::board` - Board state (Curve, Element, Board, Artefact)
-//! - `tokamak::player` - Player accounts (Wallet, Charge)
-//! - `tokamak` - Root Game table
-//!
 
+pub mod api;
 pub mod convert;
+pub mod serialization;
 
-// Include generated FlatBuffers code for game state
-#[path = ""]
-mod game_generated {
-    include!(concat!(env!("OUT_DIR"), "/game.rs"));
+// FlatBuffers generated types
+pub mod fb {
+    // Use api.rs which includes the other schemas
+    include!(concat!(env!("OUT_DIR"), "/api.rs"));
+    pub use tokamak::*;
 }
 
-// Include generated FlatBuffers code for player accounts
-#[path = ""]
-mod player_generated {
-    include!(concat!(env!("OUT_DIR"), "/player.rs"));
+pub mod tokamak {
+    pub use nucleus::board::*;
+    pub use nucleus::player::*;
+    pub use nucleus::types::*;
 }
-
-// Re-export all generated types under the tokamak namespace
-pub use game_generated::tokamak;
-pub use player_generated::tokamak::player;

@@ -1,6 +1,6 @@
 // Fundamental types: fixed-point arithmetic, element identifiers, and board coordinates.
 
-namespace tokamak.types;
+namespace tokamak;
 
 // 32-byte Solana public key encoded as 4 u64 words (4 * 8 = 32 bytes).
 // Identifies authorities (signers) and mint accounts.

@@ -20,7 +20,7 @@ fn main() {
     }
 
     // Schema files to generate (and their dependencies)
-    let schemas = ["game.fbs", "player.fbs"];
+    let schemas = ["game.fbs", "player.fbs", "api.fbs"];
 
     // Tell cargo to rerun if any schema file changes
     println!(
@@ -30,6 +30,10 @@ fn main() {
     println!(
         "cargo:rerun-if-changed={}",
         schema_dir.join("board.fbs").display()
+    );
+    println!(
+        "cargo:rerun-if-changed={}",
+        schema_dir.join("api.fbs").display()
     );
     for schema in &schemas {
         let schema_path = schema_dir.join(schema);

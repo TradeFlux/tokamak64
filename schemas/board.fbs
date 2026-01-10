@@ -2,7 +2,7 @@
 
 include "types.fbs";
 
-namespace tokamak.board;
+namespace tokamak;
 
 // Bonding curve state for an element.
 // Determines entry cost, player share value, and pressure mechanics.

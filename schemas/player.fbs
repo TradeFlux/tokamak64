@@ -2,7 +2,7 @@
 
 include "types.fbs";
 
-namespace tokamak.player;
+namespace tokamak;
 
 // Liquid Gluon (outside board pressure).
 // Entry/exit point for on-chain value via Infuse/Extract.
@@ -10,9 +10,9 @@ table Wallet {
   // Unallocated Gluon, ready to fund charges.
   balance: uint64;
   // Wallet authority (signer).
-  authority: tokamak.types.AddressBytes;
+  authority: AddressBytes (required);
   // Stable token mint (USDT/USDC).
-  mint: tokamak.types.AddressBytes;
+  mint: AddressBytes (required);
   // Count of charges created (for PDA derivation).
   charges: uint32;
 }
@@ -32,7 +32,7 @@ table Charge {
   // Proportional share of element pot (Q8.24 fixed-point).
   share: uint32;
   // Charge authority (signer).
-  authority: tokamak.types.AddressBytes;
+  authority: AddressBytes (required);
   // Stable token mint.
-  mint: tokamak.types.AddressBytes;
+  mint: AddressBytes (required);
 }

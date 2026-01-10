@@ -9,55 +9,51 @@
 //! ## Serialization: Nucleus → FlatBuffers
 //! Use the helper functions in this module with a `FlatBufferBuilder`.
 
-use crate::player as fb_player;
-use crate::tokamak::{board as fb_board, types as fb_types};
+use crate::api::{Action, BoardEvent, PlayerEvent, SnapshotResponse};
+use crate::fb::tokamak as fb;
+use crate::tokamak;
+use std::fmt;
 
-// Re-export player types module for disambiguation
-use crate::player_generated::tokamak::types as fb_player_types;
+// ============================================================================
+// Error types
+// ============================================================================
+
+/// Error type for event conversion failures.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EventConvertError {
+    InvalidPlayerEvent(fb::PlayerEvent),
+    InvalidBoardEvent(fb::BoardEvent),
+    MissingEventData,
+}
+
+impl fmt::Display for EventConvertError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidPlayerEvent(e) => write!(f, "Invalid PlayerEvent type: {:?}", e),
+            Self::InvalidBoardEvent(e) => write!(f, "Invalid BoardEvent type: {:?}", e),
+            Self::MissingEventData => write!(f, "Missing event data"),
+        }
+    }
+}
+
+impl std::error::Error for EventConvertError {}
 
 // ============================================================================
 // Types conversions
 // ============================================================================
 
-/// Convert FlatBuffers AddressBytes (game) to nucleus AddressBytes ([u8; 32])
-impl From<&fb_types::AddressBytes> for nucleus::types::AddressBytes {
-    fn from(fb: &fb_types::AddressBytes) -> Self {
+/// Convert FlatBuffers AddressBytes to nucleus AddressBytes ([u8; 32])
+impl From<&fb::AddressBytes> for tokamak::AddressBytes {
+    fn from(fb: &fb::AddressBytes) -> Self {
         fb.0
     }
 }
 
-/// Convert FlatBuffers AddressBytes (player) to nucleus AddressBytes ([u8; 32])
-impl From<&fb_player_types::AddressBytes> for nucleus::types::AddressBytes {
-    fn from(fb: &fb_player_types::AddressBytes) -> Self {
-        fb.0
+/// Convert nucleus AddressBytes to FlatBuffers AddressBytes
+impl From<&tokamak::AddressBytes> for fb::AddressBytes {
+    fn from(addr: &tokamak::AddressBytes) -> Self {
+        fb::AddressBytes(*addr)
     }
-}
-
-// Note: We can't implement From<u64> for ElementIndex/Coordinates due to orphan rules.
-// Use helper functions instead.
-
-/// Convert u64 from FlatBuffers to ElementIndex
-#[inline]
-pub fn to_element_index(val: u64) -> nucleus::types::ElementIndex {
-    nucleus::types::ElementIndex(val)
-}
-
-/// Convert ElementIndex to u64 for FlatBuffers
-#[inline]
-pub fn from_element_index(idx: nucleus::types::ElementIndex) -> u64 {
-    idx.0
-}
-
-/// Convert u64 from FlatBuffers to Coordinates
-#[inline]
-pub fn to_coordinates(val: u64) -> nucleus::types::Coordinates {
-    nucleus::types::Coordinates(val)
-}
-
-/// Convert Coordinates to u64 for FlatBuffers
-#[inline]
-pub fn from_coordinates(coords: nucleus::types::Coordinates) -> u64 {
-    coords.0
 }
 
 // ============================================================================
@@ -65,9 +61,9 @@ pub fn from_coordinates(coords: nucleus::types::Coordinates) -> u64 {
 // ============================================================================
 
 /// Convert FlatBuffers Curve to nucleus Curve
-impl From<fb_board::Curve<'_>> for nucleus::board::Curve {
-    fn from(fb: fb_board::Curve<'_>) -> Self {
-        nucleus::board::Curve {
+impl From<fb::Curve<'_>> for tokamak::Curve {
+    fn from(fb: fb::Curve<'_>) -> Self {
+        tokamak::Curve {
             capacity: fb.capacity(),
             tvl: fb.tvl(),
             pressure: fb.pressure(),
@@ -77,22 +73,35 @@ impl From<fb_board::Curve<'_>> for nucleus::board::Curve {
     }
 }
 
+/// Convert nucleus Curve to FlatBuffers Curve
+impl From<&tokamak::Curve> for fb::CurveArgs {
+    fn from(curve: &tokamak::Curve) -> Self {
+        fb::CurveArgs {
+            capacity: curve.capacity,
+            tvl: curve.tvl,
+            pressure: curve.pressure,
+            saturation: curve.saturation,
+            shares: curve.shares,
+        }
+    }
+}
+
 /// Convert FlatBuffers Element to nucleus Element
-impl From<fb_board::Element<'_>> for nucleus::board::Element {
-    fn from(fb: fb_board::Element<'_>) -> Self {
-        nucleus::board::Element {
+impl From<fb::Element<'_>> for tokamak::Element {
+    fn from(fb: fb::Element<'_>) -> Self {
+        tokamak::Element {
             pot: fb.pot(),
-            index: to_element_index(fb.index()),
+            index: fb.index().into(),
             curve: fb.curve().unwrap().into(),
-            coordinates: to_coordinates(fb.coordinates()),
+            coordinates: fb.coordinates().into(),
         }
     }
 }
 
 /// Convert FlatBuffers Board to nucleus Board
-impl From<fb_board::Board<'_>> for nucleus::board::Board {
-    fn from(fb: fb_board::Board<'_>) -> Self {
-        nucleus::board::Board {
+impl From<fb::Board<'_>> for tokamak::Board {
+    fn from(fb: fb::Board<'_>) -> Self {
+        tokamak::Board {
             tvl: fb.tvl(),
             quantum_pocket: fb.quantum_pocket(),
             charge_count: fb.charge_count(),
@@ -102,15 +111,38 @@ impl From<fb_board::Board<'_>> for nucleus::board::Board {
     }
 }
 
+/// Convert nucleus Board to FlatBuffers Board
+impl From<&tokamak::Board> for fb::BoardArgs {
+    fn from(board: &tokamak::Board) -> Self {
+        fb::BoardArgs {
+            tvl: board.tvl,
+            quantum_pocket: board.quantum_pocket,
+            charge_count: board.charge_count,
+            quantum_index: board.quantum_index,
+        }
+    }
+}
+
 /// Convert FlatBuffers Artefact to nucleus Artefact
-impl From<fb_board::Artefact<'_>> for nucleus::board::Artefact {
-    fn from(fb: fb_board::Artefact<'_>) -> Self {
+impl From<fb::Artefact<'_>> for tokamak::Artefact {
+    fn from(fb: fb::Artefact<'_>) -> Self {
         use bytemuck::Zeroable;
-        let mut art = nucleus::board::Artefact::zeroed();
+        let mut art = tokamak::Artefact::zeroed();
         art.pot = fb.pot();
-        art.index = to_element_index(fb.index());
+        art.index = fb.index().into();
         art.shares = fb.shares();
         art
+    }
+}
+
+/// Convert nucleus Artefact to FlatBuffers Artefact
+impl From<&tokamak::Artefact> for fb::ArtefactArgs {
+    fn from(art: &tokamak::Artefact) -> Self {
+        fb::ArtefactArgs {
+            pot: art.pot,
+            index: art.index.into(),
+            shares: art.shares,
+        }
     }
 }
 
@@ -119,72 +151,119 @@ impl From<fb_board::Artefact<'_>> for nucleus::board::Artefact {
 // ============================================================================
 
 /// Convert FlatBuffers Wallet to nucleus Wallet
-impl From<fb_player::Wallet<'_>> for nucleus::player::Wallet {
-    fn from(fb: fb_player::Wallet<'_>) -> Self {
+impl From<fb::Wallet<'_>> for tokamak::Wallet {
+    fn from(fb: fb::Wallet<'_>) -> Self {
         use bytemuck::Zeroable;
-        let mut wallet = nucleus::player::Wallet::zeroed();
+        let mut wallet = tokamak::Wallet::zeroed();
         wallet.balance = fb.balance();
-        wallet.authority = fb.authority().unwrap().into();
-        wallet.mint = fb.mint().unwrap().into();
+        wallet.authority = fb.authority().into();
+        wallet.mint = fb.mint().into();
         wallet.charges = fb.charges();
         wallet
     }
 }
 
 /// Convert FlatBuffers Charge to nucleus Charge
-impl From<fb_player::Charge<'_>> for nucleus::player::Charge {
-    fn from(fb: fb_player::Charge<'_>) -> Self {
+impl From<fb::Charge<'_>> for tokamak::Charge {
+    fn from(fb: fb::Charge<'_>) -> Self {
         use bytemuck::Zeroable;
-        let mut charge = nucleus::player::Charge::zeroed();
+        let mut charge = tokamak::Charge::zeroed();
         charge.balance = fb.balance();
         charge.timestamp = fb.timestamp();
-        charge.index = to_element_index(fb.index());
+        charge.index = fb.index().into();
         charge.share = fb.share();
-        charge.authority = fb.authority().unwrap().into();
-        charge.mint = fb.mint().unwrap().into();
+        charge.authority = fb.authority().into();
+        charge.mint = fb.mint().into();
         charge
     }
 }
 
 // ============================================================================
-// Serialization helpers: Nucleus → FlatBuffers
+// API Type Conversions (deserialization only)
+// Serialization is handled by api.rs serialize methods
 // ============================================================================
 
-/// Create FlatBuffers CurveArgs from nucleus Curve
-#[inline]
-pub fn curve_args(curve: &nucleus::board::Curve) -> fb_board::CurveArgs {
-    fb_board::CurveArgs {
-        capacity: curve.capacity,
-        tvl: curve.tvl,
-        pressure: curve.pressure,
-        saturation: curve.saturation,
-        shares: curve.shares,
+// SnapshotResponse: From FlatBuffers
+impl From<&fb::SnapshotResponse<'_>> for SnapshotResponse {
+    fn from(fb: &fb::SnapshotResponse<'_>) -> Self {
+        let game = fb.game();
+        let wallets = fb.wallets();
+        let charges = fb.charges();
+        Self {
+            board: game.board().into(),
+            elements: game.elements().iter().map(|e| e.into()).collect(),
+            artefacts: game.artefacts().iter().map(|a| a.into()).collect(),
+            snapshot_time: game.snapshot_time(),
+            slot: game.slot(),
+            wallets: (0..wallets.len()).map(|i| wallets.get(i).into()).collect(),
+            charges: (0..charges.len()).map(|i| charges.get(i).into()).collect(),
+        }
     }
 }
 
-/// Create FlatBuffers BoardArgs from nucleus Board
-#[inline]
-pub fn board_args(board: &nucleus::board::Board) -> fb_board::BoardArgs {
-    fb_board::BoardArgs {
-        tvl: board.tvl,
-        quantum_pocket: board.quantum_pocket,
-        charge_count: board.charge_count,
-        quantum_index: board.quantum_index,
+// Action: From FlatBuffers
+impl<'a> From<&fb::Action<'a>> for Action<'a> {
+    fn from(fb: &fb::Action<'a>) -> Self {
+        Self {
+            transaction: fb.transaction().bytes(),
+            player: fb.player().into(),
+        }
     }
 }
 
-/// Create FlatBuffers ArtefactArgs from nucleus Artefact
-#[inline]
-pub fn artefact_args(art: &nucleus::board::Artefact) -> fb_board::ArtefactArgs {
-    fb_board::ArtefactArgs {
-        pot: art.pot,
-        index: from_element_index(art.index),
-        shares: art.shares,
+// PlayerEventMessage: TryFrom FlatBuffers → extract inner event
+impl TryFrom<&fb::PlayerEventMessage<'_>> for PlayerEvent {
+    type Error = EventConvertError;
+
+    fn try_from(fb: &fb::PlayerEventMessage<'_>) -> Result<Self, Self::Error> {
+        match fb.event_type() {
+            fb::PlayerEvent::Wallet => {
+                let wallet = fb
+                    .event_as_wallet()
+                    .ok_or(EventConvertError::MissingEventData)?
+                    .into();
+                Ok(PlayerEvent::Wallet(wallet))
+            }
+            fb::PlayerEvent::Charge => {
+                let charge = fb
+                    .event_as_charge()
+                    .ok_or(EventConvertError::MissingEventData)?
+                    .into();
+                Ok(PlayerEvent::Charge(charge))
+            }
+            _ => Err(EventConvertError::InvalidPlayerEvent(fb.event_type())),
+        }
     }
 }
 
-/// Create FlatBuffers AddressBytes from nucleus AddressBytes
-#[inline]
-pub fn address_bytes(addr: &nucleus::types::AddressBytes) -> fb_types::AddressBytes {
-    fb_types::AddressBytes(*addr)
+// BoardEventMessage: TryFrom FlatBuffers → extract inner event
+impl TryFrom<&fb::BoardEventMessage<'_>> for BoardEvent {
+    type Error = EventConvertError;
+
+    fn try_from(fb: &fb::BoardEventMessage<'_>) -> Result<Self, Self::Error> {
+        match fb.event_type() {
+            fb::BoardEvent::Board => {
+                let board = fb
+                    .event_as_board()
+                    .ok_or(EventConvertError::MissingEventData)?
+                    .into();
+                Ok(BoardEvent::Board(board))
+            }
+            fb::BoardEvent::Element => {
+                let element = fb
+                    .event_as_element()
+                    .ok_or(EventConvertError::MissingEventData)?
+                    .into();
+                Ok(BoardEvent::Element(element))
+            }
+            fb::BoardEvent::Artefact => {
+                let artefact = fb
+                    .event_as_artefact()
+                    .ok_or(EventConvertError::MissingEventData)?
+                    .into();
+                Ok(BoardEvent::Artefact(artefact))
+            }
+            _ => Err(EventConvertError::InvalidBoardEvent(fb.event_type())),
+        }
+    }
 }

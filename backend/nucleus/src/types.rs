@@ -25,6 +25,18 @@ pub type AddressBytes = [u8; 32];
 #[cfg_attr(feature = "bytemuck", derive(Pod, Zeroable))]
 pub struct ElementIndex(pub u64);
 
+impl From<u64> for ElementIndex {
+    fn from(val: u64) -> Self {
+        Self(val)
+    }
+}
+
+impl From<ElementIndex> for u64 {
+    fn from(val: ElementIndex) -> Self {
+        val.0
+    }
+}
+
 impl ElementIndex {
     const GEN_BITS: u32 = u64::BITS - u8::BITS;
     const GEN_MASK: u64 = u64::MAX >> u8::BITS;
@@ -72,6 +84,18 @@ impl ElementIndex {
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "bytemuck", derive(Pod, Zeroable))]
 pub struct Coordinates(pub u64);
+
+impl From<u64> for Coordinates {
+    fn from(val: u64) -> Self {
+        Self(val)
+    }
+}
+
+impl From<Coordinates> for u64 {
+    fn from(val: Coordinates) -> Self {
+        val.0
+    }
+}
 
 impl Coordinates {
     // File and rank masks for 8×8 row-major layout.

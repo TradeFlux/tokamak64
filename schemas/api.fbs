@@ -1,0 +1,61 @@
+// API message types: requests, responses, and events for client-server communication.
+
+include "types.fbs";
+include "game.fbs";
+include "player.fbs";
+
+namespace tokamak;
+
+// SnapshotRequest: request a game snapshot filtered by player.
+table SnapshotRequest {
+  // Player authority whose data to include.
+  player: AddressBytes (required);
+}
+
+// SnapshotResponse: complete game state with player-specific accounts.
+table SnapshotResponse {
+  // Full game state (board, elements, artefacts).
+  game: Game (required);
+  // All wallets owned by the requested player.
+  wallets: [Wallet] (required);
+  // All charges owned by the requested player.
+  charges: [Charge] (required);
+}
+
+// PlayerSubscribe: subscribe to events for a specific player.
+table PlayerSubscribe {
+  // Player authority to subscribe to.
+  player: AddressBytes (required);
+}
+
+// PlayerEvent: union of player-related events (wallet or charge).
+union PlayerEvent {
+  Wallet: Wallet,
+  Charge: Charge,
+}
+
+// BoardEvent: union of board-related events (board, element, or artefact).
+union BoardEvent {
+  Board: Board,
+  Element: Element,
+  Artefact: Artefact,
+}
+
+// PlayerEventMessage: wrapper for sending PlayerEvent over the wire.
+table PlayerEventMessage {
+  event: PlayerEvent (required);
+}
+
+// BoardEventMessage: wrapper for sending BoardEvent over the wire.
+table BoardEventMessage {
+  event: BoardEvent (required);
+}
+
+// Action: a serialized transaction with the authorizing player.
+table Action {
+  // Raw serialized Solana transaction bytes.
+  transaction: [uint8] (required);
+  // Player authority who signed this transaction.
+  player: AddressBytes (required);
+}
+
