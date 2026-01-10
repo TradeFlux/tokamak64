@@ -71,5 +71,5 @@ pub struct Artefact {
     pub index: ElementIndex,
     /// Cumulative number of shares owned by bound charges at the moment of overload
     pub shares: Q824,
-    _pad: u32,
+    pub _pad: u32,
 }

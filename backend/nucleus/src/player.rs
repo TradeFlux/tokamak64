@@ -18,7 +18,7 @@ pub struct Wallet {
     pub mint: AddressBytes,
     /// Count of charges created (for PDA derivation).
     pub charges: u32,
-    _pad: u32,
+    pub _pad: u32,
 }
 
 /// Allocated Gluon bound to one element. Bound (index != 0) or unbound (index == 0).
@@ -39,5 +39,5 @@ pub struct Charge {
     pub authority: AddressBytes,
     /// Stable token mint.
     pub mint: AddressBytes,
-    _pad: u32,
+    pub _pad: u32,
 }

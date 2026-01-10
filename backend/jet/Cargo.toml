@@ -10,5 +10,3 @@ curve = { workspace = true }
 nucleus = { workspace = true }
 # External
 flatbuffers = "24.3"
-
-[build-dependencies]
