@@ -35,7 +35,7 @@ fn charge_fails_zero_amount() {
     let wallet = wallet_min(&signer.pubkey);
 
     test_run!(
-        ix!(TokamakInstruction::Charge, 0, metas!(signer, charge, wallet)),
+        ix!(TokamakInstruction::Charge, 0u64, metas!(signer, charge, wallet)),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::err(ProgramError::InvalidArgument)]
     );
@@ -49,7 +49,7 @@ fn charge_fails_insufficient_wallet_balance() {
     let wallet = wallet(&signer.pubkey, 100);
 
     test_run!(
-        ix!(TokamakInstruction::Charge, 1_000, metas!(signer, charge, wallet)),
+        ix!(TokamakInstruction::Charge, 1_000u64, metas!(signer, charge, wallet)),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::err(ProgramError::ArithmeticOverflow)]
     );
@@ -78,7 +78,7 @@ fn charge_accumulates_to_existing_balance() {
     let wallet = wallet_min(&signer.pubkey);
 
     let result = test_run!(
-        ix!(TokamakInstruction::Charge, 200_000, metas!(signer, charge, wallet)),
+        ix!(TokamakInstruction::Charge, 200_000u64, metas!(signer, charge, wallet)),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::success()]
     );
@@ -116,7 +116,7 @@ fn discharge_fails_zero_amount() {
     let wallet = wallet(&signer.pubkey, 0);
 
     test_run!(
-        ix!(TokamakInstruction::Discharge, 0, metas!(signer, charge, wallet)),
+        ix!(TokamakInstruction::Discharge, 0u64, metas!(signer, charge, wallet)),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::err(ProgramError::InvalidArgument)]
     );
@@ -130,7 +130,7 @@ fn discharge_fails_insufficient_charge_balance() {
     let wallet = wallet(&signer.pubkey, 0);
 
     test_run!(
-        ix!(TokamakInstruction::Discharge, 1_000, metas!(signer, charge, wallet)),
+        ix!(TokamakInstruction::Discharge, 1_000u64, metas!(signer, charge, wallet)),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::err(ProgramError::InsufficientFunds)]
     );

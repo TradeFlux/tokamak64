@@ -16,16 +16,12 @@ fn vent_success_to_element_pot() {
     let signer = signer();
     let elem_index = elem_index(3);
     let initial = BAL_MIN;
-    let vent_amount = 200_000;
+    let vent_amount: u64 = 200_000;
     let charge = charge(&signer.pubkey, initial, elem_index);
     let elem = element_edge(3);
 
     let result = test_run!(
-        ix!(TokamakInstruction::Vent, vent_amount, vec![
-            AccountMeta::new(signer.pubkey, true),
-            AccountMeta::new(charge.pubkey, false),
-            AccountMeta::new(elem.pubkey, false),
-        ]),
+        ix!(TokamakInstruction::Vent, vent_amount, metas!(signer, charge, elem)),
         &[signer.into(), charge.into(), elem.into()],
         &[Check::success()]
     );
@@ -45,11 +41,7 @@ fn vent_fails_zero_amount() {
     let elem = element_edge(3);
 
     test_run!(
-        ix!(TokamakInstruction::Vent, 0, vec![
-            AccountMeta::new(signer.pubkey, true),
-            AccountMeta::new(charge.pubkey, false),
-            AccountMeta::new(elem.pubkey, false),
-        ]),
+        ix!(TokamakInstruction::Vent, 0u64, metas!(signer, charge, elem)),
         &[signer.into(), charge.into(), elem.into()],
         &[Check::err(ProgramError::InvalidArgument)]
     );
@@ -64,11 +56,7 @@ fn vent_fails_insufficient_balance() {
     let elem = element_edge(3);
 
     test_run!(
-        ix!(TokamakInstruction::Vent, 1_000, vec![
-            AccountMeta::new(signer.pubkey, true),
-            AccountMeta::new(charge.pubkey, false),
-            AccountMeta::new(elem.pubkey, false),
-        ]),
+        ix!(TokamakInstruction::Vent, 1_000u64, metas!(signer, charge, elem)),
         &[signer.into(), charge.into(), elem.into()],
         &[Check::err(ProgramError::ArithmeticOverflow)]
     );
@@ -83,11 +71,7 @@ fn vent_fails_wrong_target_element() {
     let elem = element_edge(5);
 
     test_run!(
-        ix!(TokamakInstruction::Vent, 200_000, vec![
-            AccountMeta::new(signer.pubkey, true),
-            AccountMeta::new(charge.pubkey, false),
-            AccountMeta::new(elem.pubkey, false),
-        ]),
+        ix!(TokamakInstruction::Vent, 200_000u64, metas!(signer, charge, elem)),
         &[signer.into(), charge.into(), elem.into()],
         &[Check::err(ProgramError::Custom(32))]
     );
