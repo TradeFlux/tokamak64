@@ -12,7 +12,6 @@ pub(crate) struct IxData<'a> {
     cursor: usize,
 }
 
-#[allow(dead_code)]
 #[repr(u64)]
 #[derive(Clone, Copy)]
 pub enum TokamakInstruction {

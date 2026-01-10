@@ -3,154 +3,117 @@
 mod common;
 use common::*;
 
-use mollusk_svm::result::Check;
 use nucleus::board::Artefact;
 use nucleus::player::Charge;
-use nucleus::types::ElementIndex;
-use solana_sdk::{
-    instruction::{AccountMeta, Instruction},
-    program_error::ProgramError,
-};
+
+// ============================================================================
+// CLAIM INSTRUCTION TESTS
+// ============================================================================
 
 mod claim_tests {
     use super::*;
 
-    fn ix_data() -> Vec<u8> {
-        IX_CLAIM.to_le_bytes().to_vec()
-    }
-
+    /// Claim proportional share from artefact pot to charge
     #[test]
     fn success_claim_proportional_share() {
         let mollusk = mollusk();
-        let (signer_key, signer) = make_signer();
-        let art_index = ElementIndex((3u64 << 56) | 1);
-        let (charge_key, charge_acc, _) =
-            make_charge_with_share(&signer_key, 0, art_index, 1 << 24);
-        let (art_key, art_acc, _) = make_artefact(1_000_000, art_index, 2 << 24);
+        let signer = signer();
+        let art_index = elem_index(3);
+        let charge = charge_with_share(&signer.pubkey, 0, art_index, SHARE_ONE);
+        let art = artefact_full(1_000_000, art_index, SHARE_TWO);
 
-        let ix = Instruction::new_with_bytes(
-            PROGRAM_ID,
-            &ix_data(),
-            vec![
-                AccountMeta::new(signer_key, true),
-                AccountMeta::new(charge_key, false),
-                AccountMeta::new(art_key, false),
-            ],
-        );
+        let ix = Instruction::new_with_bytes(PROGRAM_ID, &ix_data(TokamakInstruction::Claim), metas_charge_art(signer.pubkey, charge.pubkey, art.pubkey));
 
         let result = mollusk.process_and_validate_instruction(
             &ix,
             &[
-                (signer_key, signer),
-                (charge_key, charge_acc),
-                (art_key, art_acc),
+                signer.into(),
+                charge.into(),
+                art.into(),
             ],
             &[Check::success()],
         );
 
-        let charge: Charge = read_account(&result.resulting_accounts[1].1);
-        let artefact: Artefact = read_account(&result.resulting_accounts[2].1);
+        let c: Charge = read(&result.resulting_accounts[1].1);
+        let a: Artefact = read(&result.resulting_accounts[2].1);
 
-        assert_eq!(charge.balance, 500_000);
-        assert_eq!(artefact.pot, 500_000);
-        assert_eq!(charge.share, 0);
-        assert!(charge.index.is_zero());
+        assert_eq!(c.balance, AMT_HALF);
+        assert_eq!(a.pot, AMT_HALF);
+        assert_eq!(c.share, 0);
+        assert!(c.index.is_zero());
     }
 
+    /// Claim fails when charge has zero share (Custom(42))
     #[test]
     fn fails_zero_share() {
         let mollusk = mollusk();
-        let (signer_key, signer) = make_signer();
-        let art_index = ElementIndex((3u64 << 56) | 1);
-        let (charge_key, charge_acc, _) = make_charge_with_share(&signer_key, 0, art_index, 0);
-        let (art_key, art_acc, _) = make_artefact(1_000_000, art_index, 2 << 24);
+        let signer = signer();
+        let art_index = elem_index(3);
+        let charge = charge_with_share(&signer.pubkey, 0, art_index, 0);
+        let art = artefact_full(1_000_000, art_index, SHARE_TWO);
 
-        let ix = Instruction::new_with_bytes(
-            PROGRAM_ID,
-            &ix_data(),
-            vec![
-                AccountMeta::new(signer_key, true),
-                AccountMeta::new(charge_key, false),
-                AccountMeta::new(art_key, false),
-            ],
-        );
+        let ix = Instruction::new_with_bytes(PROGRAM_ID, &ix_data(TokamakInstruction::Claim), metas_charge_art(signer.pubkey, charge.pubkey, art.pubkey));
 
         mollusk.process_and_validate_instruction(
             &ix,
             &[
-                (signer_key, signer),
-                (charge_key, charge_acc),
-                (art_key, art_acc),
+                signer.into(),
+                charge.into(),
+                art.into(),
             ],
             &[Check::err(ProgramError::Custom(42))],
         );
     }
 
+    /// Claim fails when charge index doesn't match artefact index (Custom(42))
     #[test]
     fn fails_index_mismatch() {
         let mollusk = mollusk();
-        let (signer_key, signer) = make_signer();
-        let charge_index = ElementIndex((3u64 << 56) | 1);
-        let art_index = ElementIndex((5u64 << 56) | 1);
-        let (charge_key, charge_acc, _) =
-            make_charge_with_share(&signer_key, 0, charge_index, 1 << 24);
-        let (art_key, art_acc, _) = make_artefact(1_000_000, art_index, 2 << 24);
+        let signer = signer();
+        let charge_index = elem_index(3);
+        let art_index = elem_index(5);
+        let charge = charge_with_share(&signer.pubkey, 0, charge_index, SHARE_ONE);
+        let art = artefact_full(1_000_000, art_index, SHARE_TWO);
 
-        let ix = Instruction::new_with_bytes(
-            PROGRAM_ID,
-            &ix_data(),
-            vec![
-                AccountMeta::new(signer_key, true),
-                AccountMeta::new(charge_key, false),
-                AccountMeta::new(art_key, false),
-            ],
-        );
+        let ix = Instruction::new_with_bytes(PROGRAM_ID, &ix_data(TokamakInstruction::Claim), metas_charge_art(signer.pubkey, charge.pubkey, art.pubkey));
 
         mollusk.process_and_validate_instruction(
             &ix,
             &[
-                (signer_key, signer),
-                (charge_key, charge_acc),
-                (art_key, art_acc),
+                signer.into(),
+                charge.into(),
+                art.into(),
             ],
             &[Check::err(ProgramError::Custom(42))],
         );
     }
 
+    /// Multiple claims distribute proportionally based on shares
     #[test]
     fn multiple_claims_distribute_correctly() {
         let mollusk = mollusk();
-        let art_index = ElementIndex((3u64 << 56) | 1);
+        let art_index = elem_index(3);
 
-        let (signer1_key, signer1) = make_signer();
-        let (charge1_key, charge1_acc, _) =
-            make_charge_with_share(&signer1_key, 0, art_index, 1 << 24);
-        let (art_key, art_acc, _) = make_artefact(1_000_000, art_index, 4 << 24);
+        let signer1 = signer();
+        let charge1 = charge_with_share(&signer1.pubkey, 0, art_index, SHARE_ONE);
+        let art = artefact_full(1_000_000, art_index, SHARE_FOUR);
 
-        let ix1 = Instruction::new_with_bytes(
-            PROGRAM_ID,
-            &ix_data(),
-            vec![
-                AccountMeta::new(signer1_key, true),
-                AccountMeta::new(charge1_key, false),
-                AccountMeta::new(art_key, false),
-            ],
-        );
+        let ix1 = Instruction::new_with_bytes(PROGRAM_ID, &ix_data(TokamakInstruction::Claim), metas_charge_art(signer1.pubkey, charge1.pubkey, art.pubkey));
 
         let result1 = mollusk.process_and_validate_instruction(
             &ix1,
             &[
-                (signer1_key, signer1),
-                (charge1_key, charge1_acc),
-                (art_key, art_acc),
+                signer1.into(),
+                charge1.into(),
+                art.into(),
             ],
             &[Check::success()],
         );
 
-        let charge1: Charge = read_account(&result1.resulting_accounts[1].1);
-        let artefact1: Artefact = read_account(&result1.resulting_accounts[2].1);
+        let c1: Charge = read(&result1.resulting_accounts[1].1);
+        let a1: Artefact = read(&result1.resulting_accounts[2].1);
 
-        assert_eq!(charge1.balance, 250_000);
-        assert_eq!(artefact1.pot, 750_000);
+        assert_eq!(c1.balance, AMT_QUARTER);
+        assert_eq!(a1.pot, 750_000);
     }
 }

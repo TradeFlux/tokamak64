@@ -3,15 +3,7 @@
 mod common;
 use common::*;
 
-use bytemuck::bytes_of;
-use mollusk_svm::result::Check;
 use nucleus::player::Charge;
-use nucleus::types::ElementIndex;
-use solana_sdk::{
-    instruction::{AccountMeta, Instruction},
-    program_error::ProgramError,
-    pubkey::Pubkey,
-};
 
 // ============================================================================
 // AUTHORITY VALIDATION TESTS
@@ -20,30 +12,27 @@ use solana_sdk::{
 mod authority_tests {
     use super::*;
 
+    /// Charge instruction fails when signer is not marked as signer
     #[test]
     fn fails_missing_signature() {
         let mollusk = mollusk();
-        let (signer_key, signer) = make_signer();
-        let (charge_key, charge_acc, _) = make_charge(&signer_key, 0, ElementIndex(0));
-        let (wallet_key, wallet_acc, _) = make_wallet(&signer_key, 1_000_000);
-
-        let mut data = Vec::with_capacity(16);
-        data.extend_from_slice(&IX_CHARGE.to_le_bytes());
-        data.extend_from_slice(&500_000u64.to_le_bytes());
+        let signer = signer();
+        let charge = charge_min(&signer.pubkey);
+        let wallet = wallet_min(&signer.pubkey);
 
         let ix = Instruction::new_with_bytes(
             PROGRAM_ID,
-            &data,
+            &ix_data_with_u64(TokamakInstruction::Charge, AMT_HALF),
             vec![
-                AccountMeta::new(signer_key, false),
-                AccountMeta::new(charge_key, false),
-                AccountMeta::new(wallet_key, false),
+                AccountMeta::new(signer.pubkey, false),
+                AccountMeta::new(charge.pubkey, false),
+                AccountMeta::new(wallet.pubkey, false),
             ],
         );
 
         mollusk.process_and_validate_instruction(
             &ix,
-            &[(signer_key, signer), (charge_key, charge_acc), (wallet_key, wallet_acc)],
+            &[signer.into(), charge.into(), wallet.into()],
             &[Check::err(ProgramError::MissingRequiredSignature)],
         );
     }
@@ -56,53 +45,54 @@ mod authority_tests {
 mod speed_tax_tests {
     use super::*;
 
+    /// Rapid actions pay higher fees than patient actions (speed tax)
     #[test]
     fn higher_fee_for_rapid_actions() {
         let mut mollusk_patient = mollusk();
         mollusk_patient.warp_to_slot(2000);
 
-        let (signer_key, signer) = make_signer();
-        let elem_index = ElementIndex((1u64 << 56) | 1);
+        let signer = signer();
+        let elem_index = elem_index(1);
         let charge_key = Pubkey::new_unique();
 
         let charge_patient = Charge {
-            balance: 100_000_000,
+            balance: BAL_MAX,
             timestamp: 0,
             index: elem_index,
-            share: 1 << 24,
-            authority: signer_key.to_bytes(),
+            share: SHARE_ONE,
+            authority: signer.pubkey.to_bytes(),
             mint: [0u8; 32],
             _pad: 0,
         };
-        let charge_acc_patient = solana_sdk::account::Account {
-            lamports: 1_000_000,
+        let charge_acc_patient = Account {
+            lamports: BAL_MIN,
             data: bytes_of(&charge_patient).to_vec(),
             owner: PROGRAM_ID,
             executable: false,
             rent_epoch: 0,
         };
 
-        let (elem_key, elem_acc, _) = make_element_with_shares(1, EDGE_COORD, 1 << 24, 100_000, 1 << 24);
-        let (board_key, board_acc, _) = make_board(100_000_000, 1);
+        let elem = element_with_shares_at(1, EDGE_COORD, SHARE_ONE, BAL_MIN, SHARE_ONE);
+        let board = board_with_count(1);
 
         let ix = Instruction::new_with_bytes(
             PROGRAM_ID,
-            IX_UNBIND.to_le_bytes().as_ref(),
+            &ix_data(TokamakInstruction::Unbind),
             vec![
-                AccountMeta::new(signer_key, true),
+                AccountMeta::new(signer.pubkey, true),
                 AccountMeta::new(charge_key, false),
-                AccountMeta::new(elem_key, false),
-                AccountMeta::new(board_key, false),
+                AccountMeta::new(elem.pubkey, false),
+                AccountMeta::new(board.pubkey, false),
             ],
         );
 
         let result_patient = mollusk_patient.process_and_validate_instruction(
             &ix.clone(),
             &[
-                (signer_key, signer.clone()),
+                signer.clone().into(),
                 (charge_key, charge_acc_patient),
-                (elem_key, elem_acc.clone()),
-                (board_key, board_acc.clone()),
+                elem.clone().into(),
+                board.clone().into(),
             ],
             &[Check::success()],
         );
@@ -111,16 +101,16 @@ mod speed_tax_tests {
         mollusk_rapid.warp_to_slot(1100);
 
         let charge_rapid = Charge {
-            balance: 100_000_000,
+            balance: BAL_MAX,
             timestamp: 1000,
             index: elem_index,
-            share: 1 << 24,
-            authority: signer_key.to_bytes(),
+            share: SHARE_ONE,
+            authority: signer.pubkey.to_bytes(),
             mint: [0u8; 32],
             _pad: 0,
         };
-        let charge_acc_rapid = solana_sdk::account::Account {
-            lamports: 1_000_000,
+        let charge_acc_rapid = Account {
+            lamports: BAL_MIN,
             data: bytes_of(&charge_rapid).to_vec(),
             owner: PROGRAM_ID,
             executable: false,
@@ -130,16 +120,16 @@ mod speed_tax_tests {
         let result_rapid = mollusk_rapid.process_and_validate_instruction(
             &ix,
             &[
-                (signer_key, signer),
+                signer.into(),
                 (charge_key, charge_acc_rapid),
-                (elem_key, elem_acc),
-                (board_key, board_acc),
+                elem.into(),
+                board.into(),
             ],
             &[Check::success()],
         );
 
-        let charge_patient_result: Charge = read_account(&result_patient.resulting_accounts[1].1);
-        let charge_rapid_result: Charge = read_account(&result_rapid.resulting_accounts[1].1);
+        let charge_patient_result: Charge = read(&result_patient.resulting_accounts[1].1);
+        let charge_rapid_result: Charge = read(&result_rapid.resulting_accounts[1].1);
 
         assert!(
             charge_rapid_result.balance < charge_patient_result.balance,

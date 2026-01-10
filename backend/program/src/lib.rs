@@ -2,14 +2,13 @@
 //!
 //! This crate defines the on-chain program logic, instruction dispatch, and account interaction handlers.
 
-use instruction::TokamakInstruction;
 use pinocchio::{account::AccountView, address::declare_id, program_entrypoint, ProgramResult};
 
 use crate::instruction::IxData;
 
 mod accounts;
 mod addresses;
-mod instruction;
+pub mod instruction;
 mod processors;
 
 program_entrypoint!(process_instruction);
@@ -20,8 +19,8 @@ fn process_instruction(
     accounts: &[AccountView],
     data: &[u8],
 ) -> ProgramResult {
+    use instruction::TokamakInstruction::{self, *};
     use processors::*;
-    use TokamakInstruction::*;
 
     let it = &mut accounts.iter();
     let mut data = IxData::new(data);

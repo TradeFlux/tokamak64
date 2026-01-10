@@ -3,51 +3,44 @@
 mod common;
 use common::*;
 
-use mollusk_svm::result::Check;
-use nucleus::consts::MAX_SATURATION;
-use nucleus::types::ElementIndex;
-use solana_sdk::{
-    instruction::{AccountMeta, Instruction},
-    program_error::ProgramError,
-};
+// ============================================================================
+// OVERLOAD INSTRUCTION TESTS
+// ============================================================================
 
 mod overload_tests {
     use super::*;
 
-    fn ix_data() -> Vec<u8> {
-        IX_OVERLOAD.to_le_bytes().to_vec()
-    }
-
+    /// Overload fails when element is not at max saturation (Custom(1))
     #[test]
     fn fails_below_max_saturation() {
         let mollusk = mollusk();
-        let (signer_key, signer) = make_signer();
-        let elem_index = ElementIndex((3u64 << 56) | 1);
-        let (charge_key, charge_acc, _) = make_charge(&signer_key, 1_000_000, elem_index);
-        let (elem_key, elem_acc, _) = make_element(3, EDGE_COORD, MAX_SATURATION - 1, 500_000);
-        let (art_key, art_acc, _) = make_artefact(0, ElementIndex(0), 0);
-        let (board_key, board_acc, _) = make_board(10_000_000, 5);
+        let signer = signer();
+        let elem_index = elem_index(3);
+        let charge = charge(&signer.pubkey, BAL_MIN, elem_index);
+        let elem = element_with_shares_at(3, EDGE_COORD, MAX_SATURATION - 1, AMT_HALF, 0);
+        let art = artefact(0);
+        let board = board_with_count(5);
 
         let ix = Instruction::new_with_bytes(
             PROGRAM_ID,
-            &ix_data(),
+            &ix_data(TokamakInstruction::Overload),
             vec![
-                AccountMeta::new(signer_key, true),
-                AccountMeta::new(charge_key, false),
-                AccountMeta::new(elem_key, false),
-                AccountMeta::new(art_key, false),
-                AccountMeta::new(board_key, false),
+                AccountMeta::new(signer.pubkey, true),
+                AccountMeta::new(charge.pubkey, false),
+                AccountMeta::new(elem.pubkey, false),
+                AccountMeta::new(art.pubkey, false),
+                AccountMeta::new(board.pubkey, false),
             ],
         );
 
         mollusk.process_and_validate_instruction(
             &ix,
             &[
-                (signer_key, signer),
-                (charge_key, charge_acc),
-                (elem_key, elem_acc),
-                (art_key, art_acc),
-                (board_key, board_acc),
+                signer.into(),
+                charge.into(),
+                elem.into(),
+                art.into(),
+                board.into(),
             ],
             &[Check::err(ProgramError::Custom(1))],
         );
