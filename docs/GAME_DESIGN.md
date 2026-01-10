@@ -10,6 +10,8 @@ The game world is a static 8×8 grid (64 tiles).
 
 **Elements** are groups of connected tiles named after chemical elements and ordered by **atomic number (Z)**: there are 26 Elements on the board (Z=1 to Z=26), with element 0 serving as an off-board placeholder.
 
+### Board Layout
+
 ```
     1    2    3    4    5    6    7    8
   ┌──────────────┬─────────┬────┬─────────┐
@@ -31,6 +33,37 @@ H │  Ne10   │ F9 │      O8 │           N7 │
   └─────────┴────┴─────────┴──────────────┘
 
 ```
+
+#### Coordinates
+
+| Z  | Element | Tiles                           |
+|----|---------|---------------------------------|
+| 1  | H       | A1, A2, B1, C1                  |
+| 2  | He      | D1, E1                          |
+| 3  | Li      | F1, F2                          |
+| 4  | Be      | G1, H1, H2, H3                  |
+| 5  | B       | H4, H5                          |
+| 6  | C       | G6, H6                          |
+| 7  | N       | F8, G8, H7, H8                  |
+| 8  | O       | D8, E8                          |
+| 9  | F       | C7, C8                          |
+| 10 | Ne      | A6, A7, A8, B8                  |
+| 11 | Na      | A4, A5                          |
+| 12 | Mg      | A3, B3                          |
+| 13 | Al      | B2, C2, D2                      |
+| 14 | Si      | E2, E3                          |
+| 15 | P       | F3, F4                          |
+| 16 | S       | G2, G3, G4                      |
+| 17 | Cl      | F5, G5                          |
+| 18 | Ar      | E6, F6                          |
+| 19 | K       | E7, F7, G7                      |
+| 20 | Ca      | D6, D7                          |
+| 21 | Sc      | C5, C6                          |
+| 22 | Ti      | B5, B6, B7                      |
+| 23 | V       | B4, C4                          |
+| 24 | Cr      | C3, D3                          |
+| 25 | Mn      | D4                              |
+| 26 | Fe      | E4, D4, E5                                |
 
 - **Edge Elements**: H (Hydrogen), He (Helium), Li (Lithium), Be (Beryllium), B (Boron), C (Carbon) — touch the board perimeter
 - **Mid-depth Elements**: N, O, F, Ne, Na, Mg, Al, Si, P, S, Cl, Ar, K, Ca — progressively deeper
