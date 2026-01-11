@@ -18,8 +18,17 @@ fn overload_fails_below_max_saturation() {
     let board = board_with_count(5);
 
     test_run!(
-        ix!(TokamakInstruction::Overload, metas!(signer, charge, elem, art, board)),
-        &[signer.into(), charge.into(), elem.into(), art.into(), board.into()],
+        ix!(
+            TokamakInstruction::Overload,
+            metas!(signer, charge, elem, art, board)
+        ),
+        &[
+            signer.into(),
+            charge.into(),
+            elem.into(),
+            art.into(),
+            board.into()
+        ],
         &[Check::err(ProgramError::Custom(1))]
     );
 }

@@ -26,11 +26,15 @@ fn init_wallet_fails_missing_signature() {
     let wallet = pda_account(wallet_pda);
 
     test_run!(
-        ix!(TokamakInstruction::InitWallet, bump, vec![
-            AccountMeta::new(signer_key, false), // Not a signer!
-            AccountMeta::new(wallet_pda, false),
-            AccountMeta::new_readonly(mint_key, false),
-        ]),
+        ix!(
+            TokamakInstruction::InitWallet,
+            bump,
+            vec![
+                AccountMeta::new(signer_key, false), // Not a signer!
+                AccountMeta::new(wallet_pda, false),
+                AccountMeta::new_readonly(mint_key, false),
+            ]
+        ),
         &[signer.into(), wallet.into(), mint.into()],
         &[Check::err(ProgramError::MissingRequiredSignature)]
     );
@@ -106,7 +110,11 @@ fn init_charge_fails_invalid_wallet_data() {
     let charge = pda_account(charge_pda);
 
     test_run!(
-        ix!(TokamakInstruction::InitCharge, bump, metas!(signer, charge, wallet)),
+        ix!(
+            TokamakInstruction::InitCharge,
+            bump,
+            metas!(signer, charge, wallet)
+        ),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::err(ProgramError::InvalidAccountData)]
     );
@@ -140,7 +148,11 @@ fn init_charge_fails_invalid_wallet_owner() {
     let charge = pda_account(charge_pda);
 
     test_run!(
-        ix!(TokamakInstruction::InitCharge, bump, metas!(signer, charge, wallet)),
+        ix!(
+            TokamakInstruction::InitCharge,
+            bump,
+            metas!(signer, charge, wallet)
+        ),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::err(ProgramError::InvalidAccountData)]
     );

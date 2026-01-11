@@ -63,12 +63,12 @@ H │  Ne10   │ F9 │      O8 │           N7 │
 | 23 | V       | B4, C4                          |
 | 24 | Cr      | C3, D3                          |
 | 25 | Mn      | D4                              |
-| 26 | Fe      | E4, D4, E5                                |
+| 26 | Fe      | E4, D5, E5                                |
 
-- **Edge Elements**: H (Hydrogen), He (Helium), Li (Lithium), Be (Beryllium), B (Boron), C (Carbon) — touch the board perimeter
-- **Mid-depth Elements**: N, O, F, Ne, Na, Mg, Al, Si, P, S, Cl, Ar, K, Ca — progressively deeper
-- **Deep Elements**: Sc, Ti, V, Cr, Mn — approaching the core
-- **Core Element**: **Fe (Iron)** — maximum depth (Z=26), terminal attractor for compressed value
+- **Edge Elements**: H, He, Li, Be, B, C, N, O, F, Ne, Na, Mg (Z=1-12) — touch the board perimeter
+- **Mid-depth Elements**: Al, Si, P, S, Cl, Ar, K, Ca (Z=13-20) — progressively deeper
+- **Deep Elements**: Sc, Ti, V, Cr, Mn (Z=21-25) — approaching the core
+- **Core Element**: **Fe (Iron)** (Z=26) — maximum depth, terminal attractor for compressed value
 
 Each Element has fixed depth (Z). Higher Z means:
 - Larger commitment curves (absorbs more saturation before reset)

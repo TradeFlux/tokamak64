@@ -1,11 +1,14 @@
 //! Element account factories.
 
-use super::prelude::*;
-use super::constants::*;
 use super::accounts::program_account;
+use super::constants::*;
+use super::prelude::*;
 use super::types::AccountWithPubkey;
 use super::utils::elem_index;
-use nucleus::{board::{Curve, Element}, types::Coordinates};
+use nucleus::{
+    board::{Curve, Element},
+    types::Coordinates,
+};
 
 /// Creates element account with shares
 pub fn element_with_shares(

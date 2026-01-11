@@ -22,7 +22,10 @@ fn compress_success_inward() {
     let dst = element_edge(5);
 
     let result = test_run!(
-        ix!(TokamakInstruction::Compress, metas!(signer, charge, src, dst)),
+        ix!(
+            TokamakInstruction::Compress,
+            metas!(signer, charge, src, dst)
+        ),
         &[signer.into(), charge.into(), src.into(), dst.into()],
         &[Check::success()]
     );
@@ -46,7 +49,10 @@ fn compress_fails_outward() {
     let dst = element_edge(2);
 
     test_run!(
-        ix!(TokamakInstruction::Compress, metas!(signer, charge, src, dst)),
+        ix!(
+            TokamakInstruction::Compress,
+            metas!(signer, charge, src, dst)
+        ),
         &[signer.into(), charge.into(), src.into(), dst.into()],
         &[Check::err(ProgramError::Custom(42))]
     );
@@ -63,7 +69,10 @@ fn compress_fails_charge_not_in_source() {
     let dst = element_edge(5);
 
     test_run!(
-        ix!(TokamakInstruction::Compress, metas!(signer, charge, src, dst)),
+        ix!(
+            TokamakInstruction::Compress,
+            metas!(signer, charge, src, dst)
+        ),
         &[signer.into(), charge.into(), src.into(), dst.into()],
         &[Check::err(ProgramError::Custom(1))]
     );

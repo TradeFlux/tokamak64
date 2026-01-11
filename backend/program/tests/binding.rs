@@ -19,7 +19,10 @@ fn bind_success_edge_element() {
     let board = board_empty();
 
     let result = test_run!(
-        ix!(TokamakInstruction::Bind, metas!(signer, charge, elem, board)),
+        ix!(
+            TokamakInstruction::Bind,
+            metas!(signer, charge, elem, board)
+        ),
         &[signer.into(), charge.into(), elem.into(), board.into()],
         &[Check::success()]
     );
@@ -40,7 +43,10 @@ fn bind_fails_not_on_edge() {
     let board = board_empty();
 
     test_run!(
-        ix!(TokamakInstruction::Bind, metas!(signer, charge, elem, board)),
+        ix!(
+            TokamakInstruction::Bind,
+            metas!(signer, charge, elem, board)
+        ),
         &[signer.into(), charge.into(), elem.into(), board.into()],
         &[Check::err(ProgramError::InvalidArgument)]
     );
@@ -56,7 +62,10 @@ fn bind_fails_already_bound() {
     let board = board_empty();
 
     test_run!(
-        ix!(TokamakInstruction::Bind, metas!(signer, charge, elem, board)),
+        ix!(
+            TokamakInstruction::Bind,
+            metas!(signer, charge, elem, board)
+        ),
         &[signer.into(), charge.into(), elem.into(), board.into()],
         &[Check::err(ProgramError::Custom(43))]
     );
@@ -72,7 +81,10 @@ fn bind_deducts_fee() {
     let board = board_empty();
 
     let result = test_run!(
-        ix!(TokamakInstruction::Bind, metas!(signer, charge, elem, board)),
+        ix!(
+            TokamakInstruction::Bind,
+            metas!(signer, charge, elem, board)
+        ),
         &[signer.into(), charge.into(), elem.into(), board.into()],
         &[Check::success()]
     );
@@ -97,7 +109,10 @@ fn unbind_success_edge_element() {
     let board = board_with_count(1);
 
     let result = test_run!(
-        ix!(TokamakInstruction::Unbind, metas!(signer, charge, elem, board)),
+        ix!(
+            TokamakInstruction::Unbind,
+            metas!(signer, charge, elem, board)
+        ),
         &[signer.into(), charge.into(), elem.into(), board.into()],
         &[Check::success()]
     );
@@ -118,7 +133,10 @@ fn unbind_fails_not_on_edge() {
     let board = board_with_count(1);
 
     test_run!(
-        ix!(TokamakInstruction::Unbind, metas!(signer, charge, elem, board)),
+        ix!(
+            TokamakInstruction::Unbind,
+            metas!(signer, charge, elem, board)
+        ),
         &[signer.into(), charge.into(), elem.into(), board.into()],
         &[Check::err(ProgramError::InvalidArgument)]
     );
@@ -135,7 +153,10 @@ fn unbind_deducts_fee() {
     let board = board_with_count(1);
 
     let result = test_run!(
-        ix!(TokamakInstruction::Unbind, metas!(signer, charge, elem, board)),
+        ix!(
+            TokamakInstruction::Unbind,
+            metas!(signer, charge, elem, board)
+        ),
         &[signer.into(), charge.into(), elem.into(), board.into()],
         &[Check::success()]
     );

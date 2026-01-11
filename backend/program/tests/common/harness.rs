@@ -1,7 +1,7 @@
 //! Test harness - mollusk setup and test runner macro.
 
-use super::prelude::*;
 use super::constants::PROGRAM_ID;
+use super::prelude::*;
 
 /// Creates the test mollusk instance
 pub fn mollusk() -> Mollusk {

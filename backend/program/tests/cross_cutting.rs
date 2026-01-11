@@ -17,11 +17,15 @@ fn authority_fails_missing_signature() {
     let wallet = wallet_min(&signer.pubkey);
 
     test_run!(
-        ix!(TokamakInstruction::Charge, AMT_HALF, vec![
-            AccountMeta::new(signer.pubkey, false),
-            AccountMeta::new(charge.pubkey, false),
-            AccountMeta::new(wallet.pubkey, false),
-        ]),
+        ix!(
+            TokamakInstruction::Charge,
+            AMT_HALF,
+            vec![
+                AccountMeta::new(signer.pubkey, false),
+                AccountMeta::new(charge.pubkey, false),
+                AccountMeta::new(wallet.pubkey, false),
+            ]
+        ),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::err(ProgramError::MissingRequiredSignature)]
     );
@@ -59,12 +63,15 @@ fn speed_tax_higher_fee_for_rapid_actions() {
     let elem = element_with_shares_at(1, EDGE_COORD, SHARE_ONE, BAL_MIN, SHARE_ONE);
     let board = board_with_count(1);
 
-    let ix = ix!(TokamakInstruction::Unbind, vec![
-        AccountMeta::new(signer.pubkey, true),
-        AccountMeta::new(charge_key, false),
-        AccountMeta::new(elem.pubkey, false),
-        AccountMeta::new(board.pubkey, false),
-    ]);
+    let ix = ix!(
+        TokamakInstruction::Unbind,
+        vec![
+            AccountMeta::new(signer.pubkey, true),
+            AccountMeta::new(charge_key, false),
+            AccountMeta::new(elem.pubkey, false),
+            AccountMeta::new(board.pubkey, false),
+        ]
+    );
 
     // Rapid: unbind immediately (0 slots elapsed, multiplier = 128)
     let mut mollusk_rapid = mollusk();
@@ -77,7 +84,7 @@ fn speed_tax_higher_fee_for_rapid_actions() {
             elem.clone().into(),
             board.clone().into(),
         ],
-        &[Check::success()]
+        &[Check::success()],
     );
 
     // Patient: unbind after waiting (1000 slots elapsed, multiplier = 1)
@@ -91,7 +98,7 @@ fn speed_tax_higher_fee_for_rapid_actions() {
             elem.into(),
             board.into(),
         ],
-        &[Check::success()]
+        &[Check::success()],
     );
 
     let charge_patient_result: Charge = result_patient.get(1);

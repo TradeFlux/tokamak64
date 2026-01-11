@@ -21,7 +21,11 @@ fn vent_success_to_element_pot() {
     let elem = element_edge(3);
 
     let result = test_run!(
-        ix!(TokamakInstruction::Vent, vent_amount, metas!(signer, charge, elem)),
+        ix!(
+            TokamakInstruction::Vent,
+            vent_amount,
+            metas!(signer, charge, elem)
+        ),
         &[signer.into(), charge.into(), elem.into()],
         &[Check::success()]
     );
@@ -56,7 +60,11 @@ fn vent_fails_insufficient_balance() {
     let elem = element_edge(3);
 
     test_run!(
-        ix!(TokamakInstruction::Vent, 1_000u64, metas!(signer, charge, elem)),
+        ix!(
+            TokamakInstruction::Vent,
+            1_000u64,
+            metas!(signer, charge, elem)
+        ),
         &[signer.into(), charge.into(), elem.into()],
         &[Check::err(ProgramError::ArithmeticOverflow)]
     );
@@ -71,7 +79,11 @@ fn vent_fails_wrong_target_element() {
     let elem = element_edge(5);
 
     test_run!(
-        ix!(TokamakInstruction::Vent, 200_000u64, metas!(signer, charge, elem)),
+        ix!(
+            TokamakInstruction::Vent,
+            200_000u64,
+            metas!(signer, charge, elem)
+        ),
         &[signer.into(), charge.into(), elem.into()],
         &[Check::err(ProgramError::Custom(32))]
     );

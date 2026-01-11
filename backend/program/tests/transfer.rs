@@ -17,7 +17,11 @@ fn charge_success_transfer_from_wallet_to_charge() {
     let wallet = wallet_min(&signer.pubkey);
 
     let result = test_run!(
-        ix!(TokamakInstruction::Charge, AMT_HALF, metas!(signer, charge, wallet)),
+        ix!(
+            TokamakInstruction::Charge,
+            AMT_HALF,
+            metas!(signer, charge, wallet)
+        ),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::success()]
     );
@@ -35,7 +39,11 @@ fn charge_fails_zero_amount() {
     let wallet = wallet_min(&signer.pubkey);
 
     test_run!(
-        ix!(TokamakInstruction::Charge, 0u64, metas!(signer, charge, wallet)),
+        ix!(
+            TokamakInstruction::Charge,
+            0u64,
+            metas!(signer, charge, wallet)
+        ),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::err(ProgramError::InvalidArgument)]
     );
@@ -49,7 +57,11 @@ fn charge_fails_insufficient_wallet_balance() {
     let wallet = wallet(&signer.pubkey, 100);
 
     test_run!(
-        ix!(TokamakInstruction::Charge, 1_000u64, metas!(signer, charge, wallet)),
+        ix!(
+            TokamakInstruction::Charge,
+            1_000u64,
+            metas!(signer, charge, wallet)
+        ),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::err(ProgramError::ArithmeticOverflow)]
     );
@@ -64,7 +76,11 @@ fn charge_fails_wrong_authority() {
     let wallet = wallet_min(&other);
 
     test_run!(
-        ix!(TokamakInstruction::Charge, AMT_HALF, metas!(signer, charge, wallet)),
+        ix!(
+            TokamakInstruction::Charge,
+            AMT_HALF,
+            metas!(signer, charge, wallet)
+        ),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::err(ProgramError::IncorrectAuthority)]
     );
@@ -78,7 +94,11 @@ fn charge_accumulates_to_existing_balance() {
     let wallet = wallet_min(&signer.pubkey);
 
     let result = test_run!(
-        ix!(TokamakInstruction::Charge, 200_000u64, metas!(signer, charge, wallet)),
+        ix!(
+            TokamakInstruction::Charge,
+            200_000u64,
+            metas!(signer, charge, wallet)
+        ),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::success()]
     );
@@ -98,7 +118,11 @@ fn discharge_success_transfer_from_charge_to_wallet() {
     let wallet = wallet(&signer.pubkey, 0);
 
     let result = test_run!(
-        ix!(TokamakInstruction::Discharge, AMT_HALF, metas!(signer, charge, wallet)),
+        ix!(
+            TokamakInstruction::Discharge,
+            AMT_HALF,
+            metas!(signer, charge, wallet)
+        ),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::success()]
     );
@@ -116,7 +140,11 @@ fn discharge_fails_zero_amount() {
     let wallet = wallet(&signer.pubkey, 0);
 
     test_run!(
-        ix!(TokamakInstruction::Discharge, 0u64, metas!(signer, charge, wallet)),
+        ix!(
+            TokamakInstruction::Discharge,
+            0u64,
+            metas!(signer, charge, wallet)
+        ),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::err(ProgramError::InvalidArgument)]
     );
@@ -130,7 +158,11 @@ fn discharge_fails_insufficient_charge_balance() {
     let wallet = wallet(&signer.pubkey, 0);
 
     test_run!(
-        ix!(TokamakInstruction::Discharge, 1_000u64, metas!(signer, charge, wallet)),
+        ix!(
+            TokamakInstruction::Discharge,
+            1_000u64,
+            metas!(signer, charge, wallet)
+        ),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::err(ProgramError::InsufficientFunds)]
     );
@@ -145,7 +177,11 @@ fn discharge_fails_charge_is_bound() {
     let wallet = wallet(&signer.pubkey, 0);
 
     test_run!(
-        ix!(TokamakInstruction::Discharge, AMT_HALF, metas!(signer, charge, wallet)),
+        ix!(
+            TokamakInstruction::Discharge,
+            AMT_HALF,
+            metas!(signer, charge, wallet)
+        ),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::err(ProgramError::Custom(50))]
     );
@@ -160,7 +196,11 @@ fn discharge_fails_wrong_authority() {
     let wallet = wallet(&other, 0);
 
     test_run!(
-        ix!(TokamakInstruction::Discharge, AMT_HALF, metas!(signer, charge, wallet)),
+        ix!(
+            TokamakInstruction::Discharge,
+            AMT_HALF,
+            metas!(signer, charge, wallet)
+        ),
         &[signer.into(), charge.into(), wallet.into()],
         &[Check::err(ProgramError::IncorrectAuthority)]
     );

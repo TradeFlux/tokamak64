@@ -288,3 +288,290 @@ fn consts_reasonable_values() {
     assert!(MAX_SPEED_MULTIPLIER > 0);
     assert!(MAX_DELTA_TIMESTAMP > 0);
 }
+
+// === Coordinates Tests ===
+
+/// Convert algebraic coordinate (e.g., "A1") to bit position (0-63).
+/// Row-major layout: A1=0, B1=1, ..., H1=7, A2=8, ..., H8=63.
+fn coord_to_bit(coord: &str) -> u64 {
+    let col = (coord.as_bytes()[0] - b'A') as u64;
+    let row = (coord[1..].parse::<u64>().unwrap() - 1) as u64;
+    1 << (row * 8 + col)
+}
+
+/// Create a bitmask from a list of algebraic coordinates.
+fn coords_mask(coords: &[&str]) -> u64 {
+    coords.iter().fold(0u64, |acc, c| acc | coord_to_bit(c))
+}
+
+#[test]
+fn element_coordinates_match_docs() {
+    // Verify each element's coordinates match the documented tiles.
+    // From GAME_DESIGN.md coordinates table.
+
+    assert_eq!(COORD_01_H.0, coords_mask(&["A1", "A2", "B1", "C1"]));
+    assert_eq!(COORD_02_HE.0, coords_mask(&["D1", "E1"]));
+    assert_eq!(COORD_03_LI.0, coords_mask(&["F1", "F2"]));
+    assert_eq!(COORD_04_BE.0, coords_mask(&["G1", "H1", "H2", "H3"]));
+    assert_eq!(COORD_05_B.0, coords_mask(&["H4", "H5"]));
+    assert_eq!(COORD_06_C.0, coords_mask(&["G6", "H6"]));
+    assert_eq!(COORD_07_N.0, coords_mask(&["F8", "G8", "H7", "H8"]));
+    assert_eq!(COORD_08_O.0, coords_mask(&["D8", "E8"]));
+    assert_eq!(COORD_09_F.0, coords_mask(&["C7", "C8"]));
+    assert_eq!(COORD_10_NE.0, coords_mask(&["A6", "A7", "A8", "B8"]));
+    assert_eq!(COORD_11_NA.0, coords_mask(&["A4", "A5"]));
+    assert_eq!(COORD_12_MG.0, coords_mask(&["A3", "B3"]));
+    assert_eq!(COORD_13_AL.0, coords_mask(&["B2", "C2", "D2"]));
+    assert_eq!(COORD_14_SI.0, coords_mask(&["E2", "E3"]));
+    assert_eq!(COORD_15_P.0, coords_mask(&["F3", "F4"]));
+    assert_eq!(COORD_16_S.0, coords_mask(&["G2", "G3", "G4"]));
+    assert_eq!(COORD_17_CL.0, coords_mask(&["F5", "G5"]));
+    assert_eq!(COORD_18_AR.0, coords_mask(&["E6", "F6"]));
+    assert_eq!(COORD_19_K.0, coords_mask(&["E7", "F7", "G7"]));
+    assert_eq!(COORD_20_CA.0, coords_mask(&["D6", "D7"]));
+    assert_eq!(COORD_21_SC.0, coords_mask(&["C5", "C6"]));
+    assert_eq!(COORD_22_TI.0, coords_mask(&["B5", "B6", "B7"]));
+    assert_eq!(COORD_23_V.0, coords_mask(&["B4", "C4"]));
+    assert_eq!(COORD_24_CR.0, coords_mask(&["C3", "D3"]));
+    assert_eq!(COORD_25_MN.0, coords_mask(&["D4"]));
+    assert_eq!(COORD_26_FE.0, coords_mask(&["E4", "D5", "E5"]));
+}
+
+#[test]
+fn element_coordinates_no_overlap() {
+    // Elements should not overlap - each tile belongs to exactly one element.
+    let all_elements = [
+        COORD_01_H,
+        COORD_02_HE,
+        COORD_03_LI,
+        COORD_04_BE,
+        COORD_05_B,
+        COORD_06_C,
+        COORD_07_N,
+        COORD_08_O,
+        COORD_09_F,
+        COORD_10_NE,
+        COORD_11_NA,
+        COORD_12_MG,
+        COORD_13_AL,
+        COORD_14_SI,
+        COORD_15_P,
+        COORD_16_S,
+        COORD_17_CL,
+        COORD_18_AR,
+        COORD_19_K,
+        COORD_20_CA,
+        COORD_21_SC,
+        COORD_22_TI,
+        COORD_23_V,
+        COORD_24_CR,
+        COORD_25_MN,
+        COORD_26_FE,
+    ];
+
+    // Check each pair doesn't overlap
+    for i in 0..all_elements.len() {
+        for j in (i + 1)..all_elements.len() {
+            assert_eq!(
+                all_elements[i].0 & all_elements[j].0,
+                0,
+                "Elements {} and {} overlap",
+                i + 1,
+                j + 1
+            );
+        }
+    }
+}
+
+#[test]
+fn edge_elements_on_perimeter() {
+    // From GAME_DESIGN.md: 12 edge elements (Z=1-12) touch the board perimeter.
+    // These are the entry/exit gateways for the board.
+
+    // First six edge elements (top row)
+    assert!(COORD_01_H.on_edge(), "H should be on edge");
+    assert!(COORD_02_HE.on_edge(), "He should be on edge");
+    assert!(COORD_03_LI.on_edge(), "Li should be on edge");
+    assert!(COORD_04_BE.on_edge(), "Be should be on edge");
+    assert!(COORD_05_B.on_edge(), "B should be on edge");
+    assert!(COORD_06_C.on_edge(), "C should be on edge");
+
+    // Next six edge elements (bottom/left edge)
+    assert!(COORD_07_N.on_edge(), "N should be on edge");
+    assert!(COORD_08_O.on_edge(), "O should be on edge");
+    assert!(COORD_09_F.on_edge(), "F should be on edge");
+    assert!(COORD_10_NE.on_edge(), "Ne should be on edge");
+    assert!(COORD_11_NA.on_edge(), "Na should be on edge");
+    assert!(COORD_12_MG.on_edge(), "Mg should be on edge");
+}
+
+#[test]
+fn core_element_not_on_edge() {
+    // Fe (Z=26) is the core element, not on the perimeter.
+    assert!(!COORD_26_FE.on_edge(), "Fe should not be on edge");
+}
+
+#[test]
+fn middepth_elements_not_on_edge() {
+    // Mid-depth elements (Z=13-20) should not touch the perimeter.
+    assert!(!COORD_13_AL.on_edge(), "Al should not be on edge");
+    assert!(!COORD_14_SI.on_edge(), "Si should not be on edge");
+    assert!(!COORD_15_P.on_edge(), "P should not be on edge");
+    assert!(!COORD_16_S.on_edge(), "S should not be on edge");
+    assert!(!COORD_17_CL.on_edge(), "Cl should not be on edge");
+    assert!(!COORD_18_AR.on_edge(), "Ar should not be on edge");
+    assert!(!COORD_19_K.on_edge(), "K should not be on edge");
+    assert!(!COORD_20_CA.on_edge(), "Ca should not be on edge");
+}
+
+#[test]
+fn deep_elements_not_on_edge() {
+    // Deep elements (Z=21-25) should not touch the perimeter.
+    assert!(!COORD_21_SC.on_edge(), "Sc should not be on edge");
+    assert!(!COORD_22_TI.on_edge(), "Ti should not be on edge");
+    assert!(!COORD_23_V.on_edge(), "V should not be on edge");
+    assert!(!COORD_24_CR.on_edge(), "Cr should not be on edge");
+    assert!(!COORD_25_MN.on_edge(), "Mn should not be on edge");
+}
+
+#[test]
+fn adjacency_from_board_layout() {
+    // Test specific adjacencies visible in the board ASCII art.
+    // These are elements that share edges based on the documented layout.
+
+    // H (A1-A2,B1,C1) is adjacent to He (D1,E1) at D1-B1
+    assert!(
+        COORD_01_H.adjacent(COORD_02_HE),
+        "H should be adjacent to He"
+    );
+
+    // H is adjacent to Mg (A3,B3) at A3-A2
+    assert!(
+        COORD_01_H.adjacent(COORD_12_MG),
+        "H should be adjacent to Mg"
+    );
+
+    // Mg is adjacent to Na (A4,A5) at A4-A3
+    assert!(
+        COORD_12_MG.adjacent(COORD_11_NA),
+        "Mg should be adjacent to Na"
+    );
+
+    // He (D1,E1) is adjacent to Li (F1,F2) at F1-E1
+    assert!(
+        COORD_02_HE.adjacent(COORD_03_LI),
+        "He should be adjacent to Li"
+    );
+
+    // Li (F1,F2) is adjacent to Be (G1,H1,H2,H3) at G1-F1
+    assert!(
+        COORD_03_LI.adjacent(COORD_04_BE),
+        "Li should be adjacent to Be"
+    );
+
+    // Be is adjacent to B (H4,H5) at H4-H3
+    assert!(
+        COORD_04_BE.adjacent(COORD_05_B),
+        "Be should be adjacent to B"
+    );
+
+    // B is adjacent to C (G6,H6) at H6-H5
+    assert!(COORD_05_B.adjacent(COORD_06_C), "B should be adjacent to C");
+
+    // Al (B2,C2,D2) is adjacent to Mg (A3,B3) at B3-B2
+    assert!(
+        COORD_13_AL.adjacent(COORD_12_MG),
+        "Al should be adjacent to Mg"
+    );
+
+    // Al is adjacent to Si (E2,E3) at E2-D2
+    assert!(
+        COORD_13_AL.adjacent(COORD_14_SI),
+        "Al should be adjacent to Si"
+    );
+
+    // Si is adjacent to P (F3,F4) at F3-E3
+    assert!(
+        COORD_14_SI.adjacent(COORD_15_P),
+        "Si should be adjacent to P"
+    );
+
+    // Fe (E4,D5,E5) is the core, surrounded by deep elements
+    assert!(
+        COORD_26_FE.adjacent(COORD_25_MN),
+        "Fe should be adjacent to Mn"
+    );
+    assert!(
+        COORD_26_FE.adjacent(COORD_21_SC),
+        "Fe should be adjacent to Sc"
+    );
+    assert!(
+        COORD_26_FE.adjacent(COORD_20_CA),
+        "Fe should be adjacent to Ca"
+    );
+    assert!(
+        COORD_26_FE.adjacent(COORD_15_P),
+        "Fe should be adjacent to P"
+    );
+    assert!(
+        COORD_26_FE.adjacent(COORD_17_CL),
+        "Fe should be adjacent to Cl"
+    );
+}
+
+#[test]
+fn non_adjacent_elements() {
+    // Elements that should NOT be adjacent (visually separated in layout).
+
+    // H (top-left corner) and N (top-right corner F8,G8,H7,H8)
+    assert!(
+        !COORD_01_H.adjacent(COORD_07_N),
+        "H should not be adjacent to N"
+    );
+
+    // He (D1,E1) and N (far side of board)
+    assert!(
+        !COORD_02_HE.adjacent(COORD_07_N),
+        "He should not be adjacent to N"
+    );
+
+    // Edge elements on opposite corners: Li (F1,F2) and Ne (A6,A7,A8,B8)
+    assert!(
+        !COORD_03_LI.adjacent(COORD_10_NE),
+        "Li should not be adjacent to Ne"
+    );
+}
+
+#[test]
+fn all_elements_used() {
+    // Verify we have exactly 26 elements (Z=1 to Z=26).
+    let all_elements = [
+        COORD_01_H,
+        COORD_02_HE,
+        COORD_03_LI,
+        COORD_04_BE,
+        COORD_05_B,
+        COORD_06_C,
+        COORD_07_N,
+        COORD_08_O,
+        COORD_09_F,
+        COORD_10_NE,
+        COORD_11_NA,
+        COORD_12_MG,
+        COORD_13_AL,
+        COORD_14_SI,
+        COORD_15_P,
+        COORD_16_S,
+        COORD_17_CL,
+        COORD_18_AR,
+        COORD_19_K,
+        COORD_20_CA,
+        COORD_21_SC,
+        COORD_22_TI,
+        COORD_23_V,
+        COORD_24_CR,
+        COORD_25_MN,
+        COORD_26_FE,
+    ];
+    assert_eq!(all_elements.len(), 26);
+}
