@@ -1,12 +1,14 @@
 # TOKAMAK64
 
+> **Status: Work in Progress** — Core mechanics implemented, testing and refinement ongoing.
+
 A strategy game where players compete to position themselves in the right locations at the right time to capture value from element resets.
 
 ## The Core Loop
 
 TOKAMAK64 is played on a fixed 8×8 board divided into 26 **Elements** (regions) named after chemical elements—Hydrogen at the outer edge, progressively heavier elements inward, Iron at the center.
 
-You control **Charges** that bind to Elements. Multiple Charges can occupy the same Element, building **saturation**. When saturation exceeds the threshold, the Element **resets**—distributing its accumulated pot to bound Charges.
+Players control **Charges** that bind to Elements. Multiple Charges can occupy the same Element, building **saturation**. When saturation exceeds the threshold, the Element **resets**—distributing its accumulated pot to bound Charges.
 
 Movement fees depend on saturation: inward fees use destination saturation, outward fees use source saturation. Since deeper Elements have larger curves (lower typical saturation), inward moves tend to be cheaper—creating natural value flow toward the center. All costs feed back into the system as shared value.
 
@@ -15,7 +17,7 @@ Movement fees depend on saturation: inward fees use destination saturation, outw
 ## The Game in 30 Seconds
 
 - Fixed 8×8 board divided into 26 **Elements** (H, He, Li... Fe)
-- You control **Charges** that occupy entire Elements
+- Players control **Charges** that occupy entire Elements
 - Multiple Charges per Element accumulate **saturation**
 - When saturation exceeds threshold, Element **resets**: pot distributed, Charges unbound
 - Inward moves typically cheaper (fee asymmetry from curve capacity)
@@ -25,14 +27,14 @@ Movement fees depend on saturation: inward fees use destination saturation, outw
 
 ## Quick Start
 
-1. Fund Solana wallet with USDT/USDC
+1. Fund a Solana wallet with USDT/USDC
 2. **Infuse** — convert stablecoins to Gluon (in-game currency, 1:1)
 3. **Charge** — allocate Gluon to create a Charge
-4. **Bind** — place Charge on board (edge Elements only: H, He, Li, Be, B, C)
+4. **Bind** — place a Charge on the board (edge Elements only: H, He, Li, Be, B, C)
 5. **Rebind** — move between adjacent Elements
-6. **Overload** — trigger Element reset (typically bundled atomically with Rebind/Bind that pushes saturation over threshold)
+6. **Overload** — trigger an Element reset (typically bundled atomically with Rebind/Bind that pushes saturation over threshold)
 7. **Claim** — collect reward share after reset
-8. **Discharge** — merge Charge back to wallet
+8. **Discharge** — merge a Charge back to wallet
 9. **Extract** — convert Gluon back to stablecoins
 
 ## Key Concepts
@@ -40,8 +42,8 @@ Movement fees depend on saturation: inward fees use destination saturation, outw
 | Concept | Description |
 |---------|-------------|
 | **Element** | A region (group of tiles). Named after chemical elements (H at edge, Fe at center). |
-| **Charge** | Your on-board entity. Bound when on board, unbound when off. Multiple per player. |
-| **Gluon** | In-game currency. Always yours—never locked or staked. |
+| **Charge** | A player's on-board entity. Bound when on board, unbound when off. Multiple per player. |
+| **Gluon** | In-game currency. Always owned by the player—never locked or staked. |
 | **Saturation** | Sum of commitment shares. Rises on entry, falls on exit. |
 | **Reset** | When saturation exceeds threshold: pot distributed, Charges unbound (free exit). |
 | **Depth (Z)** | Atomic number (1–26). Higher Z = deeper, bigger pots, harder to escape. |
@@ -81,9 +83,33 @@ H │  Ne10   │ F9 │      O8 │           N7 │
 
 ## Documentation
 
-- **[Game Design](docs/GAME_DESIGN.md)** — Board topology, commitment mechanics, value flow, design motivation
-- **[Mechanics](docs/MECHANICS.md)** — All 13 instructions, fee routing, invariants, technical details
-- **[Player Guide](docs/PLAYER_GUIDE.md)** — Operations, fee strategy, strategic tradeoffs
+### For Players
+
+Start here to learn the game:
+
+| Document | Description |
+|----------|-------------|
+| **[Quick Start](docs/players/QUICKSTART.md)** | Get playing in 5 minutes |
+| **[Concepts](docs/players/CONCEPTS.md)** | Core mental model—Elements, Charges, value flow |
+| **[Operations](docs/players/OPERATIONS.md)** | Detailed guide to every action |
+| **[Strategy](docs/players/STRATEGY.md)** | How mechanics interact, emergent play |
+| **[Reference](docs/players/REFERENCE.md)** | Fees, formulas, board map |
+
+### For Developers
+
+Technical integration guides:
+
+| Document | Description |
+|----------|-------------|
+| **[Architecture](docs/developers/ARCHITECTURE.md)** | Crate structure, data flow, design decisions |
+| **[Instructions](docs/developers/INSTRUCTIONS.md)** | Complete on-chain instruction reference |
+| **[Integration](docs/developers/INTEGRATION.md)** | SDK usage, FlatBuffers, FFI bindings |
+
+### Reference
+
+| Document | Description |
+|----------|-------------|
+| **[Glossary](docs/GLOSSARY.md)** | All terms defined |
 
 ## Building
 
@@ -101,7 +127,9 @@ See [backend/README.md](backend/README.md) for implementation details.
 backend/
 ├── curve/     # Sigmoid commitment curve (LUT)
 ├── nucleus/   # Core types and logic (blockchain-agnostic)
-└── program/   # Solana on-chain program
+├── program/   # Solana on-chain program
+├── jet/       # FlatBuffers serialization bindings
+└── ffi/       # Flutter/WASM bindings
 ```
 
 **Program ID:** `DuJrE9ZB4TqcMByw9g4CiDQdNQosPQCQw2ECWGfLiyi`

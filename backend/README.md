@@ -8,7 +8,9 @@ Rust implementation of TOKAMAK64. For game design and mechanics, see the [main R
 backend/
 ├── curve/     # Bonding curve LUT and math
 ├── nucleus/   # Core types and logic (no blockchain deps)
-└── program/   # Solana on-chain program
+├── program/   # Solana on-chain program
+├── jet/       # FlatBuffers schema bindings
+└── ffi/       # Flutter/WASM bindings
 ```
 
 | Crate | Purpose |
@@ -16,6 +18,8 @@ backend/
 | `curve` | Precomputed sigmoid LUT, saturation/pressure mapping |
 | `nucleus` | `Charge`, `Element`, `Board`, fees, actions |
 | `program` | Solana entrypoint, instruction dispatch |
+| `jet` | FlatBuffers serialization for cross-language interop |
+| `ffi` | FFI bindings for Flutter (flutter_rust_bridge) and WASM |
 
 ## Building
 

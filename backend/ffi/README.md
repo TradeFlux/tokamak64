@@ -30,4 +30,4 @@ cargo build -p tokamak_ffi --release
 
 ## Flutter Integration
 
-Configure `flutter_rust_bridge.yaml` in your Flutter project to generate Dart bindings from this crate's public API. See the YAML config in this directory for available build targets.
+Configure `flutter_rust_bridge.yaml` in the Flutter project to generate Dart bindings from this crate's public API. See the YAML config in this directory for available build targets.

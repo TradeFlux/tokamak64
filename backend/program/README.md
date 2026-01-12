@@ -8,7 +8,7 @@ Solana on-chain program for TOKAMAK64. For game design, see the [main README](..
 DuJrE9ZB4TqcMByw9g4CiDQdNQosPQCQw2ECWGfLiyi
 ```
 
-## Instructios & Account Layouts
+## Instructions & Account Layouts
 
 ### InitWallet / InitCharge
 ```
