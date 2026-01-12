@@ -115,7 +115,7 @@ Counter incrementing each reset. Part of ElementIndex. Ensures Charges claim fro
 In-game currency. 1:1 with USDC/USDT. Held in Wallets (liquid) or Charges (active).
 
 ### Gravity
-Value flowing inward. Fee asymmetry: inward uses destination saturation (lower), so it's cheaper.
+Value flowing toward center. Fee uses destination curve's saturation when moving inward, source curve's saturation when moving outward. Deeper elements typically have lower saturation due to larger curves.
 
 ---
 
@@ -155,7 +155,7 @@ Rebind cost. Based on distance², saturation, speed tax, balance.
 Toward lower Z (toward edge). Fees use source saturation.
 
 ### Overload
-Trigger Element reset when saturation > 100%. Creates Artefact, distributes rewards.
+Trigger Element reset when saturation exceeds 100%. Anyone can call overload once saturation >= 100%, but in practice the binder who crosses the threshold typically calls it immediately. Creates Artefact, distributes rewards.
 
 ---
 
@@ -213,7 +213,7 @@ Sum of shares of all bound Charges. Entry adds, exit removes. Reset at 100%.
 See Commitment Share.
 
 ### Sigmoid Curve
-S-curve for share efficiency. Inflection at 50%. Early ~20× more efficient than late.
+S-curve for share efficiency. Inflection at 50%. Early binders more efficient than late (theoretical max: 20× at 0% saturation; at 10% saturation: ~12× more efficient than at 90%).
 
 ### Slot
 Solana time unit. ~50ms on L2. Used for speed tax.

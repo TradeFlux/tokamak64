@@ -60,10 +60,10 @@ When done:
 
 Be present when Elements reset. Resets distribute the pot proportionally.
 
-Ask yourself: *Where and when will the next profitable reset happen?*
+Consider: *Where and when will the next profitable reset happen?*
 
 - Arrive early → bigger share
-- Arrive late → trigger at favorable moment
+- Arrive late → either trigger reset, or get small share + free ejection
 - Go deeper → bigger pots, higher fees to leave
 
 ## Quick Reference

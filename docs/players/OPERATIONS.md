@@ -17,7 +17,7 @@ Player ATA (USDC/USDT) → Infuse → Player Wallet (Gluon)
 | Aspect | Detail |
 |--------|--------|
 | Rate | 1:1 (100 USDC = 100 Gluon) |
-| First infuse | Creates your Wallet |
+| First infuse | Creates a player Wallet |
 | Cost | Network tx fee only |
 
 Gluon in the Wallet is liquid—withdraw anytime via Extract.
@@ -56,7 +56,7 @@ Wallet (Gluon) → Charge → New Charge Account (Gluon)
 |--------|--------|
 | Requirement | Wallet balance |
 | Result | New unbound Charge |
-| Multiple | Create as many as you want |
+| Multiple | Create as desired |
 
 Each Charge moves independently.
 
@@ -113,7 +113,7 @@ Charge (bound) → Unbind → Charge (unbound)
 | Effect | Saturation decreases |
 | Consequence | No rewards from future resets |
 
-From deep Elements, Rebind outward step by step until you reach an edge.
+From deep Elements, Rebind outward step by step until reaching an edge.
 
 ---
 
@@ -140,12 +140,12 @@ Primary positioning action. See [Strategy](STRATEGY.md).
 
 #### Direction Matters
 
-| Direction | Fee Basis | Typical Cost |
-|-----------|-----------|--------------|
-| **Inward** (higher Z) | Destination saturation | Cheaper |
-| **Outward** (lower Z) | Source saturation | More expensive |
+| Direction | Fee Basis | Notes |
+|-----------|-----------|-------|
+| **Inward** (higher Z) | Destination saturation | Deeper elements typically have lower saturation |
+| **Outward** (lower Z) | Source saturation | Cost depends on the current element's saturation |
 
-Entering is easier than leaving.
+Fee magnitude depends on the saturation of the curve used, not direction alone.
 
 ### Compress
 
@@ -208,16 +208,15 @@ Element (saturated) → Overload → Element (reset) + Artefact (created)
 | Aspect | Detail |
 |--------|--------|
 | Requirement | Saturation > 100% |
-| Typical use | Bundled with the Rebind/Bind that crosses threshold |
-| Trigger reward | Immediate share |
-| Trigger advantage | First position in new cycle |
-| Others | Unbound for free |
+| Who can trigger | Anyone (once saturation >= 100%), but typically the binder who crossed threshold calls immediately |
+| Trigger reward | First position in new cycle |
+| Others | Unbound for free (ejected without fee) |
 
 In practice, submit one transaction with:
-1. Rebind or Bind that pushes saturation over
+1. Rebind or Bind that pushes saturation over 100%
 2. Overload instruction
 
-Atomic execution—no front-running.
+Atomic execution—no front-running. However, if a binder pushes past 100% without calling overload, anyone else can call it and capture the trigger reward (rare but possible).
 
 ### Claim
 

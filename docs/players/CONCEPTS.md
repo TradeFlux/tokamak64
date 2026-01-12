@@ -41,7 +41,7 @@ An Element's atomic number (Z) represents its **depth**:
 | Deep (Z=21-25) | Sc, Ti, V, Cr, Mn | Big pots, high fees to leave |
 | Core (Z=26) | Fe (Iron) | Deepest element, 7 neighbors |
 
-Deeper Elements have **larger curves**—they absorb more value before resetting. Fees make inward movement cheap and outward movement expensive, so value flows toward the center.
+Deeper Elements have **larger curves**—they absorb more value before resetting. Movement fees use the saturation of the destination curve (inward) or source curve (outward). Deeper elements typically have lower saturation, so moving through them is often cheaper.
 
 ### Adjacency
 
@@ -109,7 +109,7 @@ Then the cycle starts over. Forever.
 When a Charge binds, its **commitment share** depends on:
 
 1. **Gluon balance** — bigger Charge, bigger share
-2. **Current saturation** — where you land on the curve
+2. **Current saturation** — the position on the curve
 3. **Element depth** — deeper = larger curve
 
 The curve is a **sigmoid**:
@@ -127,18 +127,18 @@ Share
        Early: large share
 ```
 
-- **Early** (low saturation): ~20× share efficiency per Gluon
+- **Early** (low saturation): More efficient (~12× at 10% vs 90% saturation; theoretical max: 20× at 0%)
 - **Mid** (near inflection): Diminishing returns
-- **Late** (near threshold): Marginal share, but you can trigger the reset
+- **Late** (near threshold): Marginal share; either (a) calculate to cross 100% and trigger immediately, OR (b) accept small share + free ejection
 
-Early birds get more. Late arrivals can still profit by triggering.
+Early birds get more shares. Late arrivals choose: trigger reset for first position (must do so immediately), or ride for free ejection and profit from large pot. Strategic note: Anyone can call overload once saturation >= 100%, so crossing without triggering risks losing the reward.
 
 ### Measured, Not Staked
 
-Gluon isn't locked. Your balance determines your share, but you keep the Gluon.
+Gluon isn't locked. A Charge's balance determines its share, but the Gluon remains available.
 
 - Bigger Charges get bigger shares
-- You can rebind elsewhere with your full balance
+- Charges can rebind elsewhere with full balance
 - No staking, no lockups
 
 ## Fees
@@ -163,11 +163,11 @@ Movement fees route to Element pots based on direction:
 | **Inward** (toward Fe) | Destination saturation | Destination pot |
 | **Outward** (toward edge) | Source saturation | Source pot |
 
-Deeper Elements usually have lower saturation (larger curves), so **inward moves are cheaper**. Value flows toward the center.
+Deeper elements usually have lower saturation (larger curves). Value flows toward the center through low-saturation paths.
 
 ### Speed Tax
 
-A multiplier (1× to 128×) based on time since your last action:
+A multiplier (1× to 128×) based on time since the Charge's last action:
 
 - **Immediate**: 128× multiplier
 - **After ~51 seconds**: 1× (full decay)
@@ -198,8 +198,11 @@ Rules that never change:
 | Binary binding | Bound to one Element or off the board |
 | Live saturation | Only current Charges count |
 | Entry triggers reset | Never exit |
-| Free ejection | Reset kicks you out for free |
-| Full transparency | Everyone sees everything |
+| Free ejection | Reset kicks everyone out for free; saves unbind fees |
+| **Full transparency** | All state visible: pots, saturation, positions |
+| **Deterministic** | Calculate exactly: fees, shares, threshold crosses |
+
+Players can predict every outcome before committing. No randomness, no guessing.
 
 ## Next Steps
 

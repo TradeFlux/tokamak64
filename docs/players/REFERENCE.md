@@ -74,15 +74,18 @@ total_fee = base_fee × speed_multiplier
 ### Movement Fee (Rebind)
 
 ```
-base_fee = balance × saturation × distance² × MIN_FEE_RATE
+base_fee = balance × distance² × saturation / DENOMINATOR
+
+DENOMINATOR = MAX_ATOMIC_NUMBER² × MAX_SATURATION = 68,048,388,096
 ```
 
 | Factor | Range | Notes |
 |--------|-------|-------|
 | balance | Charge's Gluon | Linear |
-| saturation | 0.0–1.0 | Direction-dependent |
-| distance² | 1–625 | Quadratic |
-| MIN_FEE_RATE | 0.001 | Constant |
+| saturation | 0–MAX_SATURATION (100,663,296) | Direction-dependent |
+| distance² | 1–169 | Atomic number difference, quadratic |
+| MAX_ATOMIC_NUMBER | 26 | H through Fe |
+| MAX_SATURATION | 100,663,296 | Q8.24 fixed-point |
 
 **Direction:**
 - **Inward** (dst.Z > src.Z): destination saturation
@@ -124,36 +127,43 @@ MIN_FEE = 0.1 Gluon
 
 ## Fee Examples
 
-100 Gluon Charge, patient movement (~51s between moves):
+**Inputs:** 10,000 Gluon charge, patient timing (51s decay = 1× multiplier)
 
 ### Adjacent Moves (distance = 1)
 
-| Saturation | Base Fee | With Min |
-|------------|----------|----------|
-| 5% | 0.005 | 0.10 |
-| 25% | 0.025 | 0.10 |
-| 50% | 0.050 | 0.10 |
-| 75% | 0.075 | 0.10 |
-| 95% | 0.095 | 0.10 |
+| Saturation | Fee |
+|:----------:|:---:|
+| 5% | 0.74 |
+| 25% | 3.70 |
+| 50% | 7.40 |
+| 75% | 11.09 |
+| 95% | 14.05 |
 
-### Long Jumps (patient, 25% saturation)
+### Key Move Examples (25% saturation)
 
-| Distance | Distance² | Fee |
-|----------|-----------|-----|
-| 1 | 1 | 0.10 |
-| 5 | 25 | 0.63 |
-| 10 | 100 | 2.50 |
-| 15 | 225 | 5.63 |
-| 25 | 625 | 15.63 |
+| Move | Distance | Fee | Note |
+|:----:|:--------:|:---:|------|
+| H→He | 1 | 3.70 | Adjacent edge |
+| H→Mg | 11 | 447.49 | Edge-to-edge |
+| H→Al | 12 | 532.54 | Edge-to-inner |
+| **F→Ti** | **13** | **625.00** | Max distance |
 
-### Speed Tax (adjacent, 50% saturation)
+### Speed Tax (H→He, 50% saturation)
 
 | Timing | Multiplier | Fee |
-|--------|------------|-----|
-| Patient (51s) | 1× | 0.10 |
-| Moderate (26s) | 32× | 1.60 |
-| Rushed (13s) | 72× | 3.60 |
-| Immediate (0s) | 128× | 6.40 |
+|--------|:----------:|:---:|
+| Patient (51s) | 1× | 7.40 |
+| Moderate (26s) | 32× | 236.69 |
+| Rushed (13s) | 72× | 532.54 |
+| Immediate (0s) | 128× | 946.75 |
+
+### Max Distance (F→Ti, patient)
+
+| Saturation | Fee |
+|:----------:|:---:|
+| 25% | 625.00 |
+| 50% | 1,250.00 |
+| 95% | 2,375.00 |
 
 ## Constants
 
@@ -161,6 +171,8 @@ MIN_FEE = 0.1 Gluon
 |----------|-------|-------------|
 | Elements | 26 | H through Fe |
 | Edge Elements | 12 | H through Mg |
+| Max distance | 13 | F→Ti (atomic number difference) |
+| Fee denominator | 68,048,388,096 | MAX_ATOMIC_NUMBER² × MAX_SATURATION |
 | Saturation threshold | 100% | Reset trigger |
 | Speed tax max | 128× | Immediate action |
 | Speed decay | 1024 slots | Full decay |
@@ -172,21 +184,25 @@ MIN_FEE = 0.1 Gluon
 ## Commitment Share
 
 ```
-share = sigmoid(saturation) × balance × depth_factor(Z)
+share = dx_for_dc(saturation, pressure, balance, capacity)
 ```
 
-Sigmoid curve:
-- Inflection: 50% saturation
-- Early efficiency: ~20× vs late
-- Late efficiency: marginal
+The share is the x-increment (dx) earned for a given balance deposit, calculated via the sigmoid curve integral (softplus).
 
-| Saturation | Relative Efficiency |
-|------------|---------------------|
-| 10% | ~18× |
-| 30% | ~8× |
-| 50% | ~2× |
-| 70% | ~0.5× |
-| 90% | ~0.1× |
+**Efficiency** (dx per balance) follows `1/sigmoid(x)`:
+- Higher at low saturation (early = more efficient)
+- Lower at high saturation (late = less efficient)
+- Inflection point at 50% saturation
+
+| Saturation | x value | sigmoid(x) | Relative Efficiency |
+|------------|---------|------------|---------------------|
+| 10% | -2.4 | 0.083 | 12.0× |
+| 30% | -1.2 | 0.231 | 4.3× |
+| 50% | 0.0 | 0.500 | 2.0× (baseline) |
+| 70% | +1.2 | 0.769 | 1.3× |
+| 90% | +2.4 | 0.917 | 1.1× |
+
+**Early vs late**: Binding at 10% saturation gives ~12× more shares per Gluon than binding at 90%.
 
 ## Quick Card
 

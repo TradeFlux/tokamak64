@@ -22,13 +22,13 @@ When to bind relative to saturation:
 |--------|-------|------|
 | **Early** (low saturation) | Large | Pot might stagnate; opportunity cost |
 | **Mid** (building) | Moderate | Balanced |
-| **Late** (near threshold) | Small | Can trigger reset; timing-dependent |
+| **Late** (near threshold) | Small | Pot may not justify marginal share; OR free ejection bonus |
 
 The sigmoid makes this real:
-- Early: ~20× share efficiency
-- Late: marginal share, but you control the trigger
+- Early: ~12× more efficient than late (at 10% vs 90% saturation; theoretical max: 20× at 0%)
+- Late: marginal share, but two paths: (a) calculate to cross 100% and trigger immediately, OR (b) bind for large pot + free ejection
 
-The trigger gets first position in the new cycle—partial compensation for late entry.
+Everything is visible and calculable. Players know exactly: share size, fee cost, reset outcome. Note: Anyone can call overload once saturation >= 100%, so crossing the threshold without triggering creates risk of someone else capturing the reward.
 
 ### 2. Depth Selection
 
@@ -41,7 +41,7 @@ Where to sit on the edge-to-core gradient:
 | **Deep** (Sc–Mn) | Large | Slow | High (many rebinds) |
 | **Core** (Fe) | Largest | Slowest | Highest (7 hops to edge) |
 
-Deeper = bigger potential payout, but more fees to leave. Fe has 7 neighbors and high adjacency—you can always rebind out, it just costs.
+Deeper = bigger potential payout, but more fees to leave. Fe has 7 neighbors and high adjacency—Charges can always rebind outward, it just costs.
 
 ### 3. Activity Level
 
@@ -60,28 +60,37 @@ Speed tax punishes rapid movement (up to 128×). Patience pays—but also means 
 
 ### Fee Asymmetry = Gravity
 
-Inward fees use destination saturation. Outward fees use source saturation. Deeper Elements have larger curves, so they usually have lower saturation.
+Inward fees use destination saturation. Outward fees use source saturation. Deeper elements typically have larger curves with lower saturation.
 
-Result:
-- **Inward is cheap**
-- **Outward is expensive**
+**Strategy implications:**
+- Moving through deep/quiet elements is cheaper
+- Escaping from crowded elements is expensive
+- Routes through low-saturation elements minimize fees
 
-Value flows toward the center. Don't fight it. Enter cheap, capture resets, re-enter cheap.
+Value flows toward the center through low-saturation paths. Don't fight it—use the gradient.
 
 ### Speed Tax = Timing Over Speed
 
-128× multiplier on immediate actions. Bots gain nothing from speed. Human reaction time doesn't matter. The ~51 second decay window is your planning unit.
+128× multiplier on immediate actions. Bots gain nothing from speed. Human reaction time doesn't matter. The ~51 second decay window serves as a strategic planning horizon.
 
 Plan ahead. The patient path through low-saturation Elements beats a rushed direct jump.
 
 ### Public State = Information Game
 
-Everything is visible: pots, saturation, positions. Watch saturation to see:
+Everything is visible and deterministic: pots, saturation, positions, fees.
+
+**Players can calculate exactly:**
+- How much saturation a bind will add (based on balance and current saturation)
+- Whether the bind will cross 100% and trigger reset
+- What the share will be at any saturation level
+- Exact fees for any move (before committing)
+
+No randomness, no hidden information. Watch saturation to see:
 - How close an Element is to reset
 - Where players are concentrating
 - Which pots are growing
 
-Read the board. Saturation patterns telegraph intentions.
+Read the board. Calculate precisely. Act with certainty.
 
 ### Compression Reshapes Value
 
@@ -92,7 +101,7 @@ Use it to:
 - Concentrate value for bigger resets
 - Make specific Elements attractive
 
-Compression is a coordination problem—you pay the cost, everyone benefits. Only worth it if you're positioned in the destination.
+Compression is a coordination problem—the initiator pays, everyone benefits. Only worth it if positioned in the destination.
 
 ### Vent = Signal
 
@@ -156,7 +165,7 @@ Don't race to fill a "vacuum" after a large exit—phantom remains, room is smal
 **Setup**: Sit in a quiet deep Element. Wait for adjacent shallower Elements to saturate.
 
 **Why it works**:
-- Outward fees use source saturation (your quiet spot = cheap exit)
+- Outward fees use source saturation (quiet spot = cheap exit)
 - Strike into saturated pots cheaply
 - Deep position provides cover
 
@@ -203,6 +212,7 @@ Nitrogen position = 14× cheaper strike into Carbon.
 You can run multiple Charges. Use them for:
 
 ### Diversification
+
 Spread across Elements. If one stagnates, others pay.
 
 ### Staging
@@ -210,14 +220,19 @@ Spread across Elements. If one stagnates, others pay.
 - Deep Charge for big payoffs
 - Mid Charge for opportunistic strikes
 
-### Scouting
-Small Charge tests an Element before you commit big.
+### Charge Size Strategy
 
-**Note**: Fees scale with balance. 10 Gluon Charge pays 1/10th the fee of 100 Gluon Charge. But gets 1/10th the share.
+Different sizes serve different purposes:
+
+| Small Charge | Medium Charge | Large Charge |
+|--------------|---------------|--------------|
+| Low commitment | Balanced risk/reward | Maximum share |
+| Minimal fees | Moderate fees | Higher fees |
+| Quick repositioning | Flexible positioning | Strategic depth |
 
 ---
 
-## Reading the Board
+## Board Analysis
 
 ### Saturation Patterns
 
@@ -269,7 +284,7 @@ All state is public. No hidden info. Edge comes from:
 
 ### Infinite Game
 
-No end state. The board resets Element by Element, forever. Question isn't "who wins" but "how much value can you capture over time."
+No end state. The board resets Element by Element, forever. Question isn't "who wins" but "how much value players can capture over time."
 
 Long-term success:
 - Sustainable fee management
@@ -283,11 +298,12 @@ Long-term success:
 | Mistake | Why it fails |
 |---------|--------------|
 | Rushing | Speed tax up to 128× destroys value |
-| Fighting gravity | Outward is expensive; use resets to escape |
+| Fighting gravity | Outward through saturated elements is expensive; use resets or route through quiet spots |
 | Ignoring saturation | Entry timing = share size |
+| Crossing 100% without triggering | Anyone can call overload and capture the reward; free lunch rarely left on table |
 | Over-committing deep | Big exit costs if reset doesn't come |
 | Single Charge only | No diversification |
-| Compression without position | You pay, everyone benefits |
+| Compression without position | The initiator pays, everyone benefits |
 | Ignoring churn | Churned 60% is hotter than quiet 80% |
 | Racing to fill vacuum | Everyone sees it; speed tax punishes |
 
@@ -299,7 +315,7 @@ TOKAMAK64 rewards:
 - **Patience** — speed tax punishes haste; waiting is free
 - **Positioning** — be present at resets; absence gets nothing
 - **Reading** — all info is public; edge is interpretation
-- **Timing** — early for shares, late for triggers
+- **Timing** — early for shares; calculate precisely to cross 100% for reset trigger
 
 The game cycles forever. Master the cycle.
 
