@@ -230,7 +230,7 @@ Place charge onto board (edge element only).
 - Charge becomes bound to element
 - Commitment share measured and recorded
 - Element saturation increases
-- Injection fee deducted from charge, added to element pot
+- Movement fee deducted from charge, added to element pot (distance: Z=0 → element)
 
 ---
 
@@ -259,7 +259,7 @@ Remove charge from board (edge element only).
 **Effects**:
 - Charge becomes unbound
 - Element saturation decreases
-- Ejection fee deducted from charge, added to element pot
+- Movement fee deducted from charge, added to element pot (distance: element → Z=0)
 
 ---
 

@@ -2,6 +2,8 @@
 
 All TOKAMAK64 terms.
 
+**See also:** [players/README.md](players/README.md) for documentation index.
+
 ---
 
 ## A
@@ -124,8 +126,8 @@ Value flowing toward center. Fee uses destination curve's saturation when moving
 ### Infuse
 Convert stablecoins to Gluon in Wallet.
 
-### Injection Fee
-Fee for binding to an Element.
+### Bind Fee
+Movement fee for binding a Charge to an Element. See: Movement Fee.
 
 ### Inward
 Toward higher Z (toward Fe). Fees use destination saturation.
@@ -145,7 +147,7 @@ Precomputed sigmoid values. O(1) share calculation.
 0.1 Gluon floor. No dust transactions.
 
 ### Movement Fee
-Rebind cost. Based on distance², saturation, speed tax, balance.
+Rebind cost. Based on distance², saturation, speed tax, balance. Same formula for Bind, Unbind, Rebind. See: [players/REFERENCE.md](players/REFERENCE.md#fee-formulas).
 
 ---
 
@@ -278,6 +280,8 @@ See Atomic Number.
 
 ## See Also
 
+- **[players/README.md](players/README.md)** — player documentation index
+- **[developers/README.md](developers/README.md)** — developer documentation index
 - **[Concepts](players/CONCEPTS.md)** — mental model
 - **[Reference](players/REFERENCE.md)** — constants and formulas
 - **[Architecture](developers/ARCHITECTURE.md)** — technical structure

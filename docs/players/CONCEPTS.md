@@ -9,27 +9,6 @@ The game takes place on a fixed 8×8 grid divided into 26 **Elements**. Each Ele
 - **Z=1 (Hydrogen)** at the outer edge
 - **Z=26 (Iron)** at the center
 
-```
-    1    2    3    4    5    6    7    8
-  ┌──────────────┬─────────┬────┬─────────┐
-A │  H1          │  He2    │ Li3│      Be4│
-  │    ┌─────────┴────┬────┤    ├────┐    │
-B │    │       Al13   │Si14│    │    │    │
-  ├────┴────┬─────────┤    ├────┤    │    │
-C │  Mg12   │  Cr24   │    │ P15│ S16│    │
-  ├────┬────┴────┬────┼────┤    │    ├────┤
-D │    │  V23    │Mn25│    │    │    │ B5 │
-  │    ├────┬────┼────┘    ├────┴────┤    │
-E │Na11│    │    │     Fe26│     Cl17│    │
-  ├────│    │    ├────┬────┴────┬────┴────┤
-F │    │Ti22│Sc21│    │     Ar18│      C6 │
-  │    │    ├────┤    ├─────────┴────┬────┤
-G │    │    │    │Ca20│        K19   │    │
-  │    └────┤    ├────┴────┬─────────┘    │
-H │  Ne10   │ F9 │      O8 │           N7 │
-  └─────────┴────┴─────────┴──────────────┘
-```
-
 ### Depth
 
 An Element's atomic number (Z) represents its **depth**:
@@ -129,9 +108,9 @@ Share
 
 - **Early** (low saturation): More efficient (~12× at 10% vs 90% saturation; theoretical max: 20× at 0%)
 - **Mid** (near inflection): Diminishing returns
-- **Late** (near threshold): Marginal share; either (a) calculate to cross 100% and trigger immediately, OR (b) accept small share + free ejection
+- **Late** (near threshold): Marginal share; either (a) calculate to cross 100% and trigger immediately, OR (b) accept smaller share + free ejection
 
-Early birds get more shares. Late arrivals choose: trigger reset for first position (must do so immediately), or ride for free ejection and profit from large pot. Strategic note: Anyone can call overload once saturation >= 100%, so crossing without triggering risks losing the reward.
+**See:** [REFERENCE.md](REFERENCE.md#commitment-share) for exact efficiency table and formula.
 
 ### Measured, Not Staked
 
@@ -151,32 +130,22 @@ Every action costs fees. Fees are **never burned**—they go into pots and becom
 |--------|--------|-------------|
 | **Distance²** | Quadratic scaling | Long jumps are exponentially expensive |
 | **Saturation** | Linear scaling | Crowded Elements cost more to enter/exit |
-| **Speed tax** | Up to 128× multiplier | Rapid actions are punished |
+| **Speed tax** | Up to 128× multiplier | Rapid actions cost more |
 | **Balance** | Linear scaling | Larger Charges pay proportionally more |
 
-### Movement: All One Formula
+**See:** [REFERENCE.md](REFERENCE.md#fee-formulas) for exact fee calculations and examples.
 
-**Bind, Unbind, and Rebind all use the same fee calculation:**
+### Movement: One Formula for All Actions
 
-```
-fee = balance × distance² × saturation / DENOMINATOR
+**Bind, Unbind, and Rebind all use the same fee structure:**
 
-distance = atomic number difference:
-- Bind (onboard): Z=0 → destination.Z
-- Unbind (offboard): source.Z → Z=0
-- Rebind (board→board): |destination.Z - source.Z|
-```
+- All movement uses atomic number distance (Bind/Unbind treat offboard as Z=0)
+- No special "entry" or "exit" fees—cost depends only on distance and curve saturation
+- Moving from edge (H, Z=1) to He (Z=2) costs the same whether binding on or rebinding between them
 
-No special "entry" or "exit" fees—cost depends only on distance moved and curve saturation. Moving from edge (H, Z=1) to He (Z=2) costs the same whether you're binding on or rebinding between them.
-
-### Fee Direction
-
-Movement fees route to Element pots based on direction:
-
-| Direction | Fee Based On | Pot Receives |
-|-----------|--------------|--------------|
-| **Inward** (toward Fe) | Destination saturation | Destination pot |
-| **Outward** (toward edge) | Source saturation | Source pot |
+**Fee routing** depends on direction:
+- **Inward** (toward Fe): Destination pot receives the fee
+- **Outward** (toward edge): Source pot receives the fee
 
 Deeper elements usually have lower saturation (larger curves). Value flows toward the center through low-saturation paths.
 
@@ -186,6 +155,8 @@ A multiplier (1× to 128×) based on time since the Charge's last action:
 
 - **Immediate**: 128× multiplier
 - **After ~51 seconds**: 1× (full decay)
+
+**See:** [REFERENCE.md](REFERENCE.md#speed-multiplier) for exact decay formula and timing table.
 
 Speed is not an advantage. Timing beats reflexes.
 
@@ -223,4 +194,4 @@ Players can predict every outcome before committing. No randomness, no guessing.
 
 - **[Operations](OPERATIONS.md)** — How to perform each action
 - **[Strategy](STRATEGY.md)** — How mechanics interact
-- **[Reference](REFERENCE.md)** — Fees, formulas, board map
+- **[Reference](REFERENCE.md)** — Fees, formulas, board map, constants

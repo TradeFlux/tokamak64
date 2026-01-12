@@ -190,13 +190,9 @@ Bumps are deterministic—re-derived each time, not stored.
 
 ### Account Types
 
-| Account | Size | Owner | Contents |
-|---------|------|-------|----------|
-| Wallet | 72 bytes | Program | balance, authority, mint, charge_count |
-| Charge | 96 bytes | Program | balance, timestamp, index, share, authority, mint |
-| Element | 128 bytes | Program | pot, index, curve, coordinates |
-| Board | 64 bytes | Program | tvl, quantum_pocket, charge_count, quantum_index |
-| Artefact | 136 bytes | Program | Snapshot of reset Element |
+**See:** [INTEGRATION.md](INTEGRATION.md#account-parsing) for complete account size information and interface definitions.
+
+All accounts use `bytemuck` for zero-copy access.
 
 ### Serialization
 

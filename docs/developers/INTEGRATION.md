@@ -121,7 +121,7 @@ Use FlatBuffers for structured state parsing and cross-language support.
 
 ### Schema Compilation
 
-Generate bindings for your language:
+Generate bindings for the target language:
 
 ```bash
 # TypeScript
@@ -185,7 +185,7 @@ Use FFI for client-side computation without network calls.
 The `ffi` crate uses `flutter_rust_bridge` for Dart bindings.
 
 **Setup**:
-1. Add the generated Dart files to your Flutter project
+1. Add the generated Dart files to the Flutter project
 2. Configure `flutter_rust_bridge.yaml`
 3. Build the native library
 

@@ -92,9 +92,9 @@ Charge (unbound) → Bind → Charge (bound to Element)
 | Aspect | Detail |
 |--------|--------|
 | Restriction | **Edge Elements only** (H through Mg) |
-| Cost | Injection fee |
+| Cost | Movement fee (distance from Z=0 to destination) |
 | Effect | Saturation increases |
-| Share | Measured at binding |
+| Share | Measured at binding (see: Commitment Share) |
 
 Earlier binding = larger share (sigmoid curve).
 
@@ -109,7 +109,7 @@ Charge (bound) → Unbind → Charge (unbound)
 | Aspect | Detail |
 |--------|--------|
 | Restriction | **Edge Elements only** |
-| Cost | Ejection fee |
+| Cost | Movement fee (distance from source to Z=0) |
 | Effect | Saturation decreases |
 | Consequence | No rewards from future resets |
 
@@ -259,19 +259,21 @@ Bind → Rebind (position) → Wait → Overload/Claim → Rebind → ...
 
 ### Fee Summary
 
-| Operation | Fee |
-|-----------|-----|
-| Infuse | None (tx only) |
-| Extract | None (tx only) |
-| Charge | None (tx only) |
-| Discharge | None (tx only) |
-| Bind | Injection fee |
-| Unbind | Ejection fee |
-| Rebind | Movement fee |
-| Compress | Movement + Compression fee |
-| Vent | None (donation is the cost) |
+| Operation | Fee Type |
+|-----------|----------|
+| Infuse | None (network tx only) |
+| Extract | None (network tx only) |
+| Charge | None (wallet→charge transfer) |
+| Discharge | None (charge→wallet merge) |
+| Bind | Movement fee (distance: Z=0 → destination) |
+| Unbind | Movement fee (distance: source → Z=0) |
+| Rebind | Movement fee (distance: source → destination) |
+| Compress | Movement + Compression fee (up to 5% of source pot) |
+| Vent | None (donation added to pot) |
 | Overload | None |
 | Claim | None |
+
+See [REFERENCE.md](REFERENCE.md) for formulas and examples.
 
 ---
 
