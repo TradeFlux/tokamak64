@@ -154,6 +154,21 @@ Every action costs fees. Fees are **never burned**—they go into pots and becom
 | **Speed tax** | Up to 128× multiplier | Rapid actions are punished |
 | **Balance** | Linear scaling | Larger Charges pay proportionally more |
 
+### Movement: All One Formula
+
+**Bind, Unbind, and Rebind all use the same fee calculation:**
+
+```
+fee = balance × distance² × saturation / DENOMINATOR
+
+distance = atomic number difference:
+- Bind (onboard): Z=0 → destination.Z
+- Unbind (offboard): source.Z → Z=0
+- Rebind (board→board): |destination.Z - source.Z|
+```
+
+No special "entry" or "exit" fees—cost depends only on distance moved and curve saturation. Moving from edge (H, Z=1) to He (Z=2) costs the same whether you're binding on or rebinding between them.
+
 ### Fee Direction
 
 Movement fees route to Element pots based on direction:

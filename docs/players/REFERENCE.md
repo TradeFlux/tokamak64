@@ -91,6 +91,14 @@ DENOMINATOR = MAX_ATOMIC_NUMBER² × MAX_SATURATION = 68,048,388,096
 - **Inward** (dst.Z > src.Z): destination saturation
 - **Outward** (dst.Z < src.Z): source saturation
 
+**Unified Fee Structure:**
+All movement fees use the same formula:
+- **Bind** (onboard): distance = dst.Z (treating offboard as Z=0)
+- **Unbind** (offboard): distance = src.Z (moving to Z=0)
+- **Rebind** (board→board): distance = |dst.Z - src.Z|
+
+There's no special "entry/exit" fee—movement cost depends only on atomic number distance and curve saturation.
+
 ### Speed Multiplier
 
 ```

@@ -26,7 +26,7 @@ Solana token account for USDC/USDT. Entry/exit point for real money.
 Gluon held by a Wallet or Charge.
 
 ### Bind
-Operation placing an unbound Charge on the board. Edge Elements only.
+Operation placing an unbound Charge on the board. Edge Elements only. Fee calculated as distance from Z=0 (offboard) to destination element.
 
 ### Board
 The 8×8 grid with 26 Elements. The playing field.
@@ -194,7 +194,7 @@ Fixed-point: 16 integer, 48 fractional bits. u64. Used for costs and shares.
 ## R
 
 ### Rebind
-Move bound Charge to adjacent Element.
+Move bound Charge to adjacent Element. Fee calculated as atomic number distance between source and destination.
 
 ### Reset
 Saturation crosses threshold. Pot distributes, Element clears, generation ticks.
@@ -242,7 +242,7 @@ Aggregate Gluon across all Elements and accounts. Board account tracks it.
 ## U
 
 ### Unbind
-Remove bound Charge from board. Edge Elements only.
+Remove bound Charge from board. Edge Elements only. Fee calculated as distance from source element to Z=0 (offboard).
 
 ### Unbound
 Charge off the board. Can't participate until bound.
