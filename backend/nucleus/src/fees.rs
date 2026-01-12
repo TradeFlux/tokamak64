@@ -25,19 +25,16 @@ pub fn rebind_fee(charge: &Charge, src: &Element, dst: &Element) -> Gluon {
 }
 
 /// Bind fee: cost to bind a charge to an element (first commitment).
-/// Prevents spam and seeds the element pot.
 pub fn bind_fee(charge: &Charge, dst: &Element) -> Gluon {
     calculate_base_fee(charge.balance, dst.index.atomic(), dst.curve.saturation)
 }
 
-/// Unbind fee: cost to unbind a charge from an element (abandoning commitment).
-/// Prevents rapid cycling and ensures skin-in-game.
+/// Unbind fee: cost to unbind a charge from the board (exitting the game).
 pub fn unbind_fee(charge: &Charge, src: &Element) -> Gluon {
     calculate_base_fee(charge.balance, src.index.atomic(), src.curve.saturation)
 }
 
 /// Compression fee: cost to compress an element inward (consolidate into deeper element).
-/// Accelerates element convergence toward center.
 pub fn compression_fee(src: &Element) -> Gluon {
     let numerator = src.curve.saturation as u64 * 5;
     let denominator = (MAX_SATURATION as u64) * 100;
@@ -46,7 +43,6 @@ pub fn compression_fee(src: &Element) -> Gluon {
 }
 
 /// Speed tax: decreases with time since last action. Rewards patience.
-/// Elapsed time is quadratic capped at MAX_DELTA_TIMESTAMP. Returns multiplier >= 1.
 pub fn fee_multiplier(charge: &Charge, now: u64) -> u64 {
     const DIV: u64 = MAX_DELTA_TIMESTAMP.pow(2);
     let time = MAX_DELTA_TIMESTAMP.saturating_sub(now.saturating_sub(charge.timestamp));
