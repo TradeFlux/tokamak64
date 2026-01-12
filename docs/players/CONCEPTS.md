@@ -1,6 +1,6 @@
 # Core Concepts
 
-This document explains the mental model of TOKAMAK64—what things are, how they relate, and why they matter.
+The mental model: what things are, how they connect, why they matter.
 
 ## The Board
 
@@ -36,13 +36,12 @@ An Element's atomic number (Z) represents its **depth**:
 
 | Depth | Elements | Characteristics |
 |-------|----------|-----------------|
-| Edge (Z=1-6) | H, He, Li, Be, B, C | Fast cycles, small pots, easy exit |
-| Mid (Z=7-12) | N, O, F, Ne, Na, Mg | Moderate stakes |
+| Edge (Z=1-12) | H through Mg | Direct board access via Bind/Unbind |
 | Inner (Z=13-20) | Al, Si, P, S, Cl, Ar, K, Ca | Larger pots, slower cycles |
-| Deep (Z=21-25) | Sc, Ti, V, Cr, Mn | High stakes, difficult escape |
-| Core (Z=26) | Fe (Iron) | Maximum depth, terminal value sink |
+| Deep (Z=21-25) | Sc, Ti, V, Cr, Mn | Big pots, high fees to leave |
+| Core (Z=26) | Fe (Iron) | Deepest element, 7 neighbors |
 
-Deeper Elements have **larger curves**—they absorb more value before resetting. This creates a natural gradient where value tends to flow inward.
+Deeper Elements have **larger curves**—they absorb more value before resetting. Fees make inward movement cheap and outward movement expensive, so value flows toward the center.
 
 ### Adjacency
 
@@ -61,7 +60,7 @@ A Charge is always in one of two states:
 | **Bound** | On the board, occupying an Element |
 | **Unbound** | Off the board, in the player's control |
 
-A bound Charge occupies an entire Element (all its tiles simultaneously). Multiple Charges from different players can occupy the same Element—positions are not scarce, but **timing** is.
+A bound Charge occupies an entire Element (all its tiles at once). Multiple Charges can share the same Element—space isn't scarce, but **timing** is.
 
 ### What a Charge Holds
 
@@ -73,47 +72,47 @@ A bound Charge occupies an entire Element (all its tiles simultaneously). Multip
 
 ### The Pot
 
-Each Element maintains a single **pot**—accumulated value that grows from:
+Each Element has a **pot**—accumulated value from:
 
-1. **Movement fees** — Paid when Charges enter, exit, or move through
-2. **Compression fees** — Paid when pots are merged inward
-3. **Donations** — Voluntary contributions via Vent
+1. **Movement fees** — paid when Charges enter, exit, or pass through
+2. **Compression fees** — paid when pots merge inward
+3. **Donations** — voluntary Vent contributions
 
-The pot is visible to everyone. All players watching an Element see the same number.
+Everyone sees the same pot. No hidden state.
 
 ### Saturation
 
-Each Element tracks **saturation**—the sum of commitment shares of all currently bound Charges.
+**Saturation** is the sum of commitment shares of all bound Charges.
 
-- Entry increases saturation
-- Exit decreases saturation
-- Saturation is **live**: it reflects only currently bound Charges, with no memory of past presence
+- Entry adds saturation
+- Exit removes saturation
+- It's **live**—only current Charges count, no memory of who left
 
-When saturation exceeds the threshold (100%), the Element **resets**.
+When saturation crosses 100%, the Element **resets**.
 
 ### The Reset Cycle
 
 When an Element resets:
 
-1. **Distribution**: Pot divided proportionally by commitment share
-2. **Ejection**: All Charges except the trigger are unbound (free exit)
-3. **First-mover**: Triggering Charge remains bound with first position in new cycle
-4. **Clear**: Pot and saturation reset to zero
-5. **Generation**: Element's generation counter increments
+1. **Distribution** — Pot splits proportionally by share
+2. **Ejection** — All Charges except the trigger unbind (free)
+3. **First-mover** — Trigger stays bound, first in the new cycle
+4. **Clear** — Pot and saturation go to zero
+5. **Generation** — Element's generation counter ticks up
 
-The cycle then begins again. The game runs forever.
+Then the cycle starts over. Forever.
 
 ## Commitment
 
 ### The Sigmoid Curve
 
-When a Charge binds to an Element, its **commitment share** is measured based on:
+When a Charge binds, its **commitment share** depends on:
 
-1. **Charge's Gluon balance**
-2. **Current saturation** (position on the curve)
-3. **Element depth** (deeper = larger curve)
+1. **Gluon balance** — bigger Charge, bigger share
+2. **Current saturation** — where you land on the curve
+3. **Element depth** — deeper = larger curve
 
-The measurement follows a **sigmoid curve**:
+The curve is a **sigmoid**:
 
 ```
 Share
@@ -128,23 +127,23 @@ Share
        Early: large share
 ```
 
-- **Early arrival** (low saturation): Large share per Gluon (~20× efficiency)
-- **Mid arrival** (near inflection): Diminishing returns
-- **Late arrival** (near threshold): Marginal share, but can trigger reset
+- **Early** (low saturation): ~20× share efficiency per Gluon
+- **Mid** (near inflection): Diminishing returns
+- **Late** (near threshold): Marginal share, but you can trigger the reset
 
-This rewards patience without excluding late participants.
+Early birds get more. Late arrivals can still profit by triggering.
 
-### Commitment Is Measured, Not Paid
+### Measured, Not Staked
 
-Gluon is **not locked or staked**. The balance is an input to measurement—the Charge keeps its Gluon. This means:
+Gluon isn't locked. Your balance determines your share, but you keep the Gluon.
 
-- Larger Charges get larger shares (proportional)
-- The same Charge can rebind elsewhere with its full balance
-- No "staking" or "locking" mechanics
+- Bigger Charges get bigger shares
+- You can rebind elsewhere with your full balance
+- No staking, no lockups
 
 ## Fees
 
-All voluntary actions cost fees. Fees are **never burned**—they flow into Element pots, becoming future rewards.
+Every action costs fees. Fees are **never burned**—they go into pots and become future rewards.
 
 ### What Affects Fees
 
@@ -164,55 +163,43 @@ Movement fees route to Element pots based on direction:
 | **Inward** (toward Fe) | Destination saturation | Destination pot |
 | **Outward** (toward edge) | Source saturation | Source pot |
 
-Since deeper Elements typically have lower saturation (larger curves), **inward moves tend to be cheaper**. This creates natural value flow toward the center.
+Deeper Elements usually have lower saturation (larger curves), so **inward moves are cheaper**. Value flows toward the center.
 
 ### Speed Tax
 
-A multiplier (1× to 128×) applies based on time since the Charge's last action:
+A multiplier (1× to 128×) based on time since your last action:
 
-- **Immediate action**: 128× fee multiplier
-- **After ~51 seconds**: 1× fee multiplier (full decay)
+- **Immediate**: 128× multiplier
+- **After ~51 seconds**: 1× (full decay)
 
-This eliminates speed as an advantage. The game rewards **timing**, not reflexes.
+Speed is not an advantage. Timing beats reflexes.
 
 ## The Closed Loop
 
-All value circulates:
+Value circulates:
 
 ```
-Actions cost Gluon
-       ↓
-Costs become pots
-       ↓
-Pots attract Charges
-       ↓
-Charges create saturation
-       ↓
-Saturation triggers reset
-       ↓
-Reset distributes pot
-       ↓
-Charges reposition
-       ↓
-(cycle repeats)
+Actions cost Gluon → Costs fill pots → Pots attract Charges →
+Charges build saturation → Saturation triggers reset →
+Reset distributes pot → Charges reposition → (repeat)
 ```
 
-Nothing is burned. Every fee paid creates opportunity for future participants.
+Nothing burns. Every fee becomes someone else's reward.
 
-## Key Invariants
+## Invariants
 
-These rules **never change**:
+Rules that never change:
 
-| Invariant | Meaning |
-|-----------|---------|
-| Waiting is free | Being bound costs nothing—no rent, decay, or passive drain |
-| Costs only on action | Players who never act never pay |
-| No burning | All costs become shared value |
-| Binary binding | A Charge is fully bound to one Element, or not on board |
-| Live saturation | Only currently bound Charges count |
-| Reset by entry | Resets are triggered by entry crossing threshold, never by exit |
-| Free reset exit | Ejected Charges pay no fees |
-| Full transparency | All state is visible—pots, saturation, positions |
+| Rule | What it means |
+|------|---------------|
+| Waiting is free | No rent, no decay, no passive drain |
+| Pay only on action | Do nothing, pay nothing |
+| No burning | All fees become rewards |
+| Binary binding | Bound to one Element or off the board |
+| Live saturation | Only current Charges count |
+| Entry triggers reset | Never exit |
+| Free ejection | Reset kicks you out for free |
+| Full transparency | Everyone sees everything |
 
 ## Next Steps
 

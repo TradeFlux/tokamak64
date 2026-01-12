@@ -1,413 +1,312 @@
 # Strategy Guide
 
-This document explores how TOKAMAK64 mechanics interact and what strategies emerge from their combination.
+How mechanics interact. What strategies emerge.
 
-## The Fundamental Question
+## The Core Question
 
-Every decision reduces to:
+Every decision comes down to:
 
-> **Where and when will the next profitable reset occur?**
+> **Where and when will the next profitable reset happen?**
 
-This is not a stay/leave decision—it's profit-chasing through constant repositioning. The game has no safe harbor; value is captured by being present at the right place at the right time.
+No safe spots. Value comes from being in the right place at the right time.
 
 ---
 
-## The Three Tradeoffs
-
-Strategy in TOKAMAK64 involves three independent dimensions. Optimizing one does not determine the others.
+## Three Tradeoffs
 
 ### 1. Entry Timing
 
-When to bind to an Element relative to its saturation:
+When to bind relative to saturation:
 
 | Timing | Share | Risk |
 |--------|-------|------|
-| **Early** (low saturation) | Large | Pot may stagnate; opportunity cost of waiting |
-| **Mid** (building saturation) | Moderate | Balanced risk/reward |
-| **Late** (near threshold) | Small | Can trigger reset; depends on accurate prediction |
+| **Early** (low saturation) | Large | Pot might stagnate; opportunity cost |
+| **Mid** (building) | Moderate | Balanced |
+| **Late** (near threshold) | Small | Can trigger reset; timing-dependent |
 
-The sigmoid curve creates this tradeoff mathematically:
-- Early binding: ~20× share efficiency per Gluon
-- Late binding: Marginal share, but timing advantage
+The sigmoid makes this real:
+- Early: ~20× share efficiency
+- Late: marginal share, but you control the trigger
 
-**Key insight**: The trigger gets first position in the new cycle—partial compensation for late entry.
+The trigger gets first position in the new cycle—partial compensation for late entry.
 
 ### 2. Depth Selection
 
-Where to position along the edge-to-core gradient:
+Where to sit on the edge-to-core gradient:
 
-| Depth | Pot Size | Cycle Speed | Escape Cost |
-|-------|----------|-------------|-------------|
-| **Shallow** (H–C) | Small | Fast | Low (edge unbind) |
-| **Mid** (Al–Ca) | Medium | Moderate | Medium (several rebinds) |
+| Depth | Pot Size | Cycle Speed | Exit Cost |
+|-------|----------|-------------|-----------|
+| **Edge** (H–Mg) | Small | Fast | Low (direct unbind) |
+| **Inner** (Al–Ca) | Medium | Moderate | Medium (rebind out) |
 | **Deep** (Sc–Mn) | Large | Slow | High (many rebinds) |
-| **Core** (Fe) | Largest | Slowest | Maximum (no escape except reset) |
+| **Core** (Fe) | Largest | Slowest | Highest (7 hops to edge) |
 
-Deeper positions offer higher potential payoff but require more commitment. A Charge in Fe cannot leave except via reset—it's fully committed to that Element's cycle.
+Deeper = bigger potential payout, but more fees to leave. Fe has 7 neighbors and high adjacency—you can always rebind out, it just costs.
 
 ### 3. Activity Level
 
-How frequently to reposition:
+How often to move:
 
-| Activity | Fee Cost | Coverage |
+| Activity | Fee Cost | Exposure |
 |----------|----------|----------|
-| **Patient** (few moves) | Minimal | Concentrated exposure |
-| **Active** (frequent repositioning) | Cumulative speed tax | Diversified exposure |
+| **Patient** (few moves) | Minimal | Concentrated |
+| **Active** (repositioning) | Speed tax adds up | Diversified |
 
-The speed tax punishes rapid movement (up to 128× multiplier). Patience is rewarded—but patience also means concentrated risk in fewer positions.
+Speed tax punishes rapid movement (up to 128×). Patience pays—but also means eggs in fewer baskets.
 
 ---
 
 ## Mechanic Interactions
 
-### Fee Asymmetry Creates Gravity
+### Fee Asymmetry = Gravity
 
-Inward movement fees use destination saturation; outward fees use source saturation. Since deeper Elements have larger curves and typically lower saturation:
+Inward fees use destination saturation. Outward fees use source saturation. Deeper Elements have larger curves, so they usually have lower saturation.
 
-- **Inward moves are usually cheaper**
-- **Outward moves are usually more expensive**
+Result:
+- **Inward is cheap**
+- **Outward is expensive**
 
-This creates "gravitational pull" toward the center. Value naturally flows inward as fees accumulate in deeper pots.
+Value flows toward the center. Don't fight it. Enter cheap, capture resets, re-enter cheap.
 
-**Strategic implication**: Don't fight gravity. Use it. Enter cheap, extract value at reset, re-enter cheap.
+### Speed Tax = Timing Over Speed
 
-### Speed Tax Rewards Timing Over Reflexes
+128× multiplier on immediate actions. Bots gain nothing from speed. Human reaction time doesn't matter. The ~51 second decay window is your planning unit.
 
-The 128× speed multiplier on immediate actions means:
+Plan ahead. The patient path through low-saturation Elements beats a rushed direct jump.
 
-- Bots gain no advantage from speed
-- Human reaction time is irrelevant
-- The ~51 second decay window is the strategic unit
+### Public State = Information Game
 
-**Strategic implication**: Plan moves in advance. The patient path through multiple low-saturation Elements beats a rushed direct jump.
-
-### Saturation Creates Information
-
-All state is public. Watching saturation levels reveals:
-
+Everything is visible: pots, saturation, positions. Watch saturation to see:
 - How close an Element is to reset
-- Where other players are concentrating
-- Which pots are growing fastest
+- Where players are concentrating
+- Which pots are growing
 
-**Strategic implication**: Read the board. Saturation patterns telegraph intentions.
+Read the board. Saturation patterns telegraph intentions.
 
-### Compression Reshapes the Board
+### Compression Reshapes Value
 
-Compression moves pots inward without moving Charges. This allows:
+Compression moves pots inward without moving Charges.
 
-- Rescuing value from stagnant Elements
-- Concentrating value for larger resets
-- Manipulating which Elements become attractive
+Use it to:
+- Rescue value from dead Elements
+- Concentrate value for bigger resets
+- Make specific Elements attractive
 
-**Strategic implication**: Compression is a coordination problem—the compressor pays costs but benefits all participants in the destination. It can be worth it to create a more valuable reset.
+Compression is a coordination problem—you pay the cost, everyone benefits. Only worth it if you're positioned in the destination.
 
-### Vent as Costly Signal
+### Vent = Signal
 
-Venting adds to pot without affecting saturation. It's pure signal:
+Venting adds to pot without changing saturation. Pure signal: "this Element is worth attention."
 
-- "This Element is worth attention"
-- Attracts both allies (who want the reset) and predators (who want to trigger it)
+Attracts both allies (who want the reset) and predators (who want to trigger early).
 
-**Strategic implication**: Vent sparingly. The signal is visible to everyone.
+Use sparingly. Everyone sees it.
 
-### Phantom Shares and Overheating
+### Phantom Saturation
 
-Every fee paid leaves a permanent mark on the Element. This creates one of the game's most subtle and powerful dynamics.
+Fees create saturation that belongs to no one.
 
-**How It Works**:
+Example: Charge enters with 1000 Gluon, pays 50 in fees, exits with 950. The exit removes less saturation than entry added. That 50 Gluon gap is phantom.
 
-When a Charge binds, it pushes saturation up proportional to its Gluon balance. When it unbinds, saturation drops by the same proportion. In theory, entry and exit cancel out.
+Why it matters: Element resets at 100%. If 30% is phantom, only 70% is real Charges—pot splits among fewer claimants (~43% bonus per share).
 
-**But fees change everything.**
+Watch the saturation-to-shares gap. When saturation exceeds shares, phantom has built up. 20%+ gap = heavy churn.
 
-Each action costs fees, reducing the Charge's balance. When the Charge finally exits, it removes less saturation than it added—because it has less Gluon.
+| Saturation | Shares | Meaning |
+|------------|--------|---------|
+| 70% | 68% | Clean, minimal phantom |
+| 70% | 50% | Hot, 20% phantom |
 
-**Example**: A Charge enters with 1000 Gluon, pays 50 in fees during its stay, then exits with 950. The difference—50 Gluon worth of saturation—remains behind as **phantom saturation** that doesn't belong to any Charge.
+Use churn offensively to force early resets on competitors. Or defensively to deny predators. The churner pays fees but shapes the board.
 
-**The Accumulation**:
-
-Every fee paid deposits phantom saturation. A single Charge churning through an Element three times:
-
-| Round | Entry Balance | Fee (5%) | Exit Balance | Phantom Added |
-|-------|---------------|----------|--------------|---------------|
-| 1 | 1000 | 50 | 950 | ~1.5% sat |
-| 2 | 950 | 47 | 903 | ~1.4% sat |
-| 3 | 903 | 45 | 858 | ~1.3% sat |
-
-**Total phantom from one player: ~4% saturation**
-
-Multiple players churning can push phantom saturation to 20-30% of the reset threshold.
-
-**Why This Matters**:
-
-An Element resets when saturation exceeds 100%. But if 30% of that saturation is phantom:
-- Only 70% represents actual committed Charges
-- The Element resets at **70% effective commitment**
-- Incumbents split the pot among fewer actual shares → **bonus per share**
-
-| Saturation | Phantom | Real Shares | Effect |
-|------------|---------|-------------|--------|
-| 100% | 0% | 100% | Normal reset |
-| 100% | 30% | 70% | Early reset, ~43% bonus per share |
-
-**Offensive Use**: Churn through an Element to inflate phantom saturation. The attacker pays fees (which grow the pot) but accelerates the reset timeline. Competitors committed to the Element get forced into an early payout—before the pot fully develops.
-
-**Defensive Use**: If a predator is approaching threshold, churn can trigger a premature reset. Scorched earth—take a smaller payout now rather than let them snipe it.
-
-**The Vacuum Dilemma**:
-
-When a large holder exits after heavy fee payments:
-- Saturation drops (they removed their remaining balance)
-- But phantom saturation remains elevated
-- The "vacuum" is smaller than it appears
-- Late entrants racing to fill it compete for diminishing room
-- Speed tax punishes the rush
-- The Element is closer to reset than raw saturation suggests
-
-**Reading the Heat**:
-
-The pot is **not** a reliable phantom indicator—compression moves pots independently of saturation. An Element can export its pot (compression out) while retaining phantom saturation, or import pots (compression in) without gaining phantom.
-
-The true indicator is the **saturation-to-shares gap**. The game tracks two separate values for each Element:
-- **Saturation**: How full the Element is (includes phantom from fee-reduced exits)
-- **Shares**: The actual committed stakes of bound Charges
-
-When these diverge, phantom has accumulated:
-
-| Indicator | Meaning |
-|-----------|---------|
-| Saturation ≈ Shares | Clean Element, minimal phantom |
-| Saturation > Shares | Phantom accumulated, running hot |
-| Gap of 20%+ | Heavy churn history, approaching overheat |
-
-**Strategic implication**: Compare saturation to shares, not saturation to pot. An Element at 70% saturation with only 50% shares is already 70% toward reset but will distribute rewards among only 50% worth of claimants — an extra bonus per share. Elements that run hot die young.
+Don't race to fill a "vacuum" after a large exit—phantom remains, room is smaller than it looks, and speed tax punishes the rush.
 
 ---
 
-## Emergent Strategies
+## Strategies
 
-### The Waiting Game
+### The Wait
 
-**Setup**: Bind early to a promising Element at low saturation.
+**Setup**: Bind early at low saturation.
 
-**Mechanics exploited**:
-- Sigmoid gives large early shares
-- Waiting is free (no passive costs)
-- Fees only on action
+**Why it works**:
+- Sigmoid gives big early shares
+- Waiting is free
+- No passive costs
 
-**Risk**: The pot may never grow. Other players may avoid the Element. Opportunity cost of sitting idle.
+**Risk**: Pot stagnates. Others avoid the Element. Opportunity cost.
 
-**Counter**: Watch for compression incoming. If value is moving toward the Element, the wait pays off.
+**Watch for**: Compression incoming. If value flows your way, patience pays.
 
-### The Trigger Snipe
+### The Snipe
 
-**Setup**: Wait for an Element to approach threshold, then enter just before reset.
+**Setup**: Wait for an Element to near threshold, then enter to trigger.
 
-**Mechanics exploited**:
+**Why it works**:
 - Trigger gets immediate payout
 - Trigger re-binds first in new cycle
 - Late entry still gets proportional share
 
-**Risk**: Someone else triggers first. Timing is visible to everyone.
+**Risk**: Someone else triggers first. Timing is visible.
 
-**Counter**: Bundle Rebind + Overload atomically so no one can front-run.
+**Counter**: Bundle Rebind + Overload atomically. No front-running.
 
 ### The Deep Raid
 
-**Setup**: Position in a quiet deep Element (low saturation), wait for adjacent shallower Elements to saturate.
+**Setup**: Sit in a quiet deep Element. Wait for adjacent shallower Elements to saturate.
 
-**Mechanics exploited**:
-- Outward fees use source saturation (your quiet Element = cheap exit)
-- Can strike into saturated pots at minimal cost
-- Deep position provides cover while waiting
+**Why it works**:
+- Outward fees use source saturation (your quiet spot = cheap exit)
+- Strike into saturated pots cheaply
+- Deep position provides cover
 
 **Example**:
 ```
-Carbon (Z=6) at 95% saturation: 1.41 Gluon to enter from Beryllium
-Carbon (Z=6) at 95% saturation: 0.10 Gluon to enter from Nitrogen (Z=7, 2% saturation)
+Carbon (Z=6) at 95%: 1.41 Gluon to enter from Beryllium
+Carbon (Z=6) at 95%: 0.10 Gluon to enter from Nitrogen (Z=7, 2%)
 ```
 
-The Nitrogen position allows striking into Carbon at 14× lower cost.
+Nitrogen position = 14× cheaper strike into Carbon.
 
-**Risk**: The deep Element itself may reset while waiting. Deeper means slower cycles, but not immune.
+**Risk**: Deep Element resets while you wait. Slower cycles, not immune.
 
-### The Compression Pipeline
+### The Pipeline
 
-**Setup**: Compress value from outer Elements inward to create a large reset event.
+**Setup**: Compress value from outer Elements inward to create a big reset.
 
-**Mechanics exploited**:
+**Why it works**:
 - Compression fee adds to pot (self-reinforcing)
-- Larger pots attract more participants
-- Deep pots are harder to escape, creating commitment
+- Bigger pots attract more players
+- Deep pots have high exit costs, creating commitment
 
-**Risk**: Other players ride the compression without paying costs. Coordination problem.
+**Risk**: Others ride your compression without paying. Coordination problem.
 
-**Counter**: Only compress when already well-positioned in the destination Element.
+**Counter**: Only compress when already positioned in destination.
 
 ### The Edge Rotation
 
-**Setup**: Stay in edge Elements, cycling through quick resets.
+**Setup**: Stay at edge Elements, cycle through quick resets.
 
-**Mechanics exploited**:
-- Edge Elements reset fast (small curves)
-- Exit is always available (no escape cost)
+**Why it works**:
+- Edge resets fast (small curves)
+- Exit always available
 - Many small wins compound
 
-**Risk**: Small pots mean small absolute gains. Depth-seekers capture more per cycle.
+**Risk**: Small pots = small absolute gains. Depth-seekers capture more per cycle.
 
-**Trade**: Volume vs magnitude. Edge rotation is lower risk, lower reward.
-
-### The Overheat
-
-**Setup**: Deliberately churn through an Element to accelerate its reset via phantom share accumulation.
-
-**Mechanics exploited**:
-- Early entry buys cheap shares
-- Exit returns only marginal saturation
-- The gap becomes phantom residue
-- Residue pushes Element toward premature reset
-
-**Execution**:
-1. Bind early with significant capital when saturation is low
-2. Wait for others to follow (saturation climbs)
-3. Exit—leave phantom shares behind
-4. Optionally re-enter at the new (lower) saturation for another round
-5. Repeat until Element overheats
-
-**Offensive variant**: Force a reset in an Element where a competitor is deeply committed. They get their payout early—before the pot fully develops.
-
-**Defensive variant**: Trigger a premature reset to deny an approaching predator. Better a small payout now than getting sniped at threshold.
-
-**Risk**: Each churn cycle costs fees. The attacker must calculate whether the board-shaping effect is worth the burn.
-
-**Counter**: Patient holders who recognize the churn pattern can exit before the overheat, denying the attacker their intended disruption.
+**Trade**: Volume vs magnitude. Lower risk, lower reward.
 
 ---
 
 ## Multiple Charges
 
-Players can control multiple Charges. This enables:
+You can run multiple Charges. Use them for:
 
 ### Diversification
-
-Spread across different Elements to hedge timing risk. If one position stagnates, others may pay off.
+Spread across Elements. If one stagnates, others pay.
 
 ### Staging
-
-Position Charges at different depths:
-- Shallow Charge for quick cycles
-- Deep Charge for large payoffs
+- Edge Charge for quick cycles
+- Deep Charge for big payoffs
 - Mid Charge for opportunistic strikes
 
 ### Scouting
+Small Charge tests an Element before you commit big.
 
-Use a small Charge to test an Element's dynamics before committing larger Charges.
-
-**Cost consideration**: Fees scale with balance. A 10 Gluon Charge pays 1/10th the fee of a 100 Gluon Charge for the same move. But it also gets 1/10th the share.
+**Note**: Fees scale with balance. 10 Gluon Charge pays 1/10th the fee of 100 Gluon Charge. But gets 1/10th the share.
 
 ---
 
-## Board Reading
+## Reading the Board
 
 ### Saturation Patterns
 
 | Pattern | Meaning | Action |
 |---------|---------|--------|
-| Single Element rising fast | Convergence point | Consider positioning |
-| Multiple Elements rising | Distributed activity | Harder to predict winner |
-| Deep Element rising | High-stakes event coming | Plan escape or commitment |
-| Stagnant pot with no saturation | Dead value | Compression target |
+| Single Element rising fast | Convergence | Consider positioning |
+| Multiple rising | Distributed activity | Harder to predict |
+| Deep Element rising | Big event coming | Commit or escape |
+| Stagnant pot, no saturation | Dead value | Compression target |
 
 ### Flow Detection
 
-Watch where fees are routing:
-- Inward fees go to destination → deep pots grow
-- Outward fees go to source → retreating players fund the Element they leave
+Watch where fees route:
+- Inward → destination pot grows
+- Outward → retreating players fund what they leave
 
-Heavy outward traffic means players are escaping—but their fees fund whoever stays.
+Heavy outward traffic = players escaping. Their fees fund whoever stays.
 
-### Compression Watching
+### Post-Compression
 
-When someone compresses, the destination becomes more attractive:
-- Larger pot draws attention
-- Saturation hasn't changed (just pot)
-- First movers after compression get large shares on the new, bigger pot
+After compression, destination becomes attractive:
+- Bigger pot
+- Saturation unchanged
+- First movers get big shares on the new pot
 
 ### Churn Detection
 
-High traffic through an Element signals potential overheating. The key indicator is the **saturation-to-shares gap**:
-
-| Signal | Meaning |
-|--------|---------|
-| saturation ≈ shares | Healthy Element, low churn |
-| saturation > shares by 10%+ | Moderate phantom accumulation |
-| saturation > shares by 30%+ | Heavily churned, approaching overheat |
-| TVL low but saturation stable | Exits removed Gluon but phantom remains |
-
-**Note**: The pot is unreliable—compression moves pots between Elements independently of phantom saturation. An Element can have a huge pot (from compression in) with no phantom, or no pot (compressed out) with heavy phantom.
-
-**Warning sign**: An Element at 70% saturation with only 50% shares is closer to reset than one at 90% saturation with 88% shares. The gap reveals the churn history that saturation alone hides.
+Saturation-to-shares gap. 20%+ means heavy churn—hotter than saturation suggests.
 
 ---
 
-## The Meta-Game
+## The Meta
 
 ### No Dominant Strategy
 
-The tradeoffs are real:
+Tradeoffs are real:
 - Early beats late on shares; late beats early on timing
-- Deep beats shallow on magnitude; shallow beats deep on frequency
+- Deep beats shallow on size; shallow beats deep on frequency
 - Patient beats active on costs; active beats patient on coverage
 
-Equilibrium emerges from player choices, not prescribed roles.
+Equilibrium comes from player choices, not preset roles.
 
 ### Information Symmetry
 
-All state is public. No hidden information. Edge comes from:
+All state is public. No hidden info. Edge comes from:
 - Reading incentives correctly
-- Predicting behavior of other players
-- Timing actions relative to the ~51s decay window
+- Predicting other players
+- Timing around the ~51s decay window
 
-### The Infinite Game
+### Infinite Game
 
-The board resets element by element, forever. There's no end state. The question is not "who wins" but "how much value can be captured over time."
+No end state. The board resets Element by Element, forever. Question isn't "who wins" but "how much value can you capture over time."
 
-Long-term success requires:
+Long-term success:
 - Sustainable fee management
-- Avoiding value destruction (paying more in fees than captured in resets)
-- Reading the meta-game (where is activity trending?)
+- Avoid value destruction (fees > rewards)
+- Read where activity is trending
 
 ---
 
 ## Common Mistakes
 
-| Mistake | Why It Fails |
+| Mistake | Why it fails |
 |---------|--------------|
-| Rushing movement | Speed tax up to 128× destroys value |
-| Fighting gravity | Outward movement is expensive; use resets to escape |
-| Ignoring saturation | Entry timing determines share—late entry gets marginal shares |
-| Over-committing to depth | Fe is a trap if the reset doesn't come |
-| Under-utilizing multiple Charges | Diversification reduces risk |
-| Compression without positioning | Benefits everyone; position first |
-| Ignoring churn history | A churned 60% is hotter than a quiet 80% |
-| Filling the vacuum blindly | Everyone sees it; speed tax punishes the race |
+| Rushing | Speed tax up to 128× destroys value |
+| Fighting gravity | Outward is expensive; use resets to escape |
+| Ignoring saturation | Entry timing = share size |
+| Over-committing deep | Big exit costs if reset doesn't come |
+| Single Charge only | No diversification |
+| Compression without position | You pay, everyone benefits |
+| Ignoring churn | Churned 60% is hotter than quiet 80% |
+| Racing to fill vacuum | Everyone sees it; speed tax punishes |
 
 ---
 
 ## Summary
 
 TOKAMAK64 rewards:
-- **Patience**: Speed tax punishes haste; waiting is free
-- **Positioning**: Be present at resets; absence captures nothing
-- **Reading**: All information is public; advantage comes from interpretation
-- **Timing**: Early for shares, late for triggers, always relative to saturation
+- **Patience** — speed tax punishes haste; waiting is free
+- **Positioning** — be present at resets; absence gets nothing
+- **Reading** — all info is public; edge is interpretation
+- **Timing** — early for shares, late for triggers
 
 The game cycles forever. Master the cycle.
 
 ---
 
-## Next Steps
+## Next
 
-- **[Reference](REFERENCE.md)** — Exact numbers for planning
-- **[Concepts](CONCEPTS.md)** — Review the mental model
-- **[Operations](OPERATIONS.md)** — Detailed action guide
+- **[Reference](REFERENCE.md)** — exact numbers
+- **[Concepts](CONCEPTS.md)** — mental model
+- **[Operations](OPERATIONS.md)** — action details

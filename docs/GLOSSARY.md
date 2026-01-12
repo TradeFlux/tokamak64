@@ -1,105 +1,105 @@
 # Glossary
 
-Definitions of all terms used in TOKAMAK64.
+All TOKAMAK64 terms.
 
 ---
 
 ## A
 
 ### Adjacent
-Two Elements that share a full tile edge (not just corners). Movement via Rebind requires adjacency.
+Two Elements sharing a full tile edge (not corners). Rebind requires adjacency.
 
 ### Artefact
-A snapshot of an Element at the moment of reset. Contains the pot amount, Element index, and commitment shares. Used by non-triggering Charges to claim rewards.
+Snapshot of an Element at reset. Stores pot, index, shares. Non-triggering Charges use it to Claim.
 
 ### Atomic Number (Z)
-The identifier for an Element (1–26). Higher Z means deeper position on the board. Named after chemical elements: H=1, He=2, ... Fe=26.
+Element identifier (1–26). Higher = deeper. H=1, He=2, ... Fe=26.
 
 ### ATA (Associated Token Account)
-A player's Solana token account for USDC/USDT. Entry and exit point for real-world value.
+Solana token account for USDC/USDT. Entry/exit point for real money.
 
 ---
 
 ## B
 
 ### Balance
-The amount of Gluon held by a Wallet or Charge.
+Gluon held by a Wallet or Charge.
 
 ### Bind
-The operation that places an unbound Charge onto the board. Only allowed at edge Elements.
+Operation placing an unbound Charge on the board. Edge Elements only.
 
 ### Board
-The 8×8 grid containing 26 Elements. The playing field for TOKAMAK64.
+The 8×8 grid with 26 Elements. The playing field.
 
 ### Bound
-A Charge state indicating it occupies an Element on the board. Bound Charges participate in saturation and can receive rewards at reset.
+Charge state: on the board, occupying an Element. Participates in saturation, earns at reset.
 
 ---
 
 ## C
 
 ### Charge
-A player-controlled entity that enters the board. Each Charge has a Gluon balance, can be bound to one Element at a time, and earns commitment shares when bound.
+Player-controlled entity on the board. Has Gluon balance, binds to Elements, earns shares.
 
 ### Churn
-Repeated entry and exit from an Element by players. Each exit leaves phantom shares behind, causing the Element to accumulate residual saturation and potentially overheat.
+Repeated entry/exit. Each exit leaves phantom saturation behind.
 
 ### Claim
-The operation to collect reward share from a reset Artefact. Used by Charges that were bound during a reset but did not trigger it.
+Collect reward from a reset Artefact. For Charges that didn't trigger.
 
 ### Commitment Share
-A value measuring a Charge's stake in an Element. Determined by the sigmoid curve at binding time. Larger shares receive proportionally larger rewards at reset.
+Stake in an Element. Sigmoid curve determines it at binding. Bigger share = bigger reward.
 
 ### Compress
-The operation to move an Element's pot to an adjacent deeper Element. Requires dst.index > src.index.
+Move an Element's pot to an adjacent deeper Element. dst.index > src.index.
 
 ### Compression Fee
-A fee (up to 5% of pot) paid when compressing. Added to the destination pot along with the source pot.
+Up to 5% of pot, paid when compressing. Goes to destination.
 
 ### Curve
-The sigmoid bonding curve that determines commitment share efficiency based on saturation. Early binding yields large shares; late binding yields marginal shares.
+Sigmoid bonding curve. Early binding = big shares. Late = marginal.
 
 ---
 
 ## D
 
 ### Decay
-The reduction in speed tax multiplier over time. Full decay (1× multiplier) occurs after 1024 slots (~51 seconds).
+Speed tax multiplier dropping over time. Full decay (1×) after 1024 slots (~51s).
 
 ### Depth
-An Element's position relative to center. Higher atomic number = deeper. Fe (Z=26) is deepest.
+Position relative to center. Higher Z = deeper. Fe (Z=26) is deepest.
 
 ### Discharge
-The operation to merge an unbound Charge's balance back into the Wallet.
+Merge unbound Charge balance back into Wallet.
 
 ### Discriminator
-The first 8 bytes of instruction data identifying which instruction to execute. Corresponds to the TokamakInstruction enum variant index.
+First 8 bytes of instruction data. Identifies which instruction.
 
 ---
 
 ## E
 
 ### Edge Element
-One of the 12 Elements touching the board perimeter (Z=1–12: H, He, Li, Be, B, C, N, O, F, Ne, Na, Mg). Only edge Elements allow Bind and Unbind operations.
+One of 12 Elements touching board perimeter (Z=1–12). Bind and Unbind happen here.
 
 ### Ejection Fee
-Fee paid when unbinding voluntarily from an edge Element.
+Fee for voluntarily unbinding from an edge Element.
 
 ### Element
-A contiguous region of tiles on the board, named after a chemical element. 26 total, identified by atomic number (Z).
+Contiguous tile region on the board. Named after chemical elements. 26 total.
 
 ### ElementIndex
-A compound identifier encoding both atomic number (8 bits) and generation (56 bits). Enables detecting stale references after reset.
+Compound ID: atomic number (8 bits) + generation (56 bits). Detects stale references.
 
 ### Extract
-The operation to convert Gluon from Wallet back to stablecoins (USDC/USDT).
+Convert Wallet Gluon back to stablecoins.
 
 ---
 
 ## F
 
 ### Fee
-Cost deducted from a Charge for voluntary actions. Fees are never burned—they flow into Element pots.
+Cost for actions. Never burned—flows into pots, becomes rewards.
 
 ### Fee Multiplier
 See Speed Tax.
@@ -109,163 +109,163 @@ See Speed Tax.
 ## G
 
 ### Generation
-A counter that increments each time an Element resets. Part of the ElementIndex. Ensures Charges can only claim from the specific reset they witnessed.
+Counter incrementing each reset. Part of ElementIndex. Ensures Charges claim from correct reset.
 
 ### Gluon
-The in-game currency. Convertible 1:1 with USDC/USDT. Held in Wallets (liquid) or Charges (active).
+In-game currency. 1:1 with USDC/USDT. Held in Wallets (liquid) or Charges (active).
 
 ### Gravity
-The emergent tendency for value to flow inward. Caused by fee asymmetry: inward moves use destination saturation (typically lower), making them cheaper.
+Value flowing inward. Fee asymmetry: inward uses destination saturation (lower), so it's cheaper.
 
 ---
 
 ## I
 
 ### Infuse
-The operation to convert stablecoins (USDC/USDT) into Gluon in a Wallet.
+Convert stablecoins to Gluon in Wallet.
 
 ### Injection Fee
-Fee paid when binding a Charge to an Element.
+Fee for binding to an Element.
 
 ### Inward
-Movement direction toward higher atomic number (toward Fe). Fees use destination saturation.
+Toward higher Z (toward Fe). Fees use destination saturation.
 
 ---
 
 ## L
 
 ### LUT (Lookup Table)
-Precomputed sigmoid curve values used by the curve crate. Enables O(1) commitment share calculation.
+Precomputed sigmoid values. O(1) share calculation.
 
 ---
 
 ## M
 
 ### MIN_FEE
-The minimum fee floor (0.1 Gluon). Prevents dust transactions.
+0.1 Gluon floor. No dust transactions.
 
 ### Movement Fee
-Fee paid when rebinding between Elements. Based on distance², saturation, speed tax, and balance.
+Rebind cost. Based on distance², saturation, speed tax, balance.
 
 ---
 
 ## O
 
 ### Outward
-Movement direction toward lower atomic number (toward edge). Fees use source saturation.
+Toward lower Z (toward edge). Fees use source saturation.
 
 ### Overload
-The operation to trigger an Element reset when saturation exceeds threshold. Creates an Artefact and distributes rewards.
+Trigger Element reset when saturation > 100%. Creates Artefact, distributes rewards.
 
 ---
 
 ## P
 
 ### Overheat
-When an Element resets with significant phantom saturation from accumulated fees. The reset occurs at the 100% saturation threshold, but actual committed shares may only represent 70-80% of that—the rest is phantom residue from churn. High-traffic Elements "run hot" and reset earlier than their effective commitment would suggest.
+Element resets with significant phantom saturation. Actual shares < 100%, rest is phantom from churn.
 
 ### PDA (Program Derived Address)
-A deterministic account address derived from seeds. Wallets and Charges are PDAs owned by the program.
+Deterministic account address from seeds. Wallets and Charges are PDAs.
 
-### Phantom Shares
-Residual saturation that doesn't belong to any Charge. Created when fees reduce a Charge's balance—the Charge removes less saturation on exit than it added on entry (because it has less Gluon). Visible as a gap between an Element's saturation and its actual shares.  High churn accumulates phantom shares, causing Elements to reset at lower effective commitment levels. Incumbents benefit because rewards are distributed among actual shares, not phantom ones.
+### Phantom Saturation
+Saturation not owned by any Charge. Created when fees reduce balance—exit removes less saturation than entry added. Gap between saturation and shares indicates phantom level. Incumbents benefit: rewards split among real shares only.
 
 ### Pod
-A trait from `bytemuck` indicating a type has a fixed memory layout and can be safely cast from bytes. All account types implement Pod for zero-copy access.
+Bytemuck trait for fixed memory layout. All account types implement it.
 
 ### Pot
-Accumulated value in an Element. Grows from fees and donations. Distributed proportionally to bound Charges at reset.
+Accumulated value in an Element. Grows from fees and donations. Splits at reset.
 
 ---
 
 ## Q
 
 ### Q8.24
-Fixed-point format used for saturation values. 8 integer bits, 24 fractional bits, stored as u32.
+Fixed-point: 8 integer, 24 fractional bits. u32. Used for saturation.
 
 ### Q16.48
-Fixed-point format used for cumulative costs and commitment shares. 16 integer bits, 48 fractional bits, stored as u64.
+Fixed-point: 16 integer, 48 fractional bits. u64. Used for costs and shares.
 
 ### Quantum Pocket
-(Not yet implemented) A global pool that receives external yield when Fe resets. Distributed sequentially from edge inward.
+(Not implemented) Global pool receiving yield when Fe resets. Distributes edge-inward.
 
 ---
 
 ## R
 
 ### Rebind
-The operation to move a bound Charge from one Element to an adjacent Element.
+Move bound Charge to adjacent Element.
 
 ### Reset
-The event when an Element's saturation exceeds threshold. Pot is distributed to bound Charges, Element clears, generation increments.
+Saturation crosses threshold. Pot distributes, Element clears, generation ticks.
 
 ### Reset Cycle
-The repeating pattern: empty Element → saturation builds → threshold crossed → reset → repeat.
+Empty → saturation builds → threshold → reset → repeat.
 
 ---
 
 ## S
 
 ### Saturation
-The sum of commitment shares of all Charges currently bound to an Element. Entry increases it, exit decreases it. Reset triggers when saturation exceeds threshold (100%).
+Sum of shares of all bound Charges. Entry adds, exit removes. Reset at 100%.
 
 ### Share
 See Commitment Share.
 
 ### Sigmoid Curve
-The S-shaped function governing commitment share efficiency. Inflection at 50% saturation. Early binding is ~20× more efficient than late binding.
+S-curve for share efficiency. Inflection at 50%. Early ~20× more efficient than late.
 
 ### Slot
-A Solana time unit. On L2, approximately 50ms. Used for speed tax calculation.
+Solana time unit. ~50ms on L2. Used for speed tax.
 
 ### Speed Tax
-A multiplier (1× to 128×) on movement fees based on time since the Charge's last action. Punishes rapid movement. Full decay after 1024 slots (~51 seconds).
+1× to 128× fee multiplier based on time since last action. Punishes rushing. Full decay after ~51s.
 
 ---
 
 ## T
 
 ### Threshold
-The saturation level (100% normalized to 1.0) at which an Element can be reset via Overload.
+100% saturation. Overload becomes possible.
 
 ### Tile
-A single cell on the 8×8 board. Elements are groups of adjacent tiles.
+Single cell on 8×8 board. Elements are tile groups.
 
 ### Trigger
-The Charge that executes Overload and causes a reset. Receives immediate reward and re-binds first in the new cycle.
+Charge that Overloads. Gets immediate reward, re-binds first in new cycle.
 
 ### TVL (Total Value Locked)
-Aggregate Gluon across all Elements and accounts. Tracked by the Board account.
+Aggregate Gluon across all Elements and accounts. Board account tracks it.
 
 ---
 
 ## U
 
 ### Unbind
-The operation to remove a bound Charge from the board. Only allowed at edge Elements.
+Remove bound Charge from board. Edge Elements only.
 
 ### Unbound
-A Charge state indicating it is off the board. Cannot participate in Element mechanics until bound.
+Charge off the board. Can't participate until bound.
 
 ---
 
 ## V
 
 ### Vacuum
-The saturation gap created when a large early holder exits an Element. The curve drops but phantom shares remain, creating an apparent opportunity that attracts competition—often a trap due to speed tax and the visibility of the opportunity to all players.
+Saturation gap after large exit. Phantom remains, apparent opportunity. Often a trap—speed tax punishes the rush.
 
 ### Vault
-Program-owned token account holding stablecoins backing Gluon.
+Program-owned token account. Stablecoins backing Gluon.
 
 ### Vent
-The operation to donate Gluon from a bound Charge to its Element's pot. Does not affect saturation.
+Donate Charge Gluon to Element pot. No saturation change.
 
 ---
 
 ## W
 
 ### Wallet
-A player's Gluon account. Holds liquid Gluon that can be allocated to Charges or extracted to stablecoins.
+Player's Gluon account. Liquid. Allocate to Charges or Extract to stablecoins.
 
 ---
 
@@ -278,6 +278,6 @@ See Atomic Number.
 
 ## See Also
 
-- **[Player Concepts](players/CONCEPTS.md)** — Mental model explanation
-- **[Reference](players/REFERENCE.md)** — Constants and formulas
-- **[Architecture](developers/ARCHITECTURE.md)** — Technical structure
+- **[Concepts](players/CONCEPTS.md)** — mental model
+- **[Reference](players/REFERENCE.md)** — constants and formulas
+- **[Architecture](developers/ARCHITECTURE.md)** — technical structure
