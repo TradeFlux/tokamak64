@@ -110,6 +110,78 @@ Venting adds to pot without affecting saturation. It's pure signal:
 
 **Strategic implication**: Vent sparingly. The signal is visible to everyone.
 
+### Phantom Shares and Overheating
+
+Every fee paid leaves a permanent mark on the Element. This creates one of the game's most subtle and powerful dynamics.
+
+**How It Works**:
+
+When a Charge binds, it pushes saturation up proportional to its Gluon balance. When it unbinds, saturation drops by the same proportion. In theory, entry and exit cancel out.
+
+**But fees change everything.**
+
+Each action costs fees, reducing the Charge's balance. When the Charge finally exits, it removes less saturation than it added—because it has less Gluon.
+
+**Example**: A Charge enters with 1000 Gluon, pays 50 in fees during its stay, then exits with 950. The difference—50 Gluon worth of saturation—remains behind as **phantom saturation** that doesn't belong to any Charge.
+
+**The Accumulation**:
+
+Every fee paid deposits phantom saturation. A single Charge churning through an Element three times:
+
+| Round | Entry Balance | Fee (5%) | Exit Balance | Phantom Added |
+|-------|---------------|----------|--------------|---------------|
+| 1 | 1000 | 50 | 950 | ~1.5% sat |
+| 2 | 950 | 47 | 903 | ~1.4% sat |
+| 3 | 903 | 45 | 858 | ~1.3% sat |
+
+**Total phantom from one player: ~4% saturation**
+
+Multiple players churning can push phantom saturation to 20-30% of the reset threshold.
+
+**Why This Matters**:
+
+An Element resets when saturation exceeds 100%. But if 30% of that saturation is phantom:
+- Only 70% represents actual committed Charges
+- The Element resets at **70% effective commitment**
+- Incumbents split the pot among fewer actual shares → **bonus per share**
+
+| Saturation | Phantom | Real Shares | Effect |
+|------------|---------|-------------|--------|
+| 100% | 0% | 100% | Normal reset |
+| 100% | 30% | 70% | Early reset, ~43% bonus per share |
+
+**Offensive Use**: Churn through an Element to inflate phantom saturation. The attacker pays fees (which grow the pot) but accelerates the reset timeline. Competitors committed to the Element get forced into an early payout—before the pot fully develops.
+
+**Defensive Use**: If a predator is approaching threshold, churn can trigger a premature reset. Scorched earth—take a smaller payout now rather than let them snipe it.
+
+**The Vacuum Dilemma**:
+
+When a large holder exits after heavy fee payments:
+- Saturation drops (they removed their remaining balance)
+- But phantom saturation remains elevated
+- The "vacuum" is smaller than it appears
+- Late entrants racing to fill it compete for diminishing room
+- Speed tax punishes the rush
+- The Element is closer to reset than raw saturation suggests
+
+**Reading the Heat**:
+
+The pot is **not** a reliable phantom indicator—compression moves pots independently of saturation. An Element can export its pot (compression out) while retaining phantom saturation, or import pots (compression in) without gaining phantom.
+
+The true indicator is the **saturation-to-shares gap**. The game tracks two separate values for each Element:
+- **Saturation**: How full the Element is (includes phantom from fee-reduced exits)
+- **Shares**: The actual committed stakes of bound Charges
+
+When these diverge, phantom has accumulated:
+
+| Indicator | Meaning |
+|-----------|---------|
+| Saturation ≈ Shares | Clean Element, minimal phantom |
+| Saturation > Shares | Phantom accumulated, running hot |
+| Gap of 20%+ | Heavy churn history, approaching overheat |
+
+**Strategic implication**: Compare saturation to shares, not saturation to pot. An Element at 70% saturation with only 50% shares is already 70% toward reset but will distribute rewards among only 50% worth of claimants — an extra bonus per share. Elements that run hot die young.
+
 ---
 
 ## Emergent Strategies
@@ -185,6 +257,31 @@ The Nitrogen position allows striking into Carbon at 14× lower cost.
 
 **Trade**: Volume vs magnitude. Edge rotation is lower risk, lower reward.
 
+### The Overheat
+
+**Setup**: Deliberately churn through an Element to accelerate its reset via phantom share accumulation.
+
+**Mechanics exploited**:
+- Early entry buys cheap shares
+- Exit returns only marginal saturation
+- The gap becomes phantom residue
+- Residue pushes Element toward premature reset
+
+**Execution**:
+1. Bind early with significant capital when saturation is low
+2. Wait for others to follow (saturation climbs)
+3. Exit—leave phantom shares behind
+4. Optionally re-enter at the new (lower) saturation for another round
+5. Repeat until Element overheats
+
+**Offensive variant**: Force a reset in an Element where a competitor is deeply committed. They get their payout early—before the pot fully develops.
+
+**Defensive variant**: Trigger a premature reset to deny an approaching predator. Better a small payout now than getting sniped at threshold.
+
+**Risk**: Each churn cycle costs fees. The attacker must calculate whether the board-shaping effect is worth the burn.
+
+**Counter**: Patient holders who recognize the churn pattern can exit before the overheat, denying the attacker their intended disruption.
+
 ---
 
 ## Multiple Charges
@@ -236,6 +333,21 @@ When someone compresses, the destination becomes more attractive:
 - Saturation hasn't changed (just pot)
 - First movers after compression get large shares on the new, bigger pot
 
+### Churn Detection
+
+High traffic through an Element signals potential overheating. The key indicator is the **saturation-to-shares gap**:
+
+| Signal | Meaning |
+|--------|---------|
+| saturation ≈ shares | Healthy Element, low churn |
+| saturation > shares by 10%+ | Moderate phantom accumulation |
+| saturation > shares by 30%+ | Heavily churned, approaching overheat |
+| TVL low but saturation stable | Exits removed Gluon but phantom remains |
+
+**Note**: The pot is unreliable—compression moves pots between Elements independently of phantom saturation. An Element can have a huge pot (from compression in) with no phantom, or no pot (compressed out) with heavy phantom.
+
+**Warning sign**: An Element at 70% saturation with only 50% shares is closer to reset than one at 90% saturation with 88% shares. The gap reveals the churn history that saturation alone hides.
+
 ---
 
 ## The Meta-Game
@@ -277,6 +389,8 @@ Long-term success requires:
 | Over-committing to depth | Fe is a trap if the reset doesn't come |
 | Under-utilizing multiple Charges | Diversification reduces risk |
 | Compression without positioning | Benefits everyone; position first |
+| Ignoring churn history | A churned 60% is hotter than a quiet 80% |
+| Filling the vacuum blindly | Everyone sees it; speed tax punishes the race |
 
 ---
 

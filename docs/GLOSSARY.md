@@ -41,6 +41,9 @@ A Charge state indicating it occupies an Element on the board. Bound Charges par
 ### Charge
 A player-controlled entity that enters the board. Each Charge has a Gluon balance, can be bound to one Element at a time, and earns commitment shares when bound.
 
+### Churn
+Repeated entry and exit from an Element by players. Each exit leaves phantom shares behind, causing the Element to accumulate residual saturation and potentially overheat.
+
 ### Claim
 The operation to collect reward share from a reset Artefact. Used by Charges that were bound during a reset but did not trigger it.
 
@@ -158,8 +161,14 @@ The operation to trigger an Element reset when saturation exceeds threshold. Cre
 
 ## P
 
+### Overheat
+When an Element resets with significant phantom saturation from accumulated fees. The reset occurs at the 100% saturation threshold, but actual committed shares may only represent 70-80% of that—the rest is phantom residue from churn. High-traffic Elements "run hot" and reset earlier than their effective commitment would suggest.
+
 ### PDA (Program Derived Address)
 A deterministic account address derived from seeds. Wallets and Charges are PDAs owned by the program.
+
+### Phantom Shares
+Residual saturation that doesn't belong to any Charge. Created when fees reduce a Charge's balance—the Charge removes less saturation on exit than it added on entry (because it has less Gluon). Visible as a gap between an Element's saturation and its actual shares.  High churn accumulates phantom shares, causing Elements to reset at lower effective commitment levels. Incumbents benefit because rewards are distributed among actual shares, not phantom ones.
 
 ### Pod
 A trait from `bytemuck` indicating a type has a fixed memory layout and can be safely cast from bytes. All account types implement Pod for zero-copy access.
@@ -241,6 +250,9 @@ A Charge state indicating it is off the board. Cannot participate in Element mec
 ---
 
 ## V
+
+### Vacuum
+The saturation gap created when a large early holder exits an Element. The curve drops but phantom shares remain, creating an apparent opportunity that attracts competition—often a trap due to speed tax and the visibility of the opportunity to all players.
 
 ### Vault
 Program-owned token account holding stablecoins backing Gluon.
